@@ -1,0 +1,8 @@
+.idea
+cmake-build-*
+build
+polyhedral_gravity.egg-info
+dist
+docs/Doxyfile
+src/polyhedralGravity/Info.h
+.venv/
