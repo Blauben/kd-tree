@@ -1,15 +1,15 @@
 ###############################
-# Building the Polyhedral Libray
+# Building the KDTree Libray
 ################################
-if (BUILD_POLYHEDRAL_GRAVITY_LIBRARY)
-    message(STATUS "Building the Polyhedral Gravity Library")
+if (BUILD_KD_TREE_LIBRARY)
+    message(STATUS "Building the KD Tree Library")
 
     # YAML is only required for the library target, but not for e.g. the Python interface
-    include(yaml)
+    # include(yaml) # TODO: review
 
-    add_subdirectory(polyhedralGravity)
+    add_subdirectory(KDTree)
 
-    # Adds the include Path PROJECT_SOURCE_DIR/src to the target polyhedralGravity
+    # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
     target_include_directories(${PROJECT_NAME}_lib PUBLIC
             "${CMAKE_CURRENT_SOURCE_DIR}"
     )
@@ -17,20 +17,22 @@ if (BUILD_POLYHEDRAL_GRAVITY_LIBRARY)
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
             spdlog::spdlog
-            yaml-cpp::yaml-cpp
+            # yaml-cpp::yaml-cpp TODO
             tetgen_lib
             xsimd
             Thrust
     )
 endif ()
 #####################################
-# Building the Polyhedral Executable
+# Building the KDTree Executable
 #####################################
-if (BUILD_POLYHEDRAL_GRAVITY_EXECUTABLE)
-    message(STATUS "Building the Polyhedral Gravity Executable")
+if (BUILD_KD_TREE_EXECUTABLE)
+    message(STATUS "Building the KD Tree Executable")
 
     # Building the standalone Executable
-    add_executable(${PROJECT_NAME} main.cpp)
+    add_executable(${PROJECT_NAME} kd_tree_main.cpp)
+    set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE FALSE)
+
 
     # Link executable with library
     target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib)
@@ -44,21 +46,21 @@ if (BUILD_POLYHEDRAL_GRAVITY_EXECUTABLE)
 endif ()
 
 ##########################################
-# Building the Polyhedral Python Interface
+# Building the KDTree Python Interface
 ##########################################
-if (BUILD_POLYHEDRAL_GRAVITY_PYTHON_INTERFACE)
-    message(STATUS "Building the Polyhedral Gravity Python Interface")
+if (BUILD_KD_TREE_PYTHON_INTERFACE)
+    message(STATUS "Building the KD Tree Python Interface")
 
     # Include pybind11
     include(pybind11)
 
-    add_subdirectory(polyhedralGravityPython)
+    add_subdirectory(polyhedralGravityPython) # TODO: build for kd tree
 
-    target_include_directories(polyhedral_gravity PUBLIC
+    target_include_directories(KD_TREE PUBLIC
             "${CMAKE_CURRENT_SOURCE_DIR}"
     )
 
-    target_link_libraries(polyhedral_gravity PUBLIC
+    target_link_libraries(KD_TREE PUBLIC
             spdlog::spdlog
             tetgen_lib
             xsimd
@@ -67,10 +69,10 @@ if (BUILD_POLYHEDRAL_GRAVITY_PYTHON_INTERFACE)
 endif ()
 
 #####################################################
-# Building the Polyhedral Time Measurement Executable
+# Building the KDTree Time Measurement Executable
 #####################################################
-if (BUILD_POLYHEDRAL_GRAVITY_TIME_MEASUREMENT)
-    message(STATUS "Building the Polyhedral Gravity Executable")
+if (BUILD_KD_TREE_TIME_MEASUREMENT)
+    message(STATUS "Building the KD Tree Executable")
 
     include(benchmark)
 

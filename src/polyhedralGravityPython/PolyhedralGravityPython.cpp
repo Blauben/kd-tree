@@ -7,10 +7,10 @@
 #include "pybind11/stl.h"
 
 #include "polyhedralGravity/Info.h"
-#include "polyhedralGravity/model/GravityEvaluable.h"
-#include "polyhedralGravity/model/GravityModel.h"
-#include "polyhedralGravity/model/GravityModelData.h"
-#include "polyhedralGravity/model/Polyhedron.h"
+#include "KDTree/model/GravityEvaluable.h"
+#include "KDTree/model/GravityModel.h"
+#include "KDTree/model/GravityModelData.h"
+#include "KDTree/model/Polyhedron.h"
 
 
 namespace py = pybind11;

@@ -1,6 +1,6 @@
 #include "GravityModel.h"
 
-namespace polyhedralGravity::GravityModel {
+namespace kdtree::GravityModel {
 
     GravityModelResult evaluate(const Polyhedron &polyhedron, const Array3 &computationPoint, bool parallel) {
         GravityEvaluable evaluable{polyhedron};
@@ -12,4 +12,4 @@ namespace polyhedralGravity::GravityModel {
         return std::get<std::vector<GravityModelResult>>(evaluable(computationPoints, parallel));
     }
 
-}// namespace polyhedralGravity::GravityModel
+}// namespace kdtree::GravityModel

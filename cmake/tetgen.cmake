@@ -2,6 +2,8 @@ include(FetchContent)
 
 message(STATUS "Setting up tetgen")
 
+set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
+
 # IMPORTANT NOTE
 # We do not use find_package here, as we modify the one source file slightly to suppress output via stdout!!!
 

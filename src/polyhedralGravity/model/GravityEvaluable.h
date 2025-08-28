@@ -12,8 +12,8 @@
 #include "GravityModelData.h"
 #include "GravityModelDetail.h"
 #include "Polyhedron.h"
-#include "polyhedralGravity/input/TetgenAdapter.h"
-#include "polyhedralGravity/util/UtilityContainer.h"
+#include "KDTree/model/TetgenAdapter.h"
+#include "KDTree/util/UtilityContainer.h"
 
 
 namespace polyhedralGravity {

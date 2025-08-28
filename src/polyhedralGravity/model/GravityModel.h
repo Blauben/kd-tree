@@ -3,9 +3,9 @@
 #include <array>
 #include <vector>
 
-#include "polyhedralGravity/model/GravityEvaluable.h"
-#include "polyhedralGravity/model/GravityModelData.h"
-#include "polyhedralGravity/model/Polyhedron.h"
+#include "KDTree/model/GravityEvaluable.h"
+#include "KDTree/model/GravityModelData.h"
+#include "KDTree/model/Polyhedron.h"
 
 /**
  * Namespace containing the methods used to evaluate the polyhedrale Gravity Model
@@ -13,7 +13,7 @@
  * evaluate()           --> main Method for evaluating the gravity model
  * *()                  --> Methods calculating one property for the evaluation
  */
-namespace polyhedralGravity::GravityModel {
+namespace kdtree::GravityModel {
 
     /**
      * Evaluates the polyhedrale gravity model for a given constant density polyhedron at computation
@@ -38,4 +38,4 @@ namespace polyhedralGravity::GravityModel {
     std::vector<GravityModelResult>
     evaluate(const Polyhedron &polyhedron, const std::vector<Array3> &computationPoints, bool parallel = true);
 
-}// namespace polyhedralGravity::GravityModel
+}// namespace kdtree::GravityModel

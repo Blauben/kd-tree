@@ -1,6 +1,6 @@
 #include "GravityModelDetail.h"
 
-namespace polyhedralGravity::GravityModel::detail {
+namespace kdtree::GravityModel::detail {
 
     Array3Triplet buildVectorsOfSegments(const Array3 &vertex0, const Array3 &vertex1, const Array3 &vertex2) {
         using util::operator-;
@@ -401,4 +401,4 @@ namespace polyhedralGravity::GravityModel::detail {
     }
 
 
-}// namespace polyhedralGravity::GravityModel::detail
+}// namespace kdtree::GravityModel::detail

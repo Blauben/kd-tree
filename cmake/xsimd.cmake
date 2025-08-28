@@ -2,6 +2,7 @@ include(FetchContent)
 
 message(STATUS "Setting up xsimd Library")
 set(XSIMD_VERSION 11.1.0)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
 find_package(xsimd ${XSIMD_VERSION} QUIET)
 

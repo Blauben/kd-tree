@@ -1,7 +1,7 @@
 #include "polyhedralGravity/Info.h"
 #include "polyhedralGravity/input/ConfigSource.h"
 #include "polyhedralGravity/input/YAMLConfigReader.h"
-#include "polyhedralGravity/model/GravityModel.h"
+#include "KDTree/model/GravityModel.h"
 #include "polyhedralGravity/output/CSVWriter.h"
 #include "polyhedralGravity/output/Logging.h"
 #include <chrono>
