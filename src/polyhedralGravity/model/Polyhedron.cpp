@@ -1,9 +1,8 @@
 #include "Polyhedron.h"
 
-#include "polyhedralGravity/input/TetgenAdapter.h"
+#include "KDTree/model/TetgenAdapter.h"
 
-
-namespace polyhedralGravity {
+namespace kdtree {
 
     Polyhedron::Polyhedron(const std::vector<Array3> &vertices,
                            const std::vector<IndexArray3> &faces, double density, const NormalOrientation &orientation, const PolyhedronIntegrity &integrity, const PlaneSelectionAlgorithm::Algorithm &treeAlgorithm)
@@ -223,4 +222,4 @@ namespace polyhedralGravity {
         // Count every triangular face which is intersected by the ray
         return this->_tree->countIntersections(rayOrigin, rayVector);
     }
-};// namespace polyhedralGravity
+};// namespace kdtree

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "polyhedralGravity/util/UtilityContainer.h"
-#include "polyhedralGravity/util/UtilityFloatArithmetic.h"
+#include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/UtilityFloatArithmetic.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -11,28 +11,12 @@
 namespace polyhedralGravity {
 
     /**
-     * Alias for an array of size 3 (double)
-     * @example for x, y, z coordinates.
-     */
-    using Array3 = std::array<double, 3>;
-
-    /**
-     * Alias for an array of size 3 (size_t)
-     * @example for the vertex indices in a triangular face.
-     */
-    using IndexArray3 = std::array<size_t, 3>;
-
-    /**
      * Alias for an array of size 6
      * @example for xx, yy, zz, xy, xz, yz second derivatives.
      */
     using Array6 = std::array<double, 6>;
 
-    /**
-     * Alias for a triplet of arrays of size 3
-     * @example for the segment of a triangular face
-     */
-    using Array3Triplet = std::array<Array3, 3>;
+
 
     /**
      * Contains in the order of the tuple:

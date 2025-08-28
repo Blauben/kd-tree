@@ -1,11 +1,10 @@
 #pragma once
 
-#include "polyhedralGravity/model/GravityModelData.h"
-#include "polyhedralGravity/model/KDTree/KDTree.h"
+#include "KDTree/tree/KDTree.h"
+#include "KDTree/util/UtilityConstants.h"
+#include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/UtilityFloatArithmetic.h"
 #include "polyhedralGravity/output/Logging.h"
-#include "polyhedralGravity/util/UtilityConstants.h"
-#include "polyhedralGravity/util/UtilityContainer.h"
-#include "polyhedralGravity/util/UtilityFloatArithmetic.h"
 #include "thrust/copy.h"
 #include "thrust/device_vector.h"
 #include "thrust/execution_policy.h"
@@ -27,7 +26,7 @@
 #include <variant>
 #include <vector>
 
-namespace polyhedralGravity {
+namespace kdtree {
 
     /* Forward declaration of Polyhedron */
     class Polyhedron;
@@ -386,4 +385,4 @@ namespace polyhedralGravity {
         [[nodiscard]] size_t countRayPolyhedronIntersections(const Array3Triplet &face) const;
     };
 
-}// namespace polyhedralGravity
+}// namespace kdtree

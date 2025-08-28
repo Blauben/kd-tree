@@ -13,6 +13,6 @@ endif ()
 
 # Configure the output header file
 configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/polyhedralGravity/Info.h.in"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/polyhedralGravity/Info.h"
+        "src/KDTree/Info.h.in"
+        "src/KDTree/Info.h"
 )

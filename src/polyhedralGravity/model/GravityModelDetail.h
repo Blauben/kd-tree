@@ -18,14 +18,14 @@
 
 #include "GravityModelData.h"
 #include "Polyhedron.h"
-#include "polyhedralGravity/input/TetgenAdapter.h"
+#include "KDTree/model/TetgenAdapter.h"
 #include "polyhedralGravity/output/Logging.h"
-#include "polyhedralGravity/util/UtilityConstants.h"
-#include "polyhedralGravity/util/UtilityContainer.h"
-#include "polyhedralGravity/util/UtilityFloatArithmetic.h"
-#include "polyhedralGravity/util/UtilityThrust.h"
+#include "KDTree/util/UtilityConstants.h"
+#include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/UtilityFloatArithmetic.h"
+#include "KDTree/util/UtilityThrust.h"
 
-namespace polyhedralGravity::GravityModel::detail {
+namespace kdtree::GravityModel::detail {
 
     /**
      * Computes the segment vectors G_ij for one plane of the polyhedron according to Tsoulis (18).
@@ -205,4 +205,4 @@ namespace polyhedralGravity::GravityModel::detail {
     computeNormsOfProjectionPointAndVertices(const Array3 &orthogonalProjectionPointOnPlane, const Array3Triplet &face);
 
 
-} // namespace polyhedralGravity::GravityModel::detail
+} // namespace kdtree::GravityModel::detail
