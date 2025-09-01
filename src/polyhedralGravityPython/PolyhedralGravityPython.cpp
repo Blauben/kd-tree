@@ -12,7 +12,6 @@
 #include "KDTree/model/GravityModelData.h"
 #include "KDTree/model/Polyhedron.h"
 
-
 namespace py = pybind11;
 
 PYBIND11_MODULE(polyhedral_gravity, m) {

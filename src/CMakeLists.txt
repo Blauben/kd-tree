@@ -16,7 +16,7 @@ if (BUILD_KD_TREE_LIBRARY)
 
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
-            spdlog::spdlog
+            #spdlog::spdlog
             # yaml-cpp::yaml-cpp TODO
             tetgen_lib
             xsimd
@@ -50,21 +50,10 @@ endif ()
 if (BUILD_KD_TREE_PYTHON_INTERFACE)
     message(STATUS "Building the KD Tree Python Interface")
 
-    # Include pybind11
-    include(pybind11)
+    # Include nanobind
+    include(nanobind)
 
-    add_subdirectory(polyhedralGravityPython) # TODO: build for kd tree
-
-    target_include_directories(KD_TREE PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}"
-    )
-
-    target_link_libraries(KD_TREE PUBLIC
-            spdlog::spdlog
-            tetgen_lib
-            xsimd
-            Thrust
-    )
+    add_subdirectory(KDTreePython)
 endif ()
 
 #####################################################
