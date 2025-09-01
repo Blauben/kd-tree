@@ -70,6 +70,25 @@ namespace kdtree {
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
+         * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
+         * @param nodeFilePath The path to the .node file containing information about the polyhedron's vertices.
+         * @param faceFilePath The path to the .face file containing information about the polyhedron's faces.
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         */
+        KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+
+        /**
+         * Constructor overload that allows passing the paths for the .node and .face files in a std::pair.
+         * @param polySource The pair of the .node and .face file
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         */
+        KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
+               PlaneSelectionAlgorithm::Algorithm algorithm);
+
+
+        /**
         * Creates the root tree node if not initialized and returns it.
         * @return the root tree Node.
         */

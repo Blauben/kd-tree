@@ -1,15 +1,17 @@
+#include "KDTree/model/TetgenAdapter.h"
+
+
+#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
+#include "KDTree/tree/KDTree.h"
 #include <iostream>
 #include <vector>
-#include "KDTree/tree/KDTree.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 
 int main() {
     using namespace kdtree;
-    std::vector<Array3> vertices{};
-    std::vector<IndexArray3> faces{};
     PlaneSelectionAlgorithm::Algorithm algorithm{PlaneSelectionAlgorithm::Algorithm::LOG};
 
-    KDTree tree{vertices, faces, algorithm};
+    KDTree tree{"/home/karl/Repositories/kd-tree/polyhedral_files/Eros_scaled-140296.node", "/home/karl/Repositories/kd-tree/polyhedral_files/Eros_scaled-140296.face", algorithm};
+    tree.prebuildTree();
     std::cout << tree;
     return 0;
 }
