@@ -39,7 +39,7 @@ option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON)" ON)
 cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" ON
         "NOT BUILD_KD_TREE_EXECUTABLE AND NOT BUILD_KD_TREE_TESTS" ON)
 # Option to build the python interface
-option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: ON)" OFF)
+option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: ON)" ON)
 # Option to build tests or not
 option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: ON)" OFF)
 # Option to build benchmarks or not
@@ -77,7 +77,7 @@ message(STATUS "################################################################
 #######################################################
 
 include(thrust)
-include(spdlog)
+#include(spdlog)
 include(tetgen)
 include(xsimd)
 include(clang_format)

@@ -1,17 +1,17 @@
 #pragma once
 
-#include "DataSource.h"
+#include "KDTree/tree/KdDefinitions.h"
 #include "tetgen.h"
-#include <map>
-#include <array>
-#include <vector>
-#include <string>
-#include <functional>
-#include <utility>
-#include <exception>
-#include <stdexcept>
-#include "polyhedralGravity/output/Logging.h"
+
 #include "KDTree/util/UtilityContainer.h"
+#include <array>
+#include <exception>
+#include <functional>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace kdtree {
 
@@ -22,7 +22,7 @@ namespace kdtree {
  *
  * The Adapter further keeps en eye on the already read in files in order to give feedback if data is in conflict.
  */
-    class TetgenAdapter final : public DataSource {
+    class TetgenAdapter {
 
         /**
          * The default exception message
@@ -72,7 +72,7 @@ namespace kdtree {
          * converted to a Polyhedron.
          * @return a Polyhedron
          */
-        std::tuple<std::vector<Array3>, std::vector<IndexArray3>> getPolyhedralSource() override;
+        std::tuple<std::vector<Array3>, std::vector<IndexArray3>> getPolyhedralSource();
 
         /**
          * Reads nodes from a .node file
