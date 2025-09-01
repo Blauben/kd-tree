@@ -1,5 +1,7 @@
 #include "TetgenAdapter.h"
 
+#include <filesystem>
+
 namespace kdtree {
 
     std::tuple<std::vector<Array3>, std::vector<IndexArray3>> TetgenAdapter::getPolyhedralSource() {
@@ -7,6 +9,9 @@ namespace kdtree {
         for (const auto &fileName: _fileNames) {
             size_t pos = fileName.find_last_of('.');
             std::string name = fileName.substr(0, pos);
+            if (!std::filesystem::exists(fileName)) {
+                throw std::runtime_error("TetgenAdapter::getPolyhedralSource(): File " + fileName + " does not exist");
+            }
             std::string suffix = fileName.substr(pos + 1);
             _suffixToOperation.at(suffix)(name);
         }
