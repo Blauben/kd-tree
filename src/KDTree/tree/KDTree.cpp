@@ -1,5 +1,7 @@
 #include "KDTree/tree/KDTree.h"
 
+#include "KDTree/model/TetgenAdapter.h"
+
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
@@ -10,6 +12,14 @@ namespace kdtree {
                                            PlaneSelectionAlgorithmFactory::create(algorithm))
           } {
     }
+
+    KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
+                   const PlaneSelectionAlgorithm::Algorithm algorithm)
+    : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm)
+{}
+
+
+    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(),algorithm) {}
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
