@@ -33,7 +33,6 @@ if (BUILD_KD_TREE_EXECUTABLE)
     add_executable(${PROJECT_NAME} kd_tree_main.cpp)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE FALSE)
 
-
     # Link executable with library
     target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib)
 

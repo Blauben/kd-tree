@@ -10,7 +10,7 @@ int main() {
     using namespace kdtree;
     PlaneSelectionAlgorithm::Algorithm algorithm{PlaneSelectionAlgorithm::Algorithm::LOG};
 
-    KDTree tree{"/home/karl/Repositories/kd-tree/polyhedral_files/Eros_scaled-140296.node", "/home/karl/Repositories/kd-tree/polyhedral_files/Eros_scaled-140296.face", algorithm};
+    KDTree tree{"..\\polyhedral_files\\Eros_scaled-140296.node", "..\\polyhedral_files\\Eros_scaled-140296.face", algorithm};
     tree.prebuildTree();
     std::cout << tree;
     return 0;
