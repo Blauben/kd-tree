@@ -13,8 +13,6 @@ if (BUILD_KD_TREE_LIBRARY)
 
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
-            #spdlog::spdlog
-            # yaml-cpp::yaml-cpp TODO
             tetgen_lib
             xsimd
             Thrust
@@ -24,7 +22,7 @@ endif ()
 # Building the KDTree Executable
 #####################################
 if (BUILD_KD_TREE_EXECUTABLE)
-    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Executable)}")
+    message(STATUS "Building the KD Tree Executable")
 
     # Building the standalone Executable
     add_executable(${PROJECT_NAME} kd_tree_main.cpp)
@@ -45,7 +43,7 @@ endif ()
 # Building the KDTree Python Interface
 ##########################################
 if (BUILD_KD_TREE_PYTHON_INTERFACE)
-    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Python Interface")
+    message(STATUS "Building the KD Tree Python Interface")
 
     # Include nanobind
     include(nanobind)
@@ -57,7 +55,7 @@ endif ()
 # Building the KDTree Time Measurement Executable
 #####################################################
 if (BUILD_KD_TREE_TIME_MEASUREMENT)
-    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Benchmark Executable")
+    message(STATUS "Building the KD Tree Benchmark Executable")
 
     include(benchmark)
 
@@ -73,4 +71,7 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT)
             LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
             RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
+
+    file(COPY ${CMAKE_SOURCE_DIR}/polyhedral_files DESTINATION ${PROJECT_BINARY_DIR})
+
 endif ()

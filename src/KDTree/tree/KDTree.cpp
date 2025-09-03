@@ -1,6 +1,6 @@
 #include "KDTree/tree/KDTree.h"
 
-#include "KDTree/model/TetgenAdapter.h"
+#include "KDTree/input/TetgenAdapter.h"
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
