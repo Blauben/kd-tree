@@ -4,9 +4,6 @@
 if (BUILD_KD_TREE_LIBRARY)
     message(STATUS "Building the KD Tree Library")
 
-    # YAML is only required for the library target, but not for e.g. the Python interface
-    # include(yaml) # TODO: review
-
     add_subdirectory(KDTree)
 
     # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
@@ -27,7 +24,7 @@ endif ()
 # Building the KDTree Executable
 #####################################
 if (BUILD_KD_TREE_EXECUTABLE)
-    message(STATUS "Building the KD Tree Executable")
+    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Executable)}")
 
     # Building the standalone Executable
     add_executable(${PROJECT_NAME} kd_tree_main.cpp)
@@ -48,7 +45,7 @@ endif ()
 # Building the KDTree Python Interface
 ##########################################
 if (BUILD_KD_TREE_PYTHON_INTERFACE)
-    message(STATUS "Building the KD Tree Python Interface")
+    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Python Interface")
 
     # Include nanobind
     include(nanobind)
@@ -60,7 +57,7 @@ endif ()
 # Building the KDTree Time Measurement Executable
 #####################################################
 if (BUILD_KD_TREE_TIME_MEASUREMENT)
-    message(STATUS "Building the KD Tree Executable")
+    message(STATUS "Building the KD Tree ${GIT_VERSION_TAG} Benchmark Executable")
 
     include(benchmark)
 

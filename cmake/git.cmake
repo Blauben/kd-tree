@@ -44,3 +44,14 @@ function(is_git_working_tree_clean OUTPUT_VAR)
         endif()
     endif()
 endfunction()
+
+function(get_git_version_tag OUTPUT_VAR)
+    execute_process(
+            COMMAND git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*"
+            OUTPUT_VARIABLE GIT_TAG
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    string(LENGTH ${GIT_TAG} TAG_LENGTH)
+    string(SUBSTRING ${GIT_TAG} 1 ${TAG_LENGTH} VERSION_NUMBER)
+    set(${OUTPUT_VAR} "${VERSION_NUMBER}" PARENT_SCOPE)
+endfunction()
