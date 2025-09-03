@@ -49,6 +49,8 @@ if (BUILD_KD_TREE_PYTHON_INTERFACE)
     include(nanobind)
 
     add_subdirectory(KDTreePython)
+
+    target_link_libraries(KDTree_Python PUBLIC ${PROJECT_NAME}_lib)
 endif ()
 
 #####################################################
