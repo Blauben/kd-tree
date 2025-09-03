@@ -1,4 +1,4 @@
-#include "KDTree/model/TetgenAdapter.h"
+#include "KDTree/input/TetgenAdapter.h"
 
 
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"

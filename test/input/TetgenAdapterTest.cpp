@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "polyhedralGravity/input/TetgenAdapter.h"
+#include "KDTree/input/TetgenAdapter.h"
 
 class TetgenAdapterTest : public ::testing::Test {
 
@@ -39,7 +39,7 @@ protected:
 
 TEST_F(TetgenAdapterTest, readSimpleNode) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{
             "resources/TetgenAdapterTestReadSimple.node",
@@ -55,7 +55,7 @@ TEST_F(TetgenAdapterTest, readSimpleNode) {
 
 TEST_F(TetgenAdapterTest, readSimpleFace) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{
             "resources/TetgenAdapterTestReadSimple.node",
@@ -70,7 +70,7 @@ TEST_F(TetgenAdapterTest, readSimpleFace) {
 
 TEST_F(TetgenAdapterTest, readSimpleMesh) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{"resources/TetgenAdapterTestReadSimple.mesh"};
 
@@ -85,7 +85,7 @@ TEST_F(TetgenAdapterTest, readSimpleMesh) {
 
 TEST_F(TetgenAdapterTest, readSimpleOff) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{"resources/TetgenAdapterTestReadSimple.off"};
 
@@ -100,7 +100,7 @@ TEST_F(TetgenAdapterTest, readSimpleOff) {
 
 TEST_F(TetgenAdapterTest, readSimplePly) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{"resources/TetgenAdapterTestReadSimple.ply"};
 
@@ -115,7 +115,7 @@ TEST_F(TetgenAdapterTest, readSimplePly) {
 
 TEST_F(TetgenAdapterTest, readSimpleStl) {
     using namespace testing;
-    using namespace ::polyhedralGravity;
+    using namespace ::kdtree;
 
     std::vector<std::string> simpleFiles{"resources/TetgenAdapterTestReadSimple.stl"};
 

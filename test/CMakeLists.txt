@@ -18,6 +18,8 @@ target_link_libraries(${PROJECT_NAME}_test
         ${PROJECT_NAME}_lib
         )
 
+target_include_directories(${PROJECT_NAME}_test PUBLIC ${PROJECT_SOURCE_DIR}/src)
+
 # Copies the test resources into a directory next to the test executable
 file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 

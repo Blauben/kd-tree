@@ -1,7 +1,7 @@
 include(FetchContent)
 
 message(STATUS "Setting up Google Benchmark")
-set(GOOGLE_BENCHMARK_VERSION 1.9.1)
+set(GOOGLE_BENCHMARK_VERSION 1.9.4)
 
 set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Disable benchmark testing" FORCE)
 include(gtest)
