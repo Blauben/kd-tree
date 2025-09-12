@@ -50,8 +50,13 @@ function(get_git_version_tag OUTPUT_VAR)
             COMMAND git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*"
             OUTPUT_VARIABLE GIT_TAG
             OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_VARIABLE GIT_ERROR
     )
-    string(LENGTH ${GIT_TAG} TAG_LENGTH)
-    string(SUBSTRING ${GIT_TAG} 1 ${TAG_LENGTH} VERSION_NUMBER)
+    if(GIT_ERROR)
+        set(VERSION_NUMBER "0.0.0")
+    else()
+        string(LENGTH ${GIT_TAG} TAG_LENGTH)
+        string(SUBSTRING ${GIT_TAG} 1 ${TAG_LENGTH} VERSION_NUMBER)
+    endif()
     set(${OUTPUT_VAR} "${VERSION_NUMBER}" PARENT_SCOPE)
 endfunction()
