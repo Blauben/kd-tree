@@ -2,10 +2,10 @@
 
 namespace kdtree {
     SplitNode::SplitNode(const SplitParam &splitParam, const Plane &plane,
-                         std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > &triangleIndexLists,
+                         PointIndexVectors<2> &pointIndexLists,
                          const size_t nodeId)
         : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
-          _triangleLists{std::move(triangleIndexLists)} {
+          _pointLists{std::move(pointIndexLists)} {
     }
 
     std::shared_ptr<TreeNode> SplitNode::getChildNode(const size_t index) {
@@ -19,9 +19,7 @@ namespace kdtree {
             auto [lesserBox, greaterBox] = this->_boundingBox.splitBox(this->_plane);
             childParam.boundingBox = index == 0 ? lesserBox : greaterBox;
             //get the triangles of the box
-            std::visit([&childParam, index](auto &typeLists) -> void {
-                childParam.boundFaces = *std::move(typeLists[index]);
-            }, _triangleLists);
+            childParam.boundPoints = *std::move(this->_pointLists[index]);
             childParam.splitDirection = static_cast<Direction>(
                 (static_cast<int>(_splitParam->splitDirection) + 1) % DIMENSIONS);
             //increase the recursion depth of the direct child by 1

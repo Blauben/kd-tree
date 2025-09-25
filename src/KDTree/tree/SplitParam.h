@@ -1,5 +1,7 @@
 #pragma once
 
+#include <utility>
+
 #include "KDTree/tree/KdDefinitions.h"
 
 namespace kdtree {
@@ -13,15 +15,11 @@ namespace kdtree {
         /**
          * The vertices that compose the Polyhedron.
          */
-        const std::vector<Array3> &vertices;
-        /**
-         * The faces that connect the vertices to render the Polyhedron.
-         */
-        const std::vector<IndexArray3> &faces;
+        const PointVector &points;
         /**
          * Either an index list of faces that are included in the current bounding box of the KDTree or a list of PlaneEvents containing the information about thr bound faces. Important when building deeper levels of a KDTree.
          */
-        std::variant<TriangleIndexVector, PlaneEventVector> boundFaces;
+        PointIndexVector boundPoints;
         /**
          * The current bounding box that should be divided further by the KDTree.
          */
@@ -40,23 +38,20 @@ namespace kdtree {
          * Constructor that initializes all fields. Intended for the use with std::make_unique. See {@link SplitParam} fields for further information.
          *
          */
-        SplitParam(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces, const Box &boundingBox,
+        SplitParam(const PointVector &points, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : vertices{vertices}, faces{faces}, boundFaces{TriangleIndexVector(faces.size())}, boundingBox{boundingBox},
+            : points{points}, boundPoints{PointIndexVector(points.size())}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
-            auto &indexList = std::get<TriangleIndexVector>(boundFaces);
-            std::iota(indexList.begin(), indexList.end(), 0);
         }
 
         /**
          * Constructor manually initializing boundFaces, used for testing.
          */
-        SplitParam(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
-                   const std::variant<TriangleIndexVector, PlaneEventVector> &boundFaces, const Box &boundingBox,
+        SplitParam(const PointVector &points, PointIndexVector& boundPoints, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : vertices{vertices}, faces{faces}, boundFaces{boundFaces}, boundingBox{boundingBox},
+            : points{points}, boundPoints{std::move(boundPoints)}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
         }
     };

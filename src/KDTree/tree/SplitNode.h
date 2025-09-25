@@ -55,7 +55,7 @@ struct SplitParam;
         /**
          * Contains the triangle lists for the lesser and greater bounding boxes. {@link TriangleIndexVectors}
         */
-        std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> _triangleLists;
+        PointIndexVectors<2> _pointLists;
 
     public:
         /**
@@ -65,7 +65,7 @@ struct SplitParam;
          * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link TriangleIndexVector}
          * @param nodeId Unique Id given by the TreeNodeFactory.
          */
-        SplitNode(const SplitParam &splitParam, const Plane &plane, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists, size_t nodeId);
+        SplitNode(const SplitParam &splitParam, const Plane &plane, PointIndexVectors<2> &pointIndexLists, size_t nodeId);
         /**
          * Computes the child node decided by the given index (0 for lesser, 1 for greater) if not present already and returns it to the caller.
          * @param index Specifies which node to build. 0 or LESSER for _lesser, 1 or GREATER for _greater.

@@ -6,13 +6,9 @@ namespace kdtree {
         switch (algorithm) {
             case Algorithm::NOTREE:
                 return std::make_shared<NoTreePlane>();
+            default:
             case Algorithm::QUADRATIC:
                 return std::make_shared<SquaredPlane>();
-            case Algorithm::LOGSQUARED:
-                return std::make_shared<LogNSquaredPlane>();
-            default:
-            case Algorithm::LOG:
-                return std::make_shared<LogNPlane>();
         }
     }
 }// namespace kdtree

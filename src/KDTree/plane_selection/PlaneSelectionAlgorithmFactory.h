@@ -1,7 +1,5 @@
 #pragma once
 
-#include "KDTree/plane_selection/LogNPlane.h"
-#include "KDTree/plane_selection/LogNSquaredPlane.h"
 #include "KDTree/plane_selection/NoTreePlane.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/plane_selection/SquaredPlane.h"

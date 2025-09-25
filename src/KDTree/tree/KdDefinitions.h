@@ -192,105 +192,18 @@ namespace kdtree {
     };
 
     /**
-     * A set that stores indices of the faces vector in the KDTree. This effectively corresponds to a set of triangles. For performance purposes a std::vector is used instead of a std::set.
-     */
-    using TriangleIndexVector = std::vector<size_t>;
-
-    /**
-    * Triangle sets contained in an array. Used by the KDTree to divide a bounding boxes included triangles into smaller subsets. For the semantic purpose of the contained sets please refer to the comments in the usage context.
-     */
-    template<size_t Number>
-    using TriangleIndexVectors = std::array<std::unique_ptr<TriangleIndexVector>, Number>;
-
-    /**
-    * Used by {@link PlaneEvent} to position the face that generated the event relative to the generated plane.
-    */
-    enum class PlaneEventType {
-        ending = 0,
-        planar = 1,
-        starting = 2,
-    };
-
-    /**
-     * Generated when traversing the vector of faces and building their candidate planes.
-     */
-    struct PlaneEvent {
-        PlaneEventType type;
-        /**
-         * The candidate plane suggested by the face included in this struct.
-         */
-        Plane plane;
-        /**
-         * The index of the face that generated this candidate plane.
-         */
-        unsigned int faceIndex;
-
-        PlaneEvent(PlaneEventType type, Plane plane, unsigned faceIndex);
-
-        PlaneEvent() = default;
-
-        /**
-         * Less operator used for sorting an PlaneEvent vector.
-         * @param other the PlaneEvent to compare this to.
-         * @return true if this should precede the other argument.
-         */
-        bool operator<(const PlaneEvent &other) const;
-
-        /**
-         *Equality operator used for testing purposes
-         */
-        bool operator==(const PlaneEvent &other) const;
-    };
-
-    /**
-     * A list of PlaneEvents.
-    */
-    using PlaneEventVector = std::vector<PlaneEvent>;
-
-    /**
-    * An array of PlaneEventLists.
-    */
-    template<size_t Number>
-    using PlaneEventVectors = std::array<std::unique_ptr<PlaneEventVector>, Number>;
-
-    /**
-     * Extracts the indices of the triangle faces that are referenced by the given PlaneEvents.
-     * @param events The PlaneEvents containing information about the faces.
-     * @return A list of face indices.
-     */
-    TriangleIndexVector convertEventsToFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &events);
-
-    size_t countFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &triangles);
-
-    /**
-        * An iterator transforming face indices to vertices and returning both.
-        * This function returns a pair of transform iterators (first = begin(), second = end()).
-        * @param begin begin iterator of the face indice vector to transform.
-        * @param end end iterator of the face indice vector to transform.
-        * @param vertices the vector of vertices to look up the indices obtained from the faces vector.
-        * @param faces the faces vector to lookup face indices.
-        * @return pair of transform iterators.
-        */
-    [[nodiscard]] static auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces) {
-        //The offset must be captured by value to ensure its lifetime!
-        const auto lambdaApplication = [&vertices, &faces](size_t faceIndex) {
-            const auto &face = faces[faceIndex];
-            Array3Triplet vertexTriplet = {
-                    vertices[face[0]],
-                    vertices[face[1]],
-                    vertices[face[2]]};
-            return std::make_pair(faceIndex, vertexTriplet);
-        };
-
-        auto first = thrust::make_transform_iterator(begin, lambdaApplication);
-        auto last = thrust::make_transform_iterator(end, lambdaApplication);
-        return std::make_pair(first, last);
-    }
-
-    /**
     * The distance to the tree's root from this node. Used to limit the depth and the size of the tree.
     * @param nodeId The id of the node to determine the depth (distance to root node) of.
     */
     size_t recursionDepth(size_t nodeId);
+
+    using Point = std::array<double, 3>;
+
+    using PointVector = std::vector<Point>;
+
+    using PointIndexVector = std::vector<size_t>;
+
+    template<unsigned size>
+    using PointIndexVectors = std::array<std::unique_ptr<PointIndexVector>, size>;
 
 }// namespace kdtree

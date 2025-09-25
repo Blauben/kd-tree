@@ -42,11 +42,7 @@ namespace kdtree {
         /**
          * The polyhedron's vertices.
          */
-        const std::vector<Array3> _vertices;
-        /**
-         * The polyhedron's faces: A face is a triplet of vertex indices.
-         */
-        const std::vector<IndexArray3> _faces;
+        const std::vector<Array3> _points;
 
         /**
          * Set when the root node has been created.
@@ -66,7 +62,7 @@ namespace kdtree {
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
         * @return the lazily built KDTree.
         */
-        KDTree(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
+        KDTree(const PointVector& points,
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
@@ -76,17 +72,6 @@ namespace kdtree {
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
-
-        /**
-         * Constructor overload that allows passing the paths for the .node and .face files in a std::pair.
-         * @param polySource The pair of the .node and .face file
-         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
-         * @return the lazily built KDTree.
-         */
-        KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
-               PlaneSelectionAlgorithm::Algorithm algorithm);
-
 
         /**
         * Creates the root tree node if not initialized and returns it.

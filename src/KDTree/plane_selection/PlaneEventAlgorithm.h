@@ -80,27 +80,4 @@ struct SplitParam;
          */
         std::vector<std::array<size_t, 3> > dimensionTriangleValues;
     };
-
-    class PlaneEventAlgorithm : public PlaneSelectionAlgorithm {
-    protected:
-        /**
-        * Generates the vector of PlaneEvents comprising all the possible candidate planes using an index list of faces. {@link PlaneEvent}
-        * @param splitParam Contains the parameters of the scene to find candidate planes for. {@link SplitParam}
-        * @param directions For which directions to generate the events for.
-        * @return The vector of PlaneEvents.
-        */
-        static PlaneEventVector generatePlaneEventsFromFaces(const SplitParam &splitParam,
-                                                             std::vector<Direction> directions);
-
-        /**
-         * Iterates over PlaneEvents and determines the optimal split plane.
-         * @param events The events to base calculations on.
-         * @param triangleCounter Used to track face count during iteration.
-         * @param boundingBox The current node's bounding box
-         * @return Tuple of optimal plane, its cost and where to include planar faces.
-         */
-        static std::tuple<Plane, double, bool> traversePlaneEvents(const PlaneEventVector &events,
-                                                                   TriangleCounter &triangleCounter,
-                                                                   const Box &boundingBox);
-    };
 } // namespace kdtree

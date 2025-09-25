@@ -4,22 +4,14 @@
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
-    KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
+    KDTree::KDTree(const PointVector &points,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
-        : _vertices{vertices}, _faces{faces},
+        : _points{points},
           _splitParam{
-              std::make_unique<SplitParam>(_vertices, _faces, Box::getBoundingBox(_vertices), Direction::X,
+              std::make_unique<SplitParam>(_points, Box::getBoundingBox(_points), Direction::X,
                                            PlaneSelectionAlgorithmFactory::create(algorithm))
           } {
     }
-
-    KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm)
-    : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm)
-{}
-
-
-    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(),algorithm) {}
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
@@ -27,38 +19,6 @@ namespace kdtree {
             this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
         });
         return this->_rootNode;
-    }
-
-    size_t KDTree::countIntersections(const Array3 &origin, const Array3 &ray) {
-        //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
-        std::set<Array3> set{};
-        this->getFaceIntersections(origin, ray, set);
-        return set.size();
-    }
-
-    void KDTree::getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections) {
-        //iterative approach to avoid stack and heap overflows
-        //queue for children of processed nodes
-        std::deque<std::shared_ptr<TreeNode> > queue{};
-        //calculate inverse ray direction
-        const Array3 inverseRay{1. / ray[0], 1. / ray[1], 1. / ray[2]};
-        //init with tree root
-        queue.push_back(getRootNode());
-        while (!queue.empty()) {
-            auto node = queue.front();
-            //if node is SplitNode perform intersection checks on the children and queue them accordingly
-            if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
-                const auto children = split->getChildrenForIntersection(origin, ray, inverseRay);
-                std::for_each(std::begin(children), std::end(children), [&queue](const auto &child) {
-                    queue.push_back(child);
-                });
-            }
-            //if node is leaf then perform intersections with the triangles contained
-            else if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
-                leaf->getFaceIntersections(origin, ray, intersections);
-            }
-            queue.pop_front();
-        }
     }
 
     KDTree &KDTree::prebuildTree() {
