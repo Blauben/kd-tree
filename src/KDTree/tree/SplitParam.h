@@ -41,8 +41,9 @@ namespace kdtree {
         SplitParam(const PointVector &points, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : points{points}, boundPoints{PointIndexVector(points.size())}, boundingBox{boundingBox},
+            : points{points}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
+
         }
 
         /**

@@ -85,7 +85,10 @@ namespace kdtree {
         }
     };
 
-    const std::vector<TestData> testData = {std::make_tuple(KDTreeTest::cube_points, Algorithm::QUADRATIC), std::make_tuple(big_points, Algorithm::QUADRATIC)};
+    const std::vector<TestData> testData = {
+        std::make_tuple(KDTreeTest::cube_points, Algorithm::QUADRATIC),
+        std::make_tuple(big_points, Algorithm::QUADRATIC)
+    };
 
     TEST_P(KDTreeTest, BuildTree) {
         using namespace kdtree;
@@ -93,10 +96,12 @@ namespace kdtree {
         const auto [points, algorithm] = GetParam();
         KDTree tree{points, algorithm};
         ASSERT_NO_THROW(tree.prebuildTree());
+        std::cout << "Points: [";
         std::for_each(points.cbegin(), points.cend(), [](const auto& point) {
-            std::cout << point[0] << ", " << point[1] << ", " << point[2] << std::endl;
+            std::cout <<  " {" << point[0] << ", " << point[1] << ", " << point[2] << "} ";
         });
-        std::cout << tree;
+        std::cout << "]" << std::endl << std::endl << "Tree:" << std::endl;
+        std::cout << tree << std::endl;
     }
 
     INSTANTIATE_TEST_SUITE_P(BuildTree, KDTreeTest, ::testing::ValuesIn(testData), TestNameGenerator{});

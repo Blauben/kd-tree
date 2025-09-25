@@ -11,6 +11,8 @@ namespace kdtree {
               std::make_unique<SplitParam>(_points, Box::getBoundingBox(_points), Direction::X,
                                            PlaneSelectionAlgorithmFactory::create(algorithm))
           } {
+        _splitParam->boundPoints.resize(points.size());
+        std::iota(_splitParam->boundPoints.begin(), _splitParam->boundPoints.end(), 0);
     }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
