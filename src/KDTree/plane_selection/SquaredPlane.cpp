@@ -8,6 +8,10 @@ namespace kdtree {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
         const auto &boundFaces = std::get<TriangleIndexVector>(splitParam.boundFaces);
+        const std::function geoSubsetCallback = [](TriangleIndexVectors<3> indexVectors, bool minSideChosen) {
+            return addEqualPointsToSubset(std::move(indexVectors), minSideChosen);
+        };
+        OptimalPlane<> optPlane{splitParam, };
         //initialize the default plane and make it costly
         double cost = std::numeric_limits<double>::infinity();
         Plane optPlane{0, splitParam.splitDirection};
