@@ -4,11 +4,15 @@ namespace kdtree {
     // O(N*log^2(N)) implementation
     std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > > LogNPlane::findPlane(
         const SplitParam &splitParam) {
+        const std::function geoSubsetCallback = [](const Plane &optPlane, const PlaneEventVector& events, bool minSideChosen) {
+            return  generatePlaneEventSubsets(splitParam, events, optPlane, minSideChosen)
+        };
+        OptimalPlane<> optPlane{splitParam, geoSubsetCallback};
         const PlaneEventVector events{std::move(generatePlaneEvents(splitParam))};
         TriangleCounter triangleCounter{3, {0, countFaces(splitParam.boundFaces), 0}};
-        auto [optPlane, cost, minSide] = traversePlaneEvents(events, triangleCounter, splitParam.boundingBox);
+        traversePlaneEvents(optPlane, events, triangleCounter, splitParam.boundingBox);
         //generate the triangle index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
-        return {optPlane, cost, generatePlaneEventSubsets(splitParam, events, optPlane, minSide)};
+        return {optPlane, cost,};
     }
 
     PlaneEventVector LogNPlane::generatePlaneEvents(const SplitParam &splitParam) {

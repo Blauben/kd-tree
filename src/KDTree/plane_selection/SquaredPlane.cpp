@@ -8,23 +8,17 @@ namespace kdtree {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
         const auto &boundFaces = std::get<TriangleIndexVector>(splitParam.boundFaces);
-        const std::function geoSubsetCallback = [](TriangleIndexVectors<3> indexVectors, bool minSideChosen) {
-            return addEqualPointsToSubset(std::move(indexVectors), minSideChosen);
+        const std::function geoSubsetCallback = [this](const OptimalPlane<TriangleIndexVectors<3>, bool>& optPlane, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
+            return addEqualPointsToSubset<TriangleIndexVectors>(std::move(indexVectors), minSideChosen);
         };
-        OptimalPlane<> optPlane{splitParam, };
-        //initialize the default plane and make it costly
-        double cost = std::numeric_limits<double>::infinity();
-        Plane optPlane{0, splitParam.splitDirection};
-        //store the triangleSets that are implicitly generated during plane testing for later use.
-        TriangleIndexVectors<2> optTriangleIndexLists{};
+        OptimalPlane<TriangleIndexVectors<3>, bool> optPlane{splitParam, geoSubsetCallback};
         //each vertex proposes a split plane candidate: test for each of them, store them in buffer set to avoid duplicate testing
         std::unordered_set<double> testedPlaneCoordinates{};
         auto [vertex3_begin, vertex3_end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(),
                                                               splitParam.vertices, splitParam.faces);
-        std::mutex optMutex{}, testedPlaneMutex{};
+        std::mutex testedPlaneMutex{};
         thrust::for_each(thrust::device, vertex3_begin, vertex3_end,
-                         [&splitParam, &optPlane, &cost, &optTriangleIndexLists, &testedPlaneCoordinates, &optMutex, &
-                             testedPlaneMutex](
+                         [&splitParam, &optPlane, &testedPlaneCoordinates, &testedPlaneMutex](
                      const auto &indexAndTriplet) {
                              const auto [index, triplet] = indexAndTriplet;
                              //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
@@ -52,29 +46,17 @@ namespace kdtree {
                                  auto [candidateCost, minSideChosen] = costForPlane(
                                      splitParam.boundingBox, candidatePlane, triangleIndexLists[0]->size(),
                                      triangleIndexLists[1]->size(), triangleIndexLists[2]->size()); {
-                                     std::lock_guard lock(optMutex);
                                      // this if clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                                      // this is not important for functionality but for testing purposes
-                                     if (candidateCost == cost && optPlane.axisCoordinate < candidatePlane.
+                                     if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.
                                          axisCoordinate) {
                                          continue;
                                      }
-                                     if (candidateCost <= cost) {
-                                         cost = candidateCost;
-                                         optPlane = candidatePlane;
-                                         //planar faces have to be included in one of the two sub boxes.
-                                         const auto &includePlanarTo = triangleIndexLists[minSideChosen ? 0 : 1];
-                                         includePlanarTo->insert(includePlanarTo->cend(),
-                                                                 triangleIndexLists[2]->cbegin(),
-                                                                 triangleIndexLists[2]->cend());
-                                         optTriangleIndexLists = {
-                                             std::move(triangleIndexLists[0]), std::move(triangleIndexLists[1])
-                                         };
-                                     }
+                                     optPlane.evaluatePlane(candidatePlane, minSideChosen, std::move(triangleIndexLists), minSideChosen);
                                  }
                              }
                          });
-        return std::make_tuple(optPlane, cost, std::move(optTriangleIndexLists));
+        return std::make_tuple(optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit());
     }
 
     TriangleIndexVectors<3> SquaredPlane::containedTriangles(const SplitParam &splitParam, const Plane &split) {

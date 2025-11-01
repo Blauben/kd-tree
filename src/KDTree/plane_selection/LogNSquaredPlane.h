@@ -30,11 +30,10 @@ struct SplitParam;
     private:
         /**
          * Generates the optimal split plane considering a single dimension.
-         * @param splitParam Specifies the parameters needed to perform the splits.
+         * @param optPlane
          * @return the optimal plane, its cost, the events that were generated in the process, and whether to include planar triangles in the minimal bounding box.
          */
-        static std::tuple<Plane, double, PlaneEventVector, bool> findPlaneForSingleDimension(
-            const SplitParam &splitParam);
+        static void findPlaneForSingleDimension(OptimalPlane<PlaneEventVector, bool> &optPlane);
 
 
         /**
