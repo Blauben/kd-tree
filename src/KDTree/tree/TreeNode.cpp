@@ -5,7 +5,7 @@ namespace kdtree {
         : nodeId{nodeId}, _splitParam{std::make_unique<SplitParam>(splitParam)} {
     }
 
-    std::ostream& operator<<(std::ostream& os, const TreeNode& node) {
+    std::ostream &operator<<(std::ostream &os, const TreeNode &node) {
         os << node.toString();
         return os;
     }

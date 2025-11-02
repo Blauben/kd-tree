@@ -24,11 +24,14 @@ namespace kdtree {
 
     std::ostream &operator<<(std::ostream &os, const Direction &direction) {
         switch (direction) {
-            case Direction::X: os << "X";
+            case Direction::X:
+                os << "X";
                 break;
-            case Direction::Y: os << "Y";
+            case Direction::Y:
+                os << "Y";
                 break;
-            case Direction::Z: os << "Z";
+            case Direction::Z:
+                os << "Z";
                 break;
         }
         return os;
@@ -83,8 +86,7 @@ namespace kdtree {
             using namespace util;
             std::array<double, 3> result{};
             for (const auto &direction: ALL_DIRECTIONS) {
-                result[static_cast<size_t>(direction)] = Plane(point, direction).rayPlaneIntersection(
-                    origin, inverseRay);
+                result[static_cast<size_t>(direction)] = Plane(point, direction).rayPlaneIntersection(origin, inverseRay);
             }
             return result;
         };
@@ -156,7 +158,7 @@ namespace kdtree {
         using namespace util;
         //the distance is interpreted in the normal direction, negative values are in opposite direction of the normal.
         auto distanceMeasures = [&plane, &flipPlaneNormal](
-            const Array3 &point) -> double {
+                                        const Array3 &point) -> double {
             // works for arbitrary plane orientations:
             // return dot(point - plane.originPoint(), plane.normal(flipPlaneNormal));
             // only works for axis aligned planes:
@@ -231,24 +233,22 @@ namespace kdtree {
 
     size_t countFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &triangles) {
         return std::visit(util::overloaded{
-                              [](const TriangleIndexVector &indexList) {
-                                  return indexList.size();
-                              },
-                              [](const PlaneEventVector &eventList) {
-                                  std::mutex writeLock{};
-                                  size_t count{0};
-                                  std::unordered_set<size_t> processedFaces{};
-                                  std::for_each(eventList.cbegin(), eventList.cend(),
-                                                [&processedFaces, &count, &writeLock](const auto &planeEvent) {
-                                                    if (processedFaces.find(planeEvent.faceIndex) == processedFaces.
-                                                        end()) {
-                                                        processedFaces.insert(planeEvent.faceIndex);
-                                                        count++;
-                                                    }
-                                                });
-                                  return count;
-                              }
-                          },
+                                  [](const TriangleIndexVector &indexList) {
+                                      return indexList.size();
+                                  },
+                                  [](const PlaneEventVector &eventList) {
+                                      std::mutex writeLock{};
+                                      size_t count{0};
+                                      std::unordered_set<size_t> processedFaces{};
+                                      std::for_each(eventList.cbegin(), eventList.cend(),
+                                                    [&processedFaces, &count, &writeLock](const auto &planeEvent) {
+                                                        if (processedFaces.find(planeEvent.faceIndex) == processedFaces.end()) {
+                                                            processedFaces.insert(planeEvent.faceIndex);
+                                                            count++;
+                                                        }
+                                                    });
+                                      return count;
+                                  }},
                           triangles);
     }
 
@@ -257,4 +257,4 @@ namespace kdtree {
         // $ N = 2^(t+1)-1 $ (geometric series formula for partial sums), assume $ N >= idx + 1 $
         return static_cast<size_t>(std::ceil(std::log2(nodeId + 2))) - 1;
     }
-} // namespace kdtree
+}// namespace kdtree

@@ -8,8 +8,8 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -21,7 +21,7 @@
 #include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     /**
      * A TreeNode contained in a KDTree that splits the spatial hierarchy into two new sub boxes. Intersection tests are delegated to the child nodes.

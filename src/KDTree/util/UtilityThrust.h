@@ -1,7 +1,7 @@
 #pragma once
 
-#include <utility>
 #include "thrust/iterator/zip_iterator.h"
+#include <utility>
 
 namespace kdtree::util {
 
@@ -11,8 +11,8 @@ namespace kdtree::util {
      * @param args can be any number of iterators
      * @return a thrust::zip_iterator
      */
-    template<typename ...Iterator>
-    auto zip(const Iterator&... args) {
+    template<typename... Iterator>
+    auto zip(const Iterator &...args) {
         return thrust::make_zip_iterator(thrust::make_tuple(args...));
     }
 
@@ -22,8 +22,8 @@ namespace kdtree::util {
      * @param args can be any number of containers
      * @return a thrust::zip_iterator for the beginning of all containers
      */
-    template<typename ...Container>
-    auto zipBegin(const Container&... args) {
+    template<typename... Container>
+    auto zipBegin(const Container &...args) {
         return zip(std::begin(args)...);
     }
 
@@ -33,8 +33,8 @@ namespace kdtree::util {
      * @param args can be any number of containers
      * @return a thrust::zip_iterator for the end of all containers
      */
-    template<typename ...Container>
-    auto zipEnd(const Container&... args) {
+    template<typename... Container>
+    auto zipEnd(const Container &...args) {
         return zip(std::end(args)...);
     }
 
@@ -44,11 +44,11 @@ namespace kdtree::util {
      * @param args can be any number of containers
      * @return a pair of thrust::zip_iterator for the beginning and end of all containers
      */
-    template<typename ...Container>
-    auto zipPair(const Container&... args) {
+    template<typename... Container>
+    auto zipPair(const Container &...args) {
         auto begin = zipBegin(args...);
         auto end = zipEnd(args...);
         return std::make_pair(begin, end);
     }
 
-}
+}// namespace kdtree::util

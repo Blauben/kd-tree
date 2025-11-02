@@ -14,14 +14,14 @@
 #include <utility>
 #include <vector>
 
+#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
+#include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/LeafNode.h"
 #include "KDTree/tree/SplitNode.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
 #include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
@@ -117,4 +117,4 @@ namespace kdtree {
 
         friend std::ostream &operator<<(std::ostream &os, const KDTree &kdTree);
     };
-} // namespace kdtree
+}// namespace kdtree

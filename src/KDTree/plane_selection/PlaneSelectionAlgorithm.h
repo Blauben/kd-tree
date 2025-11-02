@@ -49,14 +49,14 @@ namespace kdtree {
 
             std::tuple<std::decay_t<CallbackArgs>...> callbackArgs;
 
-            std::function<std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane&, std::decay_t<CallbackArgs> &&...)> boundGeometrySplit;
+            std::function<std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, std::decay_t<CallbackArgs> &&...)> boundGeometrySplit;
 
         public:
             const SplitParam &splitParam;
 
             virtual ~OptimalPlane() = default;
 
-            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane&, CallbackArgs...)> &boundPointsSplit) : optPlane(0, splitParam.splitDirection), boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
+            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit) : optPlane(0, splitParam.splitDirection), boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
             }
 
             void evaluatePlane(const Plane &candidatePlane, const double candidateCost, CallbackArgs... args) {
@@ -83,11 +83,11 @@ namespace kdtree {
 
             std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> getPointsSplit() {
                 return std::apply(
-    [this](auto&&... args) {
-        return boundGeometrySplit(*this, std::forward<decltype(args)>(args)...);
-    },
-    std::move(callbackArgs)
-);}
+                        [this](auto &&...args) {
+                            return boundGeometrySplit(*this, std::forward<decltype(args)>(args)...);
+                        },
+                        std::move(callbackArgs));
+            }
         };
 
 

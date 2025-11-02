@@ -2,7 +2,7 @@
 
 namespace kdtree {
     SplitNode::SplitNode(const SplitParam &splitParam, const Plane &plane,
-                         std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > &triangleIndexLists,
+                         std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists,
                          const size_t nodeId)
         : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
           _triangleLists{std::move(triangleIndexLists)} {
@@ -21,9 +21,10 @@ namespace kdtree {
             //get the triangles of the box
             std::visit([&childParam, index](auto &typeLists) -> void {
                 childParam.boundFaces = *std::move(typeLists[index]);
-            }, _triangleLists);
+            },
+                       _triangleLists);
             childParam.splitDirection = static_cast<Direction>(
-                (static_cast<int>(_splitParam->splitDirection) + 1) % DIMENSIONS);
+                    (static_cast<int>(_splitParam->splitDirection) + 1) % DIMENSIONS);
             //increase the recursion depth of the direct child by 1
             node = TreeNodeFactory::createTreeNode(childParam, 2 * nodeId + 1 + index);
             if (_lesser != nullptr && _greater != nullptr) {
@@ -33,10 +34,10 @@ namespace kdtree {
         return node;
     }
 
-    std::vector<std::shared_ptr<TreeNode> > SplitNode::getChildrenForIntersection(
-        const Array3 &origin, const Array3 &ray, const Array3 &inverseRay) {
+    std::vector<std::shared_ptr<TreeNode>> SplitNode::getChildrenForIntersection(
+            const Array3 &origin, const Array3 &ray, const Array3 &inverseRay) {
         using namespace kdtree::util;
-        std::vector<std::shared_ptr<TreeNode> > delegates{};
+        std::vector<std::shared_ptr<TreeNode>> delegates{};
         //a SplitNode has max two children, so no more space needed.
         delegates.reserve(2);
         //calculate entry and exit points of the ray hitting the bounding box
@@ -60,14 +61,13 @@ namespace kdtree {
         if (t_split < 0) {
             //check in which point the origin lies in order to continue intersection in that box
             delegates.push_back(origin[static_cast<int>(_plane.orientation)] < _plane.axisCoordinate
-                                    ? getChildNode(0)
-                                    : getChildNode(1));
+                                        ? getChildNode(0)
+                                        : getChildNode(1));
             return delegates;
         }
         //intersection point of the ray and the bounding box
         const double intersectionCoord{
-            ray[static_cast<int>(_plane.orientation)] * t_enter + origin[static_cast<int>(_plane.orientation)]
-        };
+                ray[static_cast<int>(_plane.orientation)] * t_enter + origin[static_cast<int>(_plane.orientation)]};
         // the entry point of the ray to the bounding box is nearer to the origin than the split plane -> ray hits lesser box
         if (intersectionCoord < _plane.axisCoordinate) {
             delegates.push_back(getChildNode(0));
@@ -81,11 +81,9 @@ namespace kdtree {
 
     std::string SplitNode::toString() const {
         std::stringstream sstream{};
-        sstream << "SplitNode ID:  " << this->nodeId << ", Depth: " << recursionDepth(this->nodeId) << ", Plane: " <<
-                this->_plane << std::endl;
+        sstream << "SplitNode ID:  " << this->nodeId << ", Depth: " << recursionDepth(this->nodeId) << ", Plane: " << this->_plane << std::endl;
         sstream << "Children; Lesser: " << (this->_lesser != nullptr ? std::to_string(this->_lesser->nodeId) : "None")
-                << "; Greater: " << (this->_greater != nullptr ? std::to_string(this->_greater->nodeId) : "None") <<
-                std::endl;
+                << "; Greater: " << (this->_greater != nullptr ? std::to_string(this->_greater->nodeId) : "None") << std::endl;
         if (this->_lesser != nullptr) {
             sstream << *(this->_lesser);
         }
@@ -100,4 +98,4 @@ namespace kdtree {
 
         return os;
     }
-} // namespace kdtree
+}// namespace kdtree

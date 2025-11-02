@@ -8,18 +8,18 @@ namespace kdtree {
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : _vertices{vertices}, _faces{faces},
           _splitParam{
-              std::make_unique<SplitParam>(_vertices, _faces, Box::getBoundingBox(_vertices), Direction::X,
-                                           PlaneSelectionAlgorithmFactory::create(algorithm))
-          } {
+                  std::make_unique<SplitParam>(_vertices, _faces, Box::getBoundingBox(_vertices), Direction::X,
+                                               PlaneSelectionAlgorithmFactory::create(algorithm))} {
     }
 
     KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
-    : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm)
-{}
+        : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
+    }
 
 
-    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(),algorithm) {}
+    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
+    }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
@@ -39,7 +39,7 @@ namespace kdtree {
     void KDTree::getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections) {
         //iterative approach to avoid stack and heap overflows
         //queue for children of processed nodes
-        std::deque<std::shared_ptr<TreeNode> > queue{};
+        std::deque<std::shared_ptr<TreeNode>> queue{};
         //calculate inverse ray direction
         const Array3 inverseRay{1. / ray[0], 1. / ray[1], 1. / ray[2]};
         //init with tree root
@@ -63,7 +63,7 @@ namespace kdtree {
 
     KDTree &KDTree::prebuildTree() {
         //queue for children of processed nodes
-        std::deque<std::shared_ptr<TreeNode> > queue{};
+        std::deque<std::shared_ptr<TreeNode>> queue{};
         //subsequently call getter functions for the root node and all child nodes to initiate a full build of the tree
         queue.push_back(getRootNode());
         while (!queue.empty()) {
@@ -88,4 +88,4 @@ namespace kdtree {
         }
         return os;
     }
-} // namespace kdtree
+}// namespace kdtree

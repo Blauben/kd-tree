@@ -15,7 +15,7 @@
 
 namespace kdtree {
 
-/**
+    /**
  * An adapter to the Tetgen Library. This is the interface between tetgen's data structures and I/O
  * capabilities and the here implemented polyhedral gravity model.
  * The adapter always converts tetgen's datastructure into the structure utilized by the Polyhedral Gravity Model.
@@ -53,17 +53,16 @@ namespace kdtree {
         std::vector<std::array<size_t, 3>> _faces;
 
     public:
-
         /**
          * Constructs a new TetgenAdapter from a vector of filenames. These filenames should end on the supported
          * suffixes
          * @param fileNames vector of filenames
          */
         explicit TetgenAdapter(std::vector<std::string> fileNames)
-                : _tetgenio{},
-                  _fileNames{std::move(fileNames)},
-                  _vertices{},
-                  _faces{} {};
+            : _tetgenio{},
+              _fileNames{std::move(fileNames)},
+              _vertices{},
+              _faces{} {};
 
         /**
          * Use this function to get a Polyhedron.
@@ -118,7 +117,6 @@ namespace kdtree {
 
 
     private:
-
         /**
          * The map contains the file suffix and the corresponding operation applicable for this suffix.
          * File suffix --> Operation on this instance
@@ -126,11 +124,10 @@ namespace kdtree {
         const std::map<std::string, std::function<void(const std::string &name)>> _suffixToOperation{
                 {"node", [this](const std::string &name) { this->readNode(name); }},
                 {"face", [this](const std::string &name) { this->readFace(name); }},
-                {"off",  [this](const std::string &name) { this->readOff(name); }},
-                {"ply",  [this](const std::string &name) { this->readPly(name); }},
-                {"stl",  [this](const std::string &name) { this->readStl(name); }},
-                {"mesh", [this](const std::string &name) { this->readMesh(name); }}
-        };
+                {"off", [this](const std::string &name) { this->readOff(name); }},
+                {"ply", [this](const std::string &name) { this->readPly(name); }},
+                {"stl", [this](const std::string &name) { this->readStl(name); }},
+                {"mesh", [this](const std::string &name) { this->readMesh(name); }}};
 
         /**
          * Checks if the polyhedron is integer and not already defined by other properties
@@ -157,7 +154,6 @@ namespace kdtree {
          * and to ensure the correct format
          */
         void addVerticesAndFacesByTriangulation();
-
     };
 
-}
+}// namespace kdtree

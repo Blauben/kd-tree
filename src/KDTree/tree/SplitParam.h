@@ -60,4 +60,4 @@ namespace kdtree {
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
         }
     };
-} // namespace kdtree
+}// namespace kdtree
