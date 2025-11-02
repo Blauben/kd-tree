@@ -23,6 +23,8 @@ namespace kdtree {
 struct SplitParam;
 
     class LogNSquaredPlane final : public PlaneEventAlgorithm {
+        using OptimalPlaneLogNSquared = OptimalPlane<PlaneEventVector, bool>;
+
     public:
         std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > > findPlane(
             const SplitParam &splitParam) override;
@@ -33,7 +35,7 @@ struct SplitParam;
          * @param optPlane
          * @return the optimal plane, its cost, the events that were generated in the process, and whether to include planar triangles in the minimal bounding box.
          */
-        static void findPlaneForSingleDimension(OptimalPlane<PlaneEventVector, bool> &optPlane);
+        static void findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane);
 
 
         /**
