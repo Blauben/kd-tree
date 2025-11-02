@@ -82,8 +82,12 @@ namespace kdtree {
             }
 
             std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> getPointsSplit() {
-                return std::apply(boundGeometrySplit, std::tuple_cat(std::make_tuple(this), std::move(callbackArgs)));
-            }
+                return std::apply(
+    [this](auto&&... args) {
+        return boundGeometrySplit(*this, std::forward<decltype(args)>(args)...);
+    },
+    std::move(callbackArgs)
+);}
         };
 
 

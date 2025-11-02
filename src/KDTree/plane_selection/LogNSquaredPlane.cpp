@@ -4,10 +4,10 @@ namespace kdtree {
     // O(N*log^2(N)) implementation
     std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > >
     LogNSquaredPlane::findPlane(const SplitParam &splitParam) {
-        const std::function geoSubsetCallback = [](const Plane& optPlane, const PlaneEventVector& events, const bool minSideChosen) {
-            return generateTriangleSubsets(events, optPlane, minSideChosen);
+        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared& optPlane, const PlaneEventVector& events, const bool minSideChosen) {
+            return generateTriangleSubsets(events, optPlane.getOptimalPlane(), minSideChosen);
         };
-        OptimalPlane<PlaneEventVector, bool> optPlane{splitParam, geoSubsetCallback};
+        OptimalPlaneLogNSquared optPlane{splitParam, geoSubsetCallback};
         for (const auto dimension: ALL_DIRECTIONS) {
             splitParam.splitDirection = dimension;
             findPlaneForSingleDimension(optPlane);
@@ -18,10 +18,10 @@ namespace kdtree {
         return {optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit()};
     }
 
-    void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlane<PlaneEventVector, bool>& optPlane) {
+    void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane) {
         const PlaneEventVector events{std::move(generatePlaneEventsFromFaces(optPlane.splitParam, {optPlane.splitParam.splitDirection}))};
         TriangleCounter triangleCounter{1, {0, countFaces(optPlane.splitParam.boundFaces), 0}};
-        traversePlaneEvents(optPlane, events, triangleCounter, optPlane.splitParam.boundingBox);
+        traversePlaneEvents(optPlane, events, triangleCounter);
     }
 
     TriangleIndexVectors<2> LogNSquaredPlane::generateTriangleSubsets(const PlaneEventVector &planeEvents,

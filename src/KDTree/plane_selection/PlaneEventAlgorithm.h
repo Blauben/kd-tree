@@ -101,8 +101,8 @@ struct SplitParam;
          */
         template <typename... OptimalPlaneArgs>
         static void traversePlaneEvents(OptimalPlane<OptimalPlaneArgs...>& optPlane, const PlaneEventVector &events,
-                                                                   TriangleCounter &triangleCounter,
-                                                                   const Box &boundingBox) {
+                                                                   TriangleCounter &triangleCounter) {
+            const Box& boundingBox = optPlane.splitParam.boundingBox;
         //traverse all the events
         int i{0};
         while (i < events.size()) {
@@ -140,7 +140,7 @@ struct SplitParam;
             // this is not important for functionality but for testing purposes
             bool skipEvaluation = candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate;
             if (!skipEvaluation) {
-                optPlane.evaluatePlane(candidatePlane, candidateCost, minSideChosen);
+                optPlane.evaluatePlane(candidatePlane, candidateCost, events, minSideChosen);
             }
             //shift the plane to the next candidate and prepare next iteration
             triangleCounter.updateMin(candidatePlane.orientation, p_planar, p_start);

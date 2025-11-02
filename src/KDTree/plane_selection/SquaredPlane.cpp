@@ -7,11 +7,12 @@ namespace kdtree {
         if (std::holds_alternative<PlaneEventVector>(splitParam.boundFaces)) {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
+        using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
         const auto &boundFaces = std::get<TriangleIndexVector>(splitParam.boundFaces);
-        const std::function geoSubsetCallback = [this](const OptimalPlane<TriangleIndexVectors<3>, bool>& optPlane, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
+        const std::function geoSubsetCallback = [this](const OptimalPlaneSquared& optPlane, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
             return addEqualPointsToSubset<TriangleIndexVectors>(std::move(indexVectors), minSideChosen);
         };
-        OptimalPlane<TriangleIndexVectors<3>, bool> optPlane{splitParam, geoSubsetCallback};
+        OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback};
         //each vertex proposes a split plane candidate: test for each of them, store them in buffer set to avoid duplicate testing
         std::unordered_set<double> testedPlaneCoordinates{};
         auto [vertex3_begin, vertex3_end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(),
