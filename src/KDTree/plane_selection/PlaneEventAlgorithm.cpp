@@ -10,12 +10,12 @@ namespace kdtree {
 
     void TriangleCounter::updateMax(Direction direction, const size_t p_planar, const size_t p_end) {
         dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(1) -= p_planar +
-                p_end;
+                                                                                                             p_end;
     }
 
     void TriangleCounter::updateMin(Direction direction, const size_t p_planar, const size_t p_start) {
         dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(0) += p_planar +
-                p_start;
+                                                                                                             p_start;
     }
 
     void TriangleCounter::setPlanar(Direction direction, const size_t p_planar) {
@@ -52,27 +52,27 @@ namespace kdtree {
                          [&splitParam, &events, &directions, &eventsMutex](const auto &indexAndTriplet) {
                              const auto [index, triplet] = indexAndTriplet;
                              //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3> >(
-                                 splitParam.boundingBox.clipToVoxel(triplet));
+                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3>>(
+                                     splitParam.boundingBox.clipToVoxel(triplet));
                              std::lock_guard lock(eventsMutex);
                              for (const auto &direction: directions) {
                                  // if the triangle is perpendicular to the split direction, generate a planar event with the candidate plane in which the triangle lies
                                  if (minPoint[static_cast<int>(direction)] == maxPoint[static_cast<int>(direction)]) {
                                      events.emplace_back(
-                                         PlaneEventType::planar,
-                                         Plane(minPoint, direction),
-                                         index);
+                                             PlaneEventType::planar,
+                                             Plane(minPoint, direction),
+                                             index);
                                      return;
                                  }
                                  //else create a starting and ending event consisting of the planes defined by the min and max points of the face's bounding box.
                                  events.emplace_back(
-                                     PlaneEventType::starting,
-                                     Plane(minPoint, direction),
-                                     index);
+                                         PlaneEventType::starting,
+                                         Plane(minPoint, direction),
+                                         index);
                                  events.emplace_back(
-                                     PlaneEventType::ending,
-                                     Plane(maxPoint, direction),
-                                     index);
+                                         PlaneEventType::ending,
+                                         Plane(maxPoint, direction),
+                                         index);
                              }
                          });
         //reduce size
@@ -82,4 +82,4 @@ namespace kdtree {
         return events;
     }
 
-} // namespace kdtree
+}// namespace kdtree

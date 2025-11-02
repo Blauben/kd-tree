@@ -1,7 +1,7 @@
 #pragma once
 
-#include "KDTree/tree/SplitParam.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
+#include "KDTree/tree/SplitParam.h"
 
 
 namespace kdtree {

@@ -14,9 +14,9 @@
 #include <variant>
 #include <vector>
 
+#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
-#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
@@ -25,7 +25,7 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     class LogNPlane final : public PlaneEventAlgorithm {
     public:

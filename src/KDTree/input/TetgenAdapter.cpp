@@ -86,12 +86,10 @@ namespace kdtree {
     void TetgenAdapter::checkIntegrity(const std::string &filename, char what) const {
         if ((what == 'v' || what == 'a') && _tetgenio.numberofpoints != 0) {
             throw std::runtime_error(
-                    "The Polyhedron already has well defined nodes! The information of " + filename
-                    + ".node is redundant!");
+                    "The Polyhedron already has well defined nodes! The information of " + filename + ".node is redundant!");
         } else if ((what == 'f' || what == 'a') && (_tetgenio.numberoftrifaces != 0 || _tetgenio.numberoffacets != 0)) {
             throw std::runtime_error(
-                    "The Polyhedron already has well defined faces! The information of " + filename
-                    + ".node is redundant!");
+                    "The Polyhedron already has well defined faces! The information of " + filename + ".node is redundant!");
         }
     }
 
@@ -123,4 +121,4 @@ namespace kdtree {
         this->addFacesByTrifaces();
     }
 
-}
+}// namespace kdtree

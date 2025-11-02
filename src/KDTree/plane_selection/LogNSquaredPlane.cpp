@@ -2,9 +2,9 @@
 
 namespace kdtree {
     // O(N*log^2(N)) implementation
-    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > >
+    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>>
     LogNSquaredPlane::findPlane(const SplitParam &splitParam) {
-        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared& optPlane, const PlaneEventVector& events, const bool minSideChosen) {
+        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared &optPlane, const PlaneEventVector &events, const bool minSideChosen) {
             return generateTriangleSubsets(events, optPlane.getOptimalPlane(), minSideChosen);
         };
         OptimalPlaneLogNSquared optPlane{splitParam, geoSubsetCallback};
@@ -40,10 +40,9 @@ namespace kdtree {
         std::array<std::mutex, 2> facesMutex{};
         thrust::for_each(thrust::device, planeEvents.cbegin(), planeEvents.cend(),
                          [&facesMin, &facesMax, &plane, minSide, &facesMinLookup, &facesMaxLookup, &facesMutex](
-                     const auto &event) {
+                                 const auto &event) {
                              //lambda function to combine lookup and insertion into one place
-                             auto insertIfAbsent = [&facesMin, &facesMinLookup, &facesMax, &facesMaxLookup, &facesMutex
-                                     ](const size_t faceIndex, const uint8_t index) {
+                             auto insertIfAbsent = [&facesMin, &facesMinLookup, &facesMax, &facesMaxLookup, &facesMutex](const size_t faceIndex, const uint8_t index) {
                                  const auto &vector = index == 0 ? facesMin : facesMax;
                                  auto &lookup = index == 1 ? facesMinLookup : facesMaxLookup;
                                  std::lock_guard lock(facesMutex[index]);
@@ -78,4 +77,4 @@ namespace kdtree {
                          });
         return {std::move(facesMin), std::move(facesMax)};
     }
-} // namespace kdtree
+}// namespace kdtree

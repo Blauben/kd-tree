@@ -443,10 +443,10 @@ namespace kdtree::util {
             return {{0, 0, 0}, {0, 0, 0}};
         }
         //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
-       ValueType min = elements[0];
+        ValueType min = elements[0];
         ValueType max = elements[0];
         //test each vertex for proximity to the origin and find minima and maxima
-        for (const auto& vertex : elements) {
+        for (const auto &vertex: elements) {
             // test each dimension separately
             for (size_t i = 0; i < vertex.size(); ++i) {
                 min[i] = std::min(min[i], vertex[i]);

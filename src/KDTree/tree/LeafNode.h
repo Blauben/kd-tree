@@ -18,13 +18,13 @@
 #include <optional>
 #include <ostream>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <variant>
 #include <vector>
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     /**
      * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained triangles here.
@@ -76,4 +76,4 @@ struct SplitParam;
          */
         std::once_flag convertedToFace;
     };
-} // namespace kdtree
+}// namespace kdtree

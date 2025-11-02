@@ -19,7 +19,7 @@ namespace kdtree {
         thrust::for_each(thrust::device, boundTriangles.cbegin(), boundTriangles.cend(),
                          [this, &ray, &origin, &intersections, &writeLock](const size_t faceIndex) {
                              const std::optional<Array3> intersection = rayIntersectsTriangle(
-                                 origin, ray, _splitParam->faces[faceIndex]);
+                                     origin, ray, _splitParam->faces[faceIndex]);
                              if (intersection.has_value()) {
                                  std::unique_lock lock(writeLock);
                                  intersections.insert(intersection.value());
@@ -82,4 +82,4 @@ namespace kdtree {
         os << node.toString();
         return os;
     }
-}
+}// namespace kdtree

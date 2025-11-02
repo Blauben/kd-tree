@@ -2,11 +2,11 @@
 
 namespace kdtree {
     // O(N*log^2(N)) implementation
-    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > > LogNPlane::findPlane(
-        const SplitParam &splitParam) {
+    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> LogNPlane::findPlane(
+            const SplitParam &splitParam) {
         using OptimalPlaneLog = OptimalPlane<PlaneEventVector, bool>;
-        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const PlaneEventVector& events, bool minSideChosen) {
-            return  generatePlaneEventSubsets(optPlane.splitParam, events, optPlane.getOptimalPlane(), minSideChosen);
+        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const PlaneEventVector &events, bool minSideChosen) {
+            return generatePlaneEventSubsets(optPlane.splitParam, events, optPlane.getOptimalPlane(), minSideChosen);
         };
         OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
         const PlaneEventVector events{std::move(generatePlaneEvents(splitParam))};
@@ -44,8 +44,7 @@ namespace kdtree {
         };
 
         std::for_each(planeEvents.cbegin(), planeEvents.cend(),
-                      [&faceClassification, &planeEventsMin, &planeEventsMax, &insertToBothIfAbsent
-                      ](const auto &event) {
+                      [&faceClassification, &planeEventsMin, &planeEventsMax, &insertToBothIfAbsent](const auto &event) {
                           switch (faceClassification.at(event.faceIndex)) {
                               //face of event only contributes to min side event can be added to side without clipping because no overlap with split plane
                               case Locale::MIN_ONLY:
@@ -66,13 +65,12 @@ namespace kdtree {
         auto [newMinEvents, newMaxEvents] = generatePlaneEventsForClippedFaces(splitParam, facesIndexBoth, plane);
         //merge the new events into the existing sorted lists and return
         return {
-            std::move(mergePlaneEventLists(planeEventsMin, newMinEvents)),
-            std::move(mergePlaneEventLists(planeEventsMax, newMaxEvents))
-        };
+                std::move(mergePlaneEventLists(planeEventsMin, newMinEvents)),
+                std::move(mergePlaneEventLists(planeEventsMax, newMaxEvents))};
     }
 
     std::unordered_map<size_t, LogNPlane::Locale> LogNPlane::classifyTrianglesRelativeToPlane(
-        const PlaneEventVector &events, const Plane &plane, const bool minSide) {
+            const PlaneEventVector &events, const Plane &plane, const bool minSide) {
         std::unordered_map<size_t, Locale> result{};
         //each face generates 6 plane events on average, thus the amount of faces can be roughly estimated.
         result.reserve(events.size() / 6);
@@ -82,19 +80,15 @@ namespace kdtree {
         });
         //now search for conditions proving that the faces DO NOT have area in both boxes
         std::for_each(events.begin(), events.end(), [minSide, &result, &plane](const auto &event) {
-            if (event.type == PlaneEventType::ending && event.plane.orientation == plane.orientation && event.plane.
-                axisCoordinate <= plane.axisCoordinate) {
+            if (event.type == PlaneEventType::ending && event.plane.orientation == plane.orientation && event.plane.axisCoordinate <= plane.axisCoordinate) {
                 result[event.faceIndex] = Locale::MIN_ONLY;
-            } else if (event.type == PlaneEventType::starting && event.plane.orientation == plane.orientation && event.
-                       plane.axisCoordinate >= plane.axisCoordinate) {
+            } else if (event.type == PlaneEventType::starting && event.plane.orientation == plane.orientation && event.plane.axisCoordinate >= plane.axisCoordinate) {
                 result[event.faceIndex] = Locale::MAX_ONLY;
             } else if (event.type == PlaneEventType::planar && event.plane.orientation == plane.orientation) {
-                if (event.plane.axisCoordinate < plane.axisCoordinate || (
-                        event.plane.axisCoordinate == plane.axisCoordinate && minSide)) {
+                if (event.plane.axisCoordinate < plane.axisCoordinate || (event.plane.axisCoordinate == plane.axisCoordinate && minSide)) {
                     result[event.faceIndex] = Locale::MIN_ONLY;
                 }
-                if (event.plane.axisCoordinate > plane.axisCoordinate || (
-                        event.plane.axisCoordinate == plane.axisCoordinate && !minSide)) {
+                if (event.plane.axisCoordinate > plane.axisCoordinate || (event.plane.axisCoordinate == plane.axisCoordinate && !minSide)) {
                     result[event.faceIndex] = Locale::MAX_ONLY;
                 }
             }
@@ -103,7 +97,7 @@ namespace kdtree {
     }
 
     std::array<PlaneEventVector, 2> LogNPlane::generatePlaneEventsForClippedFaces(
-        const SplitParam &splitParam, const TriangleIndexVector &faceIndices, const Plane &plane) {
+            const SplitParam &splitParam, const TriangleIndexVector &faceIndices, const Plane &plane) {
         auto [minBox, maxBox] = splitParam.boundingBox.splitBox(plane);
         PlaneEventVector minEvents{};
         PlaneEventVector maxEvents{};
@@ -120,9 +114,8 @@ namespace kdtree {
             const auto [minPoint, maxPoint] = Box::getBoundingBox(clipped);
             //associate parameters for PlaneEvent creation
             std::array<std::pair<const Array3, PlaneEventType>, 2> planeEventParam{
-                std::make_pair(minPoint, PlaneEventType::starting),
-                std::make_pair(maxPoint, PlaneEventType::ending)
-            };
+                    std::make_pair(minPoint, PlaneEventType::starting),
+                    std::make_pair(maxPoint, PlaneEventType::ending)};
             //create planes in each dimension, be careful to cluster similar anchor points together.
             size_t planeIndex = 0;
             for (const auto &[point, eventType]: planeEventParam) {
@@ -141,7 +134,7 @@ namespace kdtree {
         //create new events for each face in both sub boxes
         thrust::for_each(thrust::device, begin_it, end_it,
                          [&minBox, maxBox, &minEvents, &maxEvents, &createPlaneEvents, &minIndex, &maxIndex](
-                     const auto &indexAndTriplet) {
+                                 const auto &indexAndTriplet) {
                              const auto &[index, vertexTriplet] = indexAndTriplet;
                              //reserve slots of 6 for the threads using the atomic counters. Size fits because of earlier resize
                              createPlaneEvents(vertexTriplet, minBox, index, minEvents.begin() + (minIndex++ * 6));
@@ -173,4 +166,4 @@ namespace kdtree {
         }
         return result;
     }
-} // namespace kdtree
+}// namespace kdtree
