@@ -38,13 +38,13 @@ namespace kdtree {
                                                                        std::vector<Direction> directions) {
         // each face has min and max point and each proposes a plane in each of the directions
         PlaneEventVector events{};
-        events.reserve(countFaces(splitParam.boundFaces) * 2 * directions.size());
+        events.reserve(countFaces(splitParam.boundObjects) * 2 * directions.size());
         //mutex used for synchronizing insertions through threads
         std::mutex eventsMutex{};
-        if (std::holds_alternative<PlaneEventVector>(splitParam.boundFaces)) {
-            return std::get<PlaneEventVector>(splitParam.boundFaces);
+        if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
+            return std::get<PlaneEventVector>(splitParam.boundObjects);
         }
-        const auto &boundTriangles{std::get<TriangleIndexVector>(splitParam.boundFaces)};
+        const auto &boundTriangles{std::get<ObjectIndexVector>(splitParam.boundObjects)};
         //transform the faces into vertices
         auto [vertex3_begin, vertex3_end] = transformIterator(boundTriangles.cbegin(), boundTriangles.cend(),
                                                               splitParam.vertices, splitParam.faces);

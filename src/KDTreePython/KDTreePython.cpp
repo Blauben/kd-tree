@@ -23,8 +23,8 @@ NB_MODULE(KDTree_Python, m) {
             .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
             .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
     nb::class_<KDTree>(m, "KDTree")
-            .def(nb::init<const std::vector<Array3> &, const std::vector<IndexArray3> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-            .def(nb::init<const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::vector<Array3> &, const std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a)
             .def("getFaceIntersections", [](KDTree &self, const Array3 &origin, const Array3 &ray) {

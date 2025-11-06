@@ -10,17 +10,17 @@ namespace kdtree {
         };
         OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
         const PlaneEventVector events{std::move(generatePlaneEvents(splitParam))};
-        TriangleCounter triangleCounter{3, {0, countFaces(splitParam.boundFaces), 0}};
+        TriangleCounter triangleCounter{3, {0, countFaces(splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, triangleCounter);
         //generate the triangle index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
         return {optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit()};
     }
 
     PlaneEventVector LogNPlane::generatePlaneEvents(const SplitParam &splitParam) {
-        if (std::holds_alternative<TriangleIndexVector>(splitParam.boundFaces)) {
+        if (std::holds_alternative<ObjectIndexVector>(splitParam.boundObjects)) {
             return generatePlaneEventsFromFaces(splitParam, ALL_DIRECTIONS);
         }
-        return std::get<PlaneEventVector>(splitParam.boundFaces);
+        return std::get<PlaneEventVector>(splitParam.boundObjects);
     }
 
     PlaneEventVectors<2> LogNPlane::generatePlaneEventSubsets(const SplitParam &splitParam,
@@ -29,7 +29,7 @@ namespace kdtree {
         const auto faceClassification{classifyTrianglesRelativeToPlane(planeEvents, plane, minSide)};
         PlaneEventVector planeEventsMin{};
         PlaneEventVector planeEventsMax{};
-        TriangleIndexVector facesIndexBoth{};
+        ObjectIndexVector facesIndexBoth{};
         planeEventsMin.reserve(planeEvents.size() / 2);
         planeEventsMax.reserve(planeEvents.size() / 2);
         //value estimation taken from source paper
@@ -97,7 +97,7 @@ namespace kdtree {
     }
 
     std::array<PlaneEventVector, 2> LogNPlane::generatePlaneEventsForClippedFaces(
-            const SplitParam &splitParam, const TriangleIndexVector &faceIndices, const Plane &plane) {
+            const SplitParam &splitParam, const ObjectIndexVector &faceIndices, const Plane &plane) {
         auto [minBox, maxBox] = splitParam.boundingBox.splitBox(plane);
         PlaneEventVector minEvents{};
         PlaneEventVector maxEvents{};

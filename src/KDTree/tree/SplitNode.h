@@ -62,7 +62,7 @@ namespace kdtree {
          * Takes parameters from the parent node and stores them for lazy child node creation.
          * @param splitParam Parameters produced during the split that resulted in the creation of this node.
          * @param plane The plane that splits this node's bounding box into two sub boxes. The child nodes are created based on these boxes.
-         * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link TriangleIndexVector}
+         * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link ObjectIndexVector}
          * @param nodeId Unique Id given by the TreeNodeFactory.
          */
         SplitNode(const SplitParam &splitParam, const Plane &plane, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists, size_t nodeId);

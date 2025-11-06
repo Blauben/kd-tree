@@ -7,13 +7,13 @@ namespace kdtree {
 
     void LeafNode::getFaceIntersections(const Array3 &origin, const Array3 &ray,
                                         std::set<Array3> &intersections) {
-        if (std::holds_alternative<PlaneEventVector>(_splitParam->boundFaces)) {
+        if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(convertedToFace, [this]() {
-                _splitParam->boundFaces = convertEventsToFaces(std::get<PlaneEventVector>(_splitParam->boundFaces));
+                _splitParam->boundObjects = convertEventsToFaces(std::get<PlaneEventVector>(_splitParam->boundObjects));
             });
         }
         std::mutex writeLock{};
-        const TriangleIndexVector &boundTriangles{std::get<TriangleIndexVector>(_splitParam->boundFaces)};
+        const ObjectIndexVector &boundTriangles{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         std::vector<Array3> results(boundTriangles.size());
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
         thrust::for_each(thrust::device, boundTriangles.cbegin(), boundTriangles.cend(),
@@ -28,7 +28,7 @@ namespace kdtree {
     }
 
     std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                          const IndexArray3 &triangleVertexIndex) const {
+                                                          const IndexVector &triangleVertexIndex) const {
         Array3Triplet edgeVertices{};
         //transforms a face to its vertices
         std::transform(triangleVertexIndex.cbegin(), triangleVertexIndex.cend(), edgeVertices.begin(),

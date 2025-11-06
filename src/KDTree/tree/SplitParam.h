@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree/model/GeometryObject.h"
 #include "KDTree/tree/KdDefinitions.h"
 
 namespace kdtree {
@@ -13,15 +14,12 @@ namespace kdtree {
         /**
          * The vertices that compose the Polyhedron.
          */
-        const std::vector<Array3> &vertices;
-        /**
-         * The faces that connect the vertices to render the Polyhedron.
-         */
-        const std::vector<IndexArray3> &faces;
+        const std::vector<GeometryObject>& geometryObjects;
+
         /**
          * Either an index list of faces that are included in the current bounding box of the KDTree or a list of PlaneEvents containing the information about thr bound faces. Important when building deeper levels of a KDTree.
          */
-        std::variant<TriangleIndexVector, PlaneEventVector> boundFaces;
+        std::variant<ObjectIndexVector, PlaneEventVector> boundObjects;
         /**
          * The current bounding box that should be divided further by the KDTree.
          */
@@ -40,23 +38,23 @@ namespace kdtree {
          * Constructor that initializes all fields. Intended for the use with std::make_unique. See {@link SplitParam} fields for further information.
          *
          */
-        SplitParam(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces, const Box &boundingBox,
+        SplitParam(const std::vector<GeometryObject> &geometryObjects, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : vertices{vertices}, faces{faces}, boundFaces{TriangleIndexVector(faces.size())}, boundingBox{boundingBox},
+            : geometryObjects{geometryObjects}, boundObjects{ObjectIndexVector(geometryObjects.size())}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
-            auto &indexList = std::get<TriangleIndexVector>(boundFaces);
+            auto &indexList = std::get<ObjectIndexVector>(boundObjects);
             std::iota(indexList.begin(), indexList.end(), 0);
         }
 
         /**
-         * Constructor manually initializing boundFaces, used for testing.
+         * Constructor manually initializing boundObjects, used for testing.
          */
-        SplitParam(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
-                   const std::variant<TriangleIndexVector, PlaneEventVector> &boundFaces, const Box &boundingBox,
+        SplitParam(const std::vector<GeometryObject> &geometryObjects,
+                   const std::variant<ObjectIndexVector, PlaneEventVector> &boundFaces, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : vertices{vertices}, faces{faces}, boundFaces{boundFaces}, boundingBox{boundingBox},
+            : geometryObjects{geometryObjects}, boundObjects{boundFaces}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
         }
     };

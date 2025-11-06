@@ -71,7 +71,7 @@ namespace kdtree {
         * @param plane The plane that splits the scene's bounding box into two new sub boxes.
         * @return Two new PlaneEventLists for the minimal and maximal bounding boxes respectively (unsorted!).
         */
-        static std::array<PlaneEventVector, 2> generatePlaneEventsForClippedFaces(const SplitParam &splitParam, const TriangleIndexVector &faceIndices, const Plane &plane);
+        static std::array<PlaneEventVector, 2> generatePlaneEventsForClippedFaces(const SplitParam &splitParam, const ObjectIndexVector &faceIndices, const Plane &plane);
 
         /**
          * Takes two sorted PlaneEventLists and merges them in a single merge sort step.

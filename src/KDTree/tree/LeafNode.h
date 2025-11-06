@@ -59,7 +59,7 @@ namespace kdtree {
          * @return
          */
         [[nodiscard]] std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                                  const IndexArray3 &triangleVertexIndex) const;
+                                                                  const IndexVector &triangleVertexIndex) const;
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -72,7 +72,7 @@ namespace kdtree {
                                                            const Array3Triplet &triangleVertices);
 
         /**
-         * Flags set when _splitParam boundFaces are converted from PlaneEvents to faces
+         * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces
          */
         std::once_flag convertedToFace;
     };
