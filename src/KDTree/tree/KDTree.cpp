@@ -4,15 +4,19 @@
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
-    KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
+    KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
-        : _vertices{vertices}, _faces{faces},
-          _splitParam{
-                  std::make_unique<SplitParam>(_vertices, _faces, Box::getBoundingBox(_vertices), Direction::X,
+        : _splitParam{
+                  std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(_geometryObjects), Direction::X,
                                                PlaneSelectionAlgorithmFactory::create(algorithm))} {
+        GeometryObject::vertices = vertices;
+        _geometryObjects.reserve(faces.size());
+        std::for_each(faces.cbegin(), faces.cend(), [this](const IndexVector& objIndices) {
+            _geometryObjects.emplace_back(objIndices);
+        });
     }
 
-    KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
+    KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
     }

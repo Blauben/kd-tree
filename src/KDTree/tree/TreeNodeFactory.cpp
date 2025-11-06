@@ -6,7 +6,7 @@ namespace kdtree::TreeNodeFactory {
         if (recursionDepth(nodeId) >= MAX_RECURSION_DEPTH) {
             return std::make_unique<LeafNode>(splitParam, nodeId);
         }
-        const size_t numberOfFaces{countFaces(splitParam.boundFaces)};
+        const size_t numberOfFaces{countFaces(splitParam.boundObjects)};
         //find optimal plane splitting this node's bounding box
         auto [plane, planeCost, triangleLists] = splitParam.planeSelectionStrategy->findPlane(splitParam);
         const double costWithoutSplit = static_cast<double>(numberOfFaces) * PlaneSelectionAlgorithm::triangleIntersectionCost;

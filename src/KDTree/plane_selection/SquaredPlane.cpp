@@ -4,11 +4,11 @@ namespace kdtree {
     // O(N^2) implementation
     std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> SquaredPlane::findPlane(
             const SplitParam &splitParam) {
-        if (std::holds_alternative<PlaneEventVector>(splitParam.boundFaces)) {
+        if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
         using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
-        const auto &boundFaces = std::get<TriangleIndexVector>(splitParam.boundFaces);
+        const auto &boundFaces = std::get<ObjectIndexVector>(splitParam.boundObjects);
         const std::function geoSubsetCallback = [this](const OptimalPlaneSquared &optPlane, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
             return addEqualPointsToSubset<TriangleIndexVectors>(std::move(indexVectors), minSideChosen);
         };
@@ -62,14 +62,14 @@ namespace kdtree {
 
     TriangleIndexVectors<3> SquaredPlane::containedTriangles(const SplitParam &splitParam, const Plane &split) {
         using namespace kdtree;
-        if (std::holds_alternative<PlaneEventVector>(splitParam.boundFaces)) {
+        if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
-        const auto &boundFaces = std::get<TriangleIndexVector>(splitParam.boundFaces);
+        const auto &boundFaces = std::get<ObjectIndexVector>(splitParam.boundObjects);
         //define three sets of triangles: closer to the origin, further away, in the plane
-        auto index_less = std::make_unique<TriangleIndexVector>();
-        auto index_greater = std::make_unique<TriangleIndexVector>();
-        auto index_equal = std::make_unique<TriangleIndexVector>();
+        auto index_less = std::make_unique<ObjectIndexVector>();
+        auto index_greater = std::make_unique<ObjectIndexVector>();
+        auto index_equal = std::make_unique<ObjectIndexVector>();
         index_less->reserve(boundFaces.size() / 2);
         index_greater->reserve(boundFaces.size() / 2);
 

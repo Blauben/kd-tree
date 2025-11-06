@@ -20,7 +20,7 @@ namespace kdtree {
             childParam.boundingBox = index == 0 ? lesserBox : greaterBox;
             //get the triangles of the box
             std::visit([&childParam, index](auto &typeLists) -> void {
-                childParam.boundFaces = *std::move(typeLists[index]);
+                childParam.boundObjects = *std::move(typeLists[index]);
             },
                        _triangleLists);
             childParam.splitDirection = static_cast<Direction>(

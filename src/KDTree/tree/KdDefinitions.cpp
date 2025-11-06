@@ -210,12 +210,12 @@ namespace kdtree {
         return type == other.type && plane == other.plane && faceIndex == other.faceIndex;
     }
 
-    TriangleIndexVector convertEventsToFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &events) {
-        if (std::holds_alternative<TriangleIndexVector>(events)) {
-            return std::get<TriangleIndexVector>(events);
+    ObjectIndexVector convertEventsToFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &events) {
+        if (std::holds_alternative<ObjectIndexVector>(events)) {
+            return std::get<ObjectIndexVector>(events);
         }
         const auto &eventList{std::get<PlaneEventVector>(events)};
-        TriangleIndexVector triangles{};
+        ObjectIndexVector triangles{};
         triangles.reserve(eventList.size());
         //used to avoid duplication
         std::unordered_set<size_t> processedFaces{};
@@ -231,9 +231,9 @@ namespace kdtree {
         return triangles;
     }
 
-    size_t countFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &triangles) {
+    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles) {
         return std::visit(util::overloaded{
-                                  [](const TriangleIndexVector &indexList) {
+                                  [](const ObjectIndexVector &indexList) {
                                       return indexList.size();
                                   },
                                   [](const PlaneEventVector &eventList) {

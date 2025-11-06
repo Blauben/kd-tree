@@ -20,15 +20,15 @@ namespace kdtree {
     using testing::Pair;
     using Algorithm = PlaneSelectionAlgorithm::Algorithm;
 
-    class KDTreeTest : public ::testing::TestWithParam<std::tuple<std::vector<Array3>, std::vector<IndexArray3>,
+    class KDTreeTest : public ::testing::TestWithParam<std::tuple<std::vector<Array3>, std::vector<IndexVector>,
                                                                   Algorithm,
                                                                   std::vector<Array3>>> {
     public:
         static const std::vector<Array3> cube_vertices;
-        static const std::vector<IndexArray3> cube_faces;
+        static const std::vector<IndexVector> cube_faces;
 
-        static std::tuple<std::vector<Array3>, std::vector<IndexArray3>, Algorithm, std::vector<Array3>>
-        generateRandomPointsOnPolyhedron(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
+        static std::tuple<std::vector<Array3>, std::vector<IndexVector>, Algorithm, std::vector<Array3>>
+        generateRandomPointsOnPolyhedron(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
                                          Algorithm algorithm,
                                          const size_t n) {
             std::vector<Array3> randomPoints;
@@ -45,10 +45,10 @@ namespace kdtree {
             return {vertices, faces, algorithm, randomPoints};
         }
 
-        static TriangleIndexVector extractFaceIndices(
-                const std::variant<TriangleIndexVector, PlaneEventVector> &triangles) {
-            if (std::holds_alternative<TriangleIndexVector>(triangles)) {
-                auto triangleVector = std::get<TriangleIndexVector>(triangles);
+        static ObjectIndexVector extractFaceIndices(
+                const std::variant<ObjectIndexVector, PlaneEventVector> &triangles) {
+            if (std::holds_alternative<ObjectIndexVector>(triangles)) {
+                auto triangleVector = std::get<ObjectIndexVector>(triangles);
                 std::sort(triangleVector.begin(), triangleVector.end());
                 return triangleVector;
             }
@@ -56,17 +56,17 @@ namespace kdtree {
             for (const auto &planeEvent: std::get<PlaneEventVector>(triangles)) {
                 boundTriangles.insert(planeEvent.faceIndex);
             }
-            TriangleIndexVector result{boundTriangles.cbegin(), boundTriangles.cend()};
+            ObjectIndexVector result{boundTriangles.cbegin(), boundTriangles.cend()};
             std::sort(result.begin(), result.end());
             return result;
         }
 
         static SplitParam &holdsFaceIndices(SplitParam &param) {
-            param.boundFaces = extractFaceIndices(param.boundFaces);
+            param.boundObjects = extractFaceIndices(param.boundObjects);
             return param;
         }
 
-        static std::pair<TriangleIndexVector, TriangleIndexVector> extractFaceIndicesFromVectors(const std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &vectors) {
+        static std::pair<ObjectIndexVector, ObjectIndexVector> extractFaceIndicesFromVectors(const std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &vectors) {
             return std::visit([](const auto &triangleVectors) {
                 auto minFaces = extractFaceIndices(*(triangleVectors[0]));
                 auto maxFaces = extractFaceIndices(*(triangleVectors[1]));
@@ -111,7 +111,7 @@ namespace kdtree {
             {1.0, -1.0, 1.0},
             {1.0, 1.0, 1.0},
             {-1.0, 1.0, 1.0}};
-    const std::vector<IndexArray3> KDTreeTest::cube_faces{
+    const std::vector<IndexVector> KDTreeTest::cube_faces{
             {1, 3, 2},
             {0, 3, 1},
             {0, 1, 5},
@@ -150,7 +150,7 @@ namespace kdtree {
         using namespace kdtree;
         using namespace util;
         std::vector<Array3> vertices;
-        std::vector<IndexArray3> faces;
+        std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();
         KDTree tree{vertices, faces, algorithm};

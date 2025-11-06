@@ -35,7 +35,7 @@ namespace kdtree {
      * Alias for an array of size 3 (size_t)
      * @example for the vertex indices in a triangular face.
      */
-    using IndexArray3 = std::array<size_t, 3>;
+    using IndexVector = std::vector<size_t>;
 
     /**
      * Alias for a triplet of arrays of size 3
@@ -194,13 +194,13 @@ namespace kdtree {
     /**
      * A set that stores indices of the faces vector in the KDTree. This effectively corresponds to a set of triangles. For performance purposes a std::vector is used instead of a std::set.
      */
-    using TriangleIndexVector = std::vector<size_t>;
+    using ObjectIndexVector = std::vector<size_t>;
 
     /**
     * Triangle sets contained in an array. Used by the KDTree to divide a bounding boxes included triangles into smaller subsets. For the semantic purpose of the contained sets please refer to the comments in the usage context.
      */
     template<size_t Number>
-    using TriangleIndexVectors = std::array<std::unique_ptr<TriangleIndexVector>, Number>;
+    using TriangleIndexVectors = std::array<std::unique_ptr<ObjectIndexVector>, Number>;
 
     /**
     * Used by {@link PlaneEvent} to position the face that generated the event relative to the generated plane.
@@ -258,9 +258,9 @@ namespace kdtree {
      * @param events The PlaneEvents containing information about the faces.
      * @return A list of face indices.
      */
-    TriangleIndexVector convertEventsToFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &events);
+    ObjectIndexVector convertEventsToFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &events);
 
-    size_t countFaces(const std::variant<TriangleIndexVector, PlaneEventVector> &triangles);
+    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles);
 
     /**
         * An iterator transforming face indices to vertices and returning both.
@@ -271,7 +271,7 @@ namespace kdtree {
         * @param faces the faces vector to lookup face indices.
         * @return pair of transform iterators.
         */
-    [[nodiscard]] static auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces) {
+    [[nodiscard]] static auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces) {
         //The offset must be captured by value to ensure its lifetime!
         const auto lambdaApplication = [&vertices, &faces](size_t faceIndex) {
             const auto &face = faces[faceIndex];

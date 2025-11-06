@@ -9,7 +9,7 @@
 
 namespace kdtree {
 
-    static Array3 getFaceCentroid(const std::vector<Array3> &vertices, const IndexArray3 &face) {
+    static Array3 getFaceCentroid(const std::vector<Array3> &vertices, const IndexVector &face) {
         using namespace kdtree::util;
         Array3 centroid{0, 0, 0};
         std::for_each(face.cbegin(), face.cend(), [&](const size_t vertexIndex) {
@@ -18,10 +18,10 @@ namespace kdtree {
         return centroid / 3.0;
     }
 
-    static std::vector<Array3> getPolyhedralFaceCentroids(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces) {
+    static std::vector<Array3> getPolyhedralFaceCentroids(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces) {
         std::vector<Array3> centroids;
         centroids.reserve(faces.size());
-        std::transform(faces.begin(), faces.end(), std::back_inserter(centroids), [&vertices](const IndexArray3 &face) {
+        std::transform(faces.begin(), faces.end(), std::back_inserter(centroids), [&vertices](const IndexVector &face) {
             return getFaceCentroid(vertices, face);
         });
         return centroids;
@@ -29,7 +29,7 @@ namespace kdtree {
 
     struct Meshes {
         std::vector<std::vector<Array3>> vertices{};
-        std::vector<std::vector<IndexArray3>> faces{};
+        std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Array3>> centroids{};
 
         explicit Meshes(const std::vector<std::string> &filePaths) {
@@ -41,7 +41,7 @@ namespace kdtree {
             });
         }
 
-        std::tuple<std::vector<Array3>, std::vector<IndexArray3>, std::vector<Array3>> operator[](const size_t index) const {
+        std::tuple<std::vector<Array3>, std::vector<IndexVector>, std::vector<Array3>> operator[](const size_t index) const {
             return std::make_tuple(vertices[index], faces[index], centroids[index]);
         }
 

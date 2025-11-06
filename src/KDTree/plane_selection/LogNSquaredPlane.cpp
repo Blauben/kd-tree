@@ -20,14 +20,14 @@ namespace kdtree {
 
     void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane) {
         const PlaneEventVector events{std::move(generatePlaneEventsFromFaces(optPlane.splitParam, {optPlane.splitParam.splitDirection}))};
-        TriangleCounter triangleCounter{1, {0, countFaces(optPlane.splitParam.boundFaces), 0}};
+        TriangleCounter triangleCounter{1, {0, countFaces(optPlane.splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, triangleCounter);
     }
 
     TriangleIndexVectors<2> LogNSquaredPlane::generateTriangleSubsets(const PlaneEventVector &planeEvents,
                                                                       const Plane &plane, const bool minSide) {
-        auto facesMin = std::make_unique<TriangleIndexVector>();
-        auto facesMax = std::make_unique<TriangleIndexVector>();
+        auto facesMin = std::make_unique<ObjectIndexVector>();
+        auto facesMax = std::make_unique<ObjectIndexVector>();
         //set data structure to avoid processing faces twice -> introduces O(1) lookup instead of O(n) lookup using the vectors directly
         std::unordered_set<size_t> facesMinLookup{};
         std::unordered_set<size_t> facesMaxLookup{};
