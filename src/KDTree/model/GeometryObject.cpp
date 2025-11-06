@@ -4,5 +4,9 @@
 #include "KDTree/model/GeometryObject.h"
 
 namespace kdtree {
-    GeometryObject::GeometryObject(const std::vector<size_t>& objVertices) : index{runningIndex++}, objVertices{objVertices} {}
-}
+    GeometryObject::GeometryObject(const std::vector<size_t>& objVertices) : objIndex{runningIndex++}, objVertices{objVertices} {
+    }
+    Array3 GeometryObject::operator[](const size_t index) const {
+        return vertices[objVertices[index]];
+    }
+}// namespace kdtree

@@ -127,7 +127,7 @@ namespace kdtree {
         };
 
         //transform faces to vertices
-        auto [begin_it, end_it] = transformIterator(faceIndices.cbegin(), faceIndices.cend(), splitParam.vertices,
+        auto [begin_it, end_it] = transformIterator(faceIndices.cbegin(), faceIndices.cend(), splitParam.geometryObjects,
                                                     splitParam.faces);
         std::atomic_long minIndex{0};
         std::atomic_long maxIndex{0};

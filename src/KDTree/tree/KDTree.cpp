@@ -7,12 +7,12 @@ namespace kdtree {
     KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : _splitParam{
-                  std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(_geometryObjects), Direction::X,
+                  std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
                                                PlaneSelectionAlgorithmFactory::create(algorithm))} {
         GeometryObject::vertices = vertices;
         _geometryObjects.reserve(faces.size());
-        std::for_each(faces.cbegin(), faces.cend(), [this](const IndexVector& objIndices) {
-            _geometryObjects.emplace_back(objIndices);
+        std::for_each(faces.cbegin(), faces.cend(), [this](const IndexVector& vertexIndices) {
+            _geometryObjects.emplace_back(vertexIndices);
         });
     }
 

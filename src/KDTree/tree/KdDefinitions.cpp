@@ -185,8 +185,8 @@ namespace kdtree {
             } else if (!isInside(distanceFrom) && isInside(distanceTo)) {
                 dest.emplace_back(intersectionPoint(from, to, distanceFrom, distanceTo));
                 dest.push_back(to);
-            } else if (!isInside(distanceFrom) && !isInside(distanceTo)) {
-                //do nothing
+            } else if (!isInside(distanceFrom) && !isInside(distanceTo) && source.size() == 1) {
+                throw RuntimeError("Algorithmic Error! Single Point outside the voxel passed to Box::clipToVoxel");
             }
         }
     }
@@ -237,11 +237,10 @@ namespace kdtree {
                                       return indexList.size();
                                   },
                                   [](const PlaneEventVector &eventList) {
-                                      std::mutex writeLock{};
                                       size_t count{0};
                                       std::unordered_set<size_t> processedFaces{};
                                       std::for_each(eventList.cbegin(), eventList.cend(),
-                                                    [&processedFaces, &count, &writeLock](const auto &planeEvent) {
+                                                    [&processedFaces, &count](const auto &planeEvent) {
                                                         if (processedFaces.find(planeEvent.faceIndex) == processedFaces.end()) {
                                                             processedFaces.insert(planeEvent.faceIndex);
                                                             count++;
