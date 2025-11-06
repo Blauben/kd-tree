@@ -436,7 +436,7 @@ namespace kdtree::util {
     * @param elements the container of whose elements to search for min and max ccordinates
     * @return the findings formatted in a pair of new elements. E.g <(0,0,0) , (1,1,1)> if the container {(0,0,1), (1,1,0)} is passed.
     */
-    template<typename Container, typename ValueType>
+    template<typename Container, typename ValueType = typename Container::value_type>
     std::pair<ValueType, ValueType> findMinMaxCoordinates(Container elements) {
         //return empty box centered at the origin if no vertices provided
         if (elements.empty()) {
