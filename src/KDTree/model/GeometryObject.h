@@ -2,6 +2,10 @@
 // Created by saruman on 06.11.25.
 //
 #pragma once
+
+#include <cstddef>
+#include <vector>
+
 #include "KDTree/tree/KdDefinitions.h"
 
 namespace kdtree {

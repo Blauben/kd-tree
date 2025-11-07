@@ -50,7 +50,7 @@ namespace kdtree {
         /**
          * The triangular faces of the polyhedron to be build
          */
-        std::vector<std::array<size_t, 3>> _faces;
+        std::vector<IndexVector> _faces;
 
     public:
         /**

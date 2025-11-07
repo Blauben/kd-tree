@@ -7,6 +7,8 @@
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/model/Plane.h"
 
+#include <stdexcept>
+
 namespace kdtree {
     /**
      * Defines a rectangular box by taking two opposite corner points. First is the point closest to the origin and second is the point farthest away.

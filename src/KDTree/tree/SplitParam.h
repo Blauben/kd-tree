@@ -1,6 +1,9 @@
 #pragma once
 
 #include "KDTree/model/GeometryObject.h"
+#include "KDTree/model/PlaneEvent.h"
+#include "KDTree/model/Box.h"
+
 #include "KDTree/tree/KdDefinitions.h"
 
 namespace kdtree {

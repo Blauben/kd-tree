@@ -17,7 +17,7 @@ namespace kdtree {
         }
 
         //2. Convert tetgenio to Polyhedron
-        return std::make_tuple(_vertices, _faces);
+        return std::make_tuple(this->_vertices, _faces);
     }
 
     void TetgenAdapter::readNode(const std::string &filename) {
