@@ -47,7 +47,7 @@ namespace kdtree {
         const auto &boundTriangles{std::get<ObjectIndexVector>(splitParam.boundObjects)};
         //transform the faces into vertices
         auto [vertex3_begin, vertex3_end] = transformIterator(boundTriangles.cbegin(), boundTriangles.cend(),
-                                                              splitParam.vertices, splitParam.faces);
+                                                              splitParam.geometryObjects);
         thrust::for_each(thrust::device, vertex3_begin, vertex3_end,
                          [&splitParam, &events, &directions, &eventsMutex](const auto &indexAndTriplet) {
                              const auto [index, triplet] = indexAndTriplet;
