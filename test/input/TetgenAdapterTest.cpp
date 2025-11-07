@@ -18,7 +18,7 @@ protected:
             {0, 10, 15},
             {-20, 10, 15}};
 
-    std::vector<std::array<size_t, 3>> _expectedFaces = {
+    std::vector<std::vector<size_t>> _expectedFaces = {
             {0, 1, 3},
             {1, 2, 3},
             {0, 4, 5},

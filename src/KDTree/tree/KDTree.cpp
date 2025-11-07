@@ -1,19 +1,16 @@
 #include "KDTree/tree/KDTree.h"
 
-#include "KDTree/input/TetgenAdapter.h"
-
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm)
-        : _splitParam{
-                  std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
-                                               PlaneSelectionAlgorithmFactory::create(algorithm))} {
+                   const PlaneSelectionAlgorithm::Algorithm algorithm) {
         GeometryObject::vertices = vertices;
         _geometryObjects.reserve(faces.size());
         std::for_each(faces.cbegin(), faces.cend(), [this](const IndexVector& vertexIndices) {
             _geometryObjects.emplace_back(vertexIndices);
         });
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
+                                         PlaneSelectionAlgorithmFactory::create(algorithm));
     }
 
     KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,

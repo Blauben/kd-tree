@@ -19,7 +19,7 @@ namespace kdtree {
         thrust::for_each(thrust::device, boundTriangles.cbegin(), boundTriangles.cend(),
                          [this, &ray, &origin, &intersections, &writeLock](const size_t faceIndex) {
                              const std::optional<Array3> intersection = rayIntersectsTriangle(
-                                     origin, ray, _splitParam->faces[faceIndex]);
+                                     origin, ray, _splitParam->geometryObjects[faceIndex]);
                              if (intersection.has_value()) {
                                  std::unique_lock lock(writeLock);
                                  intersections.insert(intersection.value());
@@ -28,14 +28,11 @@ namespace kdtree {
     }
 
     std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                          const IndexVector &triangleVertexIndex) const {
-        Array3Triplet edgeVertices{};
-        //transforms a face to its vertices
-        std::transform(triangleVertexIndex.cbegin(), triangleVertexIndex.cend(), edgeVertices.begin(),
-                       [this](const size_t vertexIndex) {
-                           return _splitParam->vertices[vertexIndex];
-                       });
-        return rayIntersectsTriangle(rayOrigin, rayVector, edgeVertices);
+                                                          const GeometryObject &triangle) const {
+        if (triangle.getIndexVector().size() != 3) {
+            throw std::runtime_error("Error: rayIntersectsTriangle called with a non triangle geometryObject.");
+        }
+        return rayIntersectsTriangle(rayOrigin, rayVector, triangle.getVertices());
     }
 
     std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,

@@ -12,12 +12,14 @@ namespace kdtree {
     class GeometryObject {
     public:
         static size_t runningIndex;
-        static const std::vector<Array3> vertices;
+        static std::vector<Array3> vertices;
 
         const size_t objIndex;
-        const std::vector<size_t> objVertices;
-        explicit GeometryObject(const std::vector<size_t>& objVertices);
+        const IndexVector objVertices;
+        explicit GeometryObject(const IndexVector& objVertices);
         Array3 operator[](size_t index) const;
+        [[nodiscard]] const IndexVector &getIndexVector() const;
+        [[nodiscard]] Array3Triplet getVertices() const;
     private:
     };
 
@@ -34,12 +36,7 @@ namespace kdtree {
         //The offset must be captured by value to ensure its lifetime!
         const auto lambdaApplication = [&geometryObjects](size_t objIndex) {
             const auto &object = geometryObjects[objIndex];
-            Array3Triplet vertexTriplet = {
-                object[0],
-                object[1],
-                object[2]
-            };
-            return std::make_pair(objIndex, vertexTriplet);
+            return std::make_pair(objIndex, object.getVertices());
         };
 
         auto first = thrust::make_transform_iterator(begin, lambdaApplication);

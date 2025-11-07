@@ -55,11 +55,11 @@ namespace kdtree {
          * Möller-Trumbore Algorithm for Ray-Face intersection.
          * @param rayOrigin The point where the ray originates from.
          * @param rayVector Specifies the ray direction.
-         * @param triangleVertexIndex the face to test against, described by the vertices that comprise it (passed by index reference).
+         * @param triangle the face to test against, described by the vertices that comprise it (passed by index reference).
          * @return
          */
         [[nodiscard]] std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                                  const IndexVector &triangleVertexIndex) const;
+                                                                  const GeometryObject &triangle) const;
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
