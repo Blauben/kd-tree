@@ -16,7 +16,7 @@ namespace kdtree {
         //each vertex proposes a split plane candidate: test for each of them, store them in buffer set to avoid duplicate testing
         std::unordered_set<double> testedPlaneCoordinates{};
         auto [vertex3_begin, vertex3_end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(),
-                                                              splitParam.vertices, splitParam.faces);
+                                                              splitParam.geometryObjects);
         std::mutex testedPlaneMutex{};
         thrust::for_each(thrust::device, vertex3_begin, vertex3_end,
                          [&splitParam, &optPlane, &testedPlaneCoordinates, &testedPlaneMutex](
@@ -76,8 +76,7 @@ namespace kdtree {
 
         //perform check for every triangle contained in this node's bounding box.
         //transform faceIndices into the vertices
-        auto [begin, end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(), splitParam.vertices,
-                                              splitParam.faces);
+        auto [begin, end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(), splitParam.geometryObjects);
         std::for_each(
                 begin, end,
                 [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, Array3Triplet> pair) {

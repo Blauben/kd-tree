@@ -63,7 +63,18 @@ namespace kdtree {
      * @param direction The direction to return the normal vector for.
      * @return The normal vector.
      */
-    static Array3 normal(Direction direction);
+    static Array3 normal(const Direction direction) {
+        switch (direction) {
+            case Direction::X:
+                return Array3{1, 0, 0};
+            case Direction::Y:
+                return Array3{0, 1, 0};
+            case Direction::Z:
+                return Array3{0, 0, 1};
+            default:
+                throw std::invalid_argument{"Unknown Direction enum value used during normal fetching."};
+        }
+    }
 
     /**
      * Number of dimensions for the polyhedron. Also corresponds to the number of elements of the {@link Direction} enum.
