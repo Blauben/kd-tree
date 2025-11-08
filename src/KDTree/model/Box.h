@@ -61,7 +61,7 @@ namespace kdtree {
         * @param points The corner points of the face to be clipped.
         * @return The new corner points of the clipped face.
         */
-        [[nodiscard]] std::vector<Array3> clipToVoxel(const std::array<Array3, 3> &points) const;
+        [[nodiscard]] std::vector<Array3> clipToVoxel(const std::vector<Array3> &points) const;
 
         explicit Box(const std::pair<Array3, Array3> &pair);
         Box();

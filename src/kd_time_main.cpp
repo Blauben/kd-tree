@@ -75,7 +75,7 @@ namespace kdtree {
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
-                tree.getFaceIntersections(origin, (centroid - origin) / 10., intersections);
+                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.erase(intersections.begin(), intersections.end());
             benchmark::ClobberMemory();
@@ -91,7 +91,7 @@ namespace kdtree {
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
-                tree.getFaceIntersections(origin, (centroid - origin) / 10., intersections);
+                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.erase(intersections.begin(), intersections.end());
             benchmark::ClobberMemory();
@@ -108,7 +108,7 @@ namespace kdtree {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
-                tree.getFaceIntersections(origin, (centroid - origin) / 10., intersections);
+                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.erase(intersections.begin(), intersections.end());
             benchmark::ClobberMemory();
@@ -125,7 +125,7 @@ namespace kdtree {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
-                tree.getFaceIntersections(origin, (centroid - origin) / 10., intersections);
+                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.erase(intersections.begin(), intersections.end());
             benchmark::ClobberMemory();

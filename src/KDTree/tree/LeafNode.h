@@ -44,7 +44,7 @@ namespace kdtree {
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.
         */
-        void getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
 
         [[nodiscard]] std::string toString() const override;
 
@@ -55,11 +55,11 @@ namespace kdtree {
          * Möller-Trumbore Algorithm for Ray-Face intersection.
          * @param rayOrigin The point where the ray originates from.
          * @param rayVector Specifies the ray direction.
-         * @param triangle the face to test against, described by the vertices that comprise it (passed by index reference).
+         * @param object the face to test against, described by the vertices that comprise it (passed by index reference).
          * @return
          */
-        [[nodiscard]] std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                                  const GeometryObject &triangle) const;
+        static std::optional<Array3> rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
+                                                                  const GeometryObject &object) ;
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -69,7 +69,9 @@ namespace kdtree {
          * @return
          */
         static std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                           const Array3Triplet &triangleVertices);
+                                                           const std::vector<Array3> &triangleVertices);
+
+        static std::optional<Array3> rayIntersectsPoint(const Array3 &rayOrigin, const Array3 &rayVector, const Array3 &center);
 
         /**
          * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces

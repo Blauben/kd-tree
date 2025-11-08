@@ -67,6 +67,8 @@ namespace kdtree {
         KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
+        explicit KDTree(const std::vector<Array3>& particles,  PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+
         /**
          * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
          * @param nodeFilePath The path to the .node file containing information about the polyhedron's vertices.
@@ -98,7 +100,7 @@ namespace kdtree {
         * @param ray Specifies the ray direction.
         * @param intersections The set found intersection points are added to.
         */
-        void getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
 
         /**
          * Calculates the number of intersections of a ray with the polyhedron.

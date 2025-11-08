@@ -62,7 +62,7 @@ namespace kdtree {
      * @param events The PlaneEvents containing information about the faces.
      * @return A list of face indices.
      */
-    ObjectIndexVector convertEventsToFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &events);
+    ObjectIndexVector convertEventsToGeometry(const std::variant<ObjectIndexVector, PlaneEventVector> &events);
 
     size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles);
 }

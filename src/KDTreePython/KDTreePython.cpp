@@ -27,9 +27,9 @@ NB_MODULE(KDTree_Python, m) {
             .def(nb::init<const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a)
-            .def("getFaceIntersections", [](KDTree &self, const Array3 &origin, const Array3 &ray) {
+            .def("getIntersections", [](KDTree &self, const Array3 &origin, const Array3 &ray) {
         std::set<Array3> intersections{};
-        self.getFaceIntersections(origin, ray, intersections);
+        self.getIntersections(origin, ray, intersections);
         return std::vector<Array3>(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a)
             .def("prebuildTree", &KDTree::prebuildTree, nb::rv_policy::reference_internal)
             .def("printTree", [](const KDTree &tree) {

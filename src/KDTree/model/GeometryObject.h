@@ -19,7 +19,7 @@ namespace kdtree {
         explicit GeometryObject(const IndexVector& objVertices);
         Array3 operator[](size_t index) const;
         [[nodiscard]] const IndexVector &getIndexVector() const;
-        [[nodiscard]] Array3Triplet getVertices() const;
+        [[nodiscard]] std::vector<Array3> getVertices() const;
     private:
     };
 

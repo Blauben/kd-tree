@@ -64,7 +64,7 @@ namespace kdtree {
         return std::make_pair(box1, box2);
     }
 
-    std::vector<Array3> Box::clipToVoxel(const std::array<Array3, 3> &points) const {
+    std::vector<Array3> Box::clipToVoxel(const std::vector<Array3> &points) const {
         using namespace util;
         //use clipped as the input vector because the inner for loop swaps input and clipped each iteration,
         //since each iteration needs the output of the previous iteration as input.
