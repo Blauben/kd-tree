@@ -15,15 +15,15 @@ namespace kdtree {
         OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback};
         //each vertex proposes a split plane candidate: test for each of them, store them in buffer set to avoid duplicate testing
         std::unordered_set<double> testedPlaneCoordinates{};
-        auto [vertex3_begin, vertex3_end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(),
+        auto [vertex_begin, vertex_end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(),
                                                               splitParam.geometryObjects);
         std::mutex testedPlaneMutex{};
-        thrust::for_each(thrust::device, vertex3_begin, vertex3_end,
+        thrust::for_each(thrust::device, vertex_begin, vertex_end,
                          [&splitParam, &optPlane, &testedPlaneCoordinates, &testedPlaneMutex](
-                                 const auto &indexAndTriplet) {
-                             const auto [index, triplet] = indexAndTriplet;
+                                 const auto &indexAndVertices) {
+                             const auto [index, vertices] = indexAndVertices;
                              //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
-                             const auto clippedVertices = splitParam.boundingBox.clipToVoxel(triplet);
+                             const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
                              const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3>>(
                                      clippedVertices);
                              for (const auto planeSurfacePoint: {minPoint, maxPoint}) {
@@ -79,7 +79,7 @@ namespace kdtree {
         auto [begin, end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(), splitParam.geometryObjects);
         std::for_each(
                 begin, end,
-                [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, Array3Triplet> pair) {
+                [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, std::vector<Array3>> pair) {
                     auto [faceIndex, vertices] = pair;
                     bool less{false}, greater{false};
                     auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);

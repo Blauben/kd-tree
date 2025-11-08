@@ -12,6 +12,18 @@ namespace kdtree {
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
                                          PlaneSelectionAlgorithmFactory::create(algorithm));
     }
+    KDTree::KDTree(const std::vector<Array3> &particles, PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
+        particles,
+        [&particles]() {
+            std::vector<IndexVector> faces{};
+            faces.reserve(particles.size());
+            for (size_t index = 0; index < particles.size(); index++) {
+                faces.emplace_back(1, index);
+            }
+            return faces;
+        }(),
+        algorithm
+    } {}
 
     KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
@@ -33,11 +45,11 @@ namespace kdtree {
     size_t KDTree::countIntersections(const Array3 &origin, const Array3 &ray) {
         //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
         std::set<Array3> set{};
-        this->getFaceIntersections(origin, ray, set);
+        this->getIntersections(origin, ray, set);
         return set.size();
     }
 
-    void KDTree::getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections) {
+    void KDTree::getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections) {
         //iterative approach to avoid stack and heap overflows
         //queue for children of processed nodes
         std::deque<std::shared_ptr<TreeNode>> queue{};
@@ -56,7 +68,7 @@ namespace kdtree {
             }
             //if node is leaf then perform intersections with the triangles contained
             else if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
-                leaf->getFaceIntersections(origin, ray, intersections);
+                leaf->getIntersections(origin, ray, intersections);
             }
             queue.pop_front();
         }

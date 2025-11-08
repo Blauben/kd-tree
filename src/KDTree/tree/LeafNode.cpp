@@ -5,20 +5,20 @@ namespace kdtree {
         : TreeNode(splitParam, nodeId) {
     }
 
-    void LeafNode::getFaceIntersections(const Array3 &origin, const Array3 &ray,
+    void LeafNode::getIntersections(const Array3 &origin, const Array3 &ray,
                                         std::set<Array3> &intersections) {
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(convertedToFace, [this]() {
-                _splitParam->boundObjects = convertEventsToFaces(std::get<PlaneEventVector>(_splitParam->boundObjects));
+                _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
             });
         }
         std::mutex writeLock{};
-        const ObjectIndexVector &boundTriangles{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
-        std::vector<Array3> results(boundTriangles.size());
+        const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
+        std::vector<Array3> results(boundObjects.size());
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
-        thrust::for_each(thrust::device, boundTriangles.cbegin(), boundTriangles.cend(),
+        thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
                          [this, &ray, &origin, &intersections, &writeLock](const size_t faceIndex) {
-                             const std::optional<Array3> intersection = rayIntersectsTriangle(
+                             const std::optional<Array3> intersection = rayIntersectsObject(
                                      origin, ray, _splitParam->geometryObjects[faceIndex]);
                              if (intersection.has_value()) {
                                  std::unique_lock lock(writeLock);
@@ -27,16 +27,21 @@ namespace kdtree {
                          });
     }
 
-    std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                          const GeometryObject &triangle) const {
-        if (triangle.getIndexVector().size() != 3) {
-            throw std::runtime_error("Error: rayIntersectsTriangle called with a non triangle geometryObject.");
+    std::optional<Array3> LeafNode::rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
+                                                          const GeometryObject &object) {
+        if (object.getIndexVector().size() == 3) {
+            return rayIntersectsTriangle(rayOrigin, rayVector, object.getVertices());
         }
-        return rayIntersectsTriangle(rayOrigin, rayVector, triangle.getVertices());
+        if (object.getIndexVector().size() == 1) {
+            return rayIntersectsPoint(rayOrigin, rayVector, object.getVertices()[0]);
+        }
+
+        throw std::runtime_error("Error: rayIntersectsObject called with neither a triangle nor a point.");
+
     }
 
     std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                          const Array3Triplet &triangleVertices) {
+                                                          const std::vector<Array3> &triangleVertices) {
         // Adapted Möller–Trumbore intersection algorithm
         // see https://en.wikipedia.org/wiki/Möller–Trumbore_intersection_algorithm
         using namespace kdtree;
@@ -67,6 +72,26 @@ namespace kdtree {
             return rayOrigin + rayVector * t;
         }
         return std::nullopt;
+    }
+    std::optional<Array3> LeafNode::rayIntersectsPoint(const Array3 &rayOrigin, const Array3 &rayVector, const Array3 &center) {
+        using namespace util;
+        const double EPSILON_OFFSET = 1e-9 /* TODO: get radius from object, or use a default small value */;
+
+        // Vector from ray origin to sphere center
+        const Array3 oc = rayOrigin - center;
+
+        // Calculate the nearest intersection point
+        const double t = - dot(rayVector, oc) / dot(rayVector, rayVector);
+
+        const Array3 intersection = rayOrigin + rayVector * t;
+
+        const double distance = std::sqrt(dot(intersection - center, intersection - center));
+        if (distance > EPSILON_OFFSET) {
+            return std::nullopt;
+        }
+
+        // Return the intersection point
+        return intersection;
     }
 
     std::string LeafNode::toString() const {

@@ -23,7 +23,7 @@ namespace kdtree {
         return type == other.type && plane == other.plane && faceIndex == other.faceIndex;
     }
 
-    ObjectIndexVector convertEventsToFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &events) {
+    ObjectIndexVector convertEventsToGeometry(const std::variant<ObjectIndexVector, PlaneEventVector> &events) {
         if (std::holds_alternative<ObjectIndexVector>(events)) {
             return std::get<ObjectIndexVector>(events);
         }

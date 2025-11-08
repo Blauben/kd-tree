@@ -139,12 +139,37 @@ namespace kdtree {
         const auto pointTest = [&tree, &origin](const Array3 &point) {
             const auto ray{(point - origin) / 10.0};
             std::set<Array3> intersections;
-            tree.getFaceIntersections(origin, ray, intersections);
+            tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], DELTA), DoubleNear(point[1], DELTA), DoubleNear(point[2], DELTA))));
         };
         std::for_each(points.cbegin(), points.cend(), pointTest);
     }
+
+
+    TEST_P(KDTreeTest, ParticleTree) {
+        using namespace kdtree;
+        using namespace util;
+        constexpr double SPHERE_INTERSECTION_DELTA = 1e-4;
+        const auto [vertices, faces, algorithm, points] = GetParam();
+        std::mt19937 gen = std::mt19937(SEED);
+        KDTree tree{vertices, algorithm};
+        constexpr Array3 origin{200, 200, 200};
+        const auto pointTest = [&tree, &origin](const Array3 &point, const size_t pointIndex) {
+            const auto ray{(point - origin) / 10.0};
+            std::set<Array3> intersections;
+            tree.getIntersections(origin, ray, intersections);
+            ASSERT_THAT(intersections,
+                        Contains(ElementsAre(DoubleNear(point[0], SPHERE_INTERSECTION_DELTA), DoubleNear(point[1], SPHERE_INTERSECTION_DELTA), DoubleNear(point[2], SPHERE_INTERSECTION_DELTA))))
+             << "PointIndex: " << pointIndex;
+        };
+
+        for (size_t i{0}; i < 1000; i++) {
+            const auto index = gen() % vertices.size();
+            pointTest(vertices[index], index);
+        }
+    }
+
 
     TEST_P(KDTreeTest, AlgorithmRegressionTest) {
         using namespace kdtree;

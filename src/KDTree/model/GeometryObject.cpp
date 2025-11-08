@@ -17,11 +17,12 @@ namespace kdtree {
     const IndexVector& GeometryObject::getIndexVector() const {
         return objVertices;
     }
-    Array3Triplet GeometryObject::getVertices() const {
-        return {
-            this->operator[](0),
-            this->operator[](1),
-            this->operator[](2)
-        };
+    std::vector<Array3> GeometryObject::getVertices() const {
+        std::vector<Array3> vertexCoords{};
+        vertexCoords.reserve(objVertices.size());
+        for (size_t i = 0; i < objVertices.size(); ++i) {
+            vertexCoords.emplace_back(this->operator[](i));
+        }
+        return vertexCoords;
     }
 }// namespace kdtree
