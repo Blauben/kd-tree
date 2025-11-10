@@ -96,7 +96,7 @@ namespace kdtree {
     void TetgenAdapter::addVertices() {
         _vertices.clear();
         _vertices.reserve(_tetgenio.numberofpoints);
-        for (size_t i = 0; i < _tetgenio.numberofpoints * 3; i += 3) {
+        for (int i = 0; i < _tetgenio.numberofpoints * 3; i += 3) {
             _vertices.push_back({_tetgenio.pointlist[i],
                                  _tetgenio.pointlist[i + 1],
                                  _tetgenio.pointlist[i + 2]});
@@ -106,7 +106,7 @@ namespace kdtree {
     void TetgenAdapter::addFacesByTrifaces() {
         _faces.clear();
         _faces.reserve(_tetgenio.numberoftrifaces);
-        for (size_t i = 0; i < _tetgenio.numberoftrifaces * 3; i += 3) {
+        for (int i = 0; i < _tetgenio.numberoftrifaces * 3; i += 3) {
             _faces.push_back({static_cast<size_t>(_tetgenio.trifacelist[i]),
                               static_cast<size_t>(_tetgenio.trifacelist[i + 1]),
                               static_cast<size_t>(_tetgenio.trifacelist[i + 2])});

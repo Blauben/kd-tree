@@ -1,4 +1,4 @@
-#include "UtilityFloatArithmetic.h"
+#include "KDTree/util/UtilityFloatArithmetic.h"
 
 
 namespace kdtree::util {
@@ -14,17 +14,18 @@ namespace kdtree::util {
         }
 
         // In case the signs mismatch, return false
-        if (lhs < static_cast<FloatType>(0.0) && rhs > static_cast<FloatType>(0.0) ||
-            lhs > static_cast<FloatType>(0.0) && rhs < static_cast<FloatType>(0.0)) {
+        if ((lhs < static_cast<FloatType>(0.0) && rhs > static_cast<FloatType>(0.0)) ||
+            (lhs > static_cast<FloatType>(0.0) && rhs < static_cast<FloatType>(0.0))) {
             return false;
         }
 
+
         if constexpr (std::is_same_v<FloatType, float>) {
             // In case of float, compute ULP distance by interpreting float as 32-bit integer
-            return reinterpret_cast<std::int32_t &>(rhs) - reinterpret_cast<std::int32_t &>(lhs) <= ulpDistance;
+            return std::bit_cast<std::int32_t>(rhs) - std::bit_cast<std::int32_t>(lhs) <= ulpDistance;
         } else if constexpr (std::is_same_v<FloatType, double>) {
             // In case of double, compute ULP distance by interpreting double as 64-bit integer
-            return reinterpret_cast<std::int64_t &>(rhs) - reinterpret_cast<std::int64_t &>(lhs) <= ulpDistance;
+            return std::bit_cast<std::int64_t>(rhs) - std::bit_cast<std::int64_t>(lhs) <= ulpDistance;
         }
 
         // Due to the static_assert above, this should not happen
