@@ -19,7 +19,7 @@ namespace kdtree {
     }
 
     void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane) {
-        const PlaneEventVector events{std::move(generatePlaneEventsFromFaces(optPlane.splitParam, {optPlane.splitParam.splitDirection}))};
+        const PlaneEventVector events{generatePlaneEventsFromFaces(optPlane.splitParam, {optPlane.splitParam.splitDirection})};
         TriangleCounter triangleCounter{1, {0, countFaces(optPlane.splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, triangleCounter);
     }

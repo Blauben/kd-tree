@@ -104,7 +104,7 @@ namespace kdtree {
                                         TriangleCounter &triangleCounter) {
             const Box &boundingBox = optPlane.splitParam.boundingBox;
             //traverse all the events
-            int i{0};
+            size_t i{0};
             while (i < events.size()) {
                 //poll a plane to test
                 const Plane &candidatePlane = events[i].plane;

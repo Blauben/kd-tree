@@ -63,7 +63,7 @@ namespace kdtree {
      * @param direction The direction to return the normal vector for.
      * @return The normal vector.
      */
-    static Array3 normal(const Direction direction) {
+    inline Array3 normal(const Direction direction) {
         switch (direction) {
             case Direction::X:
                 return Array3{1, 0, 0};

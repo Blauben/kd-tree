@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -fsanitize=address")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Appends the the module path to contain additional CMake modules for this project

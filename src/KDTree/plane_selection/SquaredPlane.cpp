@@ -9,7 +9,7 @@ namespace kdtree {
         }
         using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
         const auto &boundFaces = std::get<ObjectIndexVector>(splitParam.boundObjects);
-        const std::function geoSubsetCallback = [this](const OptimalPlaneSquared &optPlane, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
+        const std::function geoSubsetCallback = [this](const OptimalPlaneSquared &, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
             return addEqualPointsToSubset<TriangleIndexVectors>(std::move(indexVectors), minSideChosen);
         };
         OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback};

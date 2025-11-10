@@ -32,7 +32,7 @@ namespace kdtree {
         * @param objectIndices the faces vector to lookup face indices.
         * @return pair of transform iterators.
         */
-    [[nodiscard]] static auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<GeometryObject> &geometryObjects) {
+    [[nodiscard]] inline auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<GeometryObject> &geometryObjects) {
         //The offset must be captured by value to ensure its lifetime!
         const auto lambdaApplication = [&geometryObjects](size_t objIndex) {
             const auto &object = geometryObjects[objIndex];

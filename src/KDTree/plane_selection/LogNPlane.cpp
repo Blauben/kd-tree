@@ -9,7 +9,7 @@ namespace kdtree {
             return generatePlaneEventSubsets(optPlane.splitParam, events, optPlane.getOptimalPlane(), minSideChosen);
         };
         OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
-        const PlaneEventVector events{std::move(generatePlaneEvents(splitParam))};
+        const PlaneEventVector events{generatePlaneEvents(splitParam)};
         TriangleCounter triangleCounter{3, {0, countFaces(splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, triangleCounter);
         //generate the triangle index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.

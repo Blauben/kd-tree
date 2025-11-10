@@ -12,7 +12,7 @@ namespace kdtree {
         * @param splitParam specifies the polyhedron section to be split @link SplitParam.
         * @return Tuple of the default plane to split the specified bounding box, infinite cost as double and a list of empty triangle sets. Refer to {@link TriangleIndexVectors<2>} for more information.
         */
-        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(const SplitParam &splitParam) override {
+        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(const SplitParam&) override {
             return {Plane{}, std::numeric_limits<double>::infinity(), TriangleIndexVectors<2>{std::make_unique<ObjectIndexVector>(), std::make_unique<ObjectIndexVector>()}};
         }
     };
