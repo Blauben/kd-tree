@@ -127,7 +127,7 @@ namespace kdtree {
 
     std::mt19937 KDTreeTest::gen = std::mt19937(SEED);// NOLINT(*-msc51-cpp), predictable sequence wanted
 
-    const auto [bigVertices, bigFaces] = TetgenAdapter{{"resources/GravityModelBigTest.node", "resources/GravityModelBigTest.face"}}.getPolyhedralSource();
+    const auto [bigVertices, bigFaces] = TetgenAdapter{{"resources/Eros_scaled-1732.node", "resources/Eros_scaled-1732.face"}}.getPolyhedralSource();
 
 
     TEST_P(KDTreeTest, PointsTest) {
@@ -154,10 +154,11 @@ namespace kdtree {
         const auto [vertices, faces, algorithm, points] = GetParam();
         std::mt19937 gen = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
+        tree.prebuildTree();
         constexpr Array3 origin{200, 200, 200};
         const auto pointTest = [&tree, &origin](const Array3 &point, const size_t pointIndex) {
             const auto ray{(point - origin) / 10.0};
-            std::set<Array3> intersections;
+            std::set<Array3> intersections{};
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], SPHERE_INTERSECTION_DELTA), DoubleNear(point[1], SPHERE_INTERSECTION_DELTA), DoubleNear(point[2], SPHERE_INTERSECTION_DELTA))))

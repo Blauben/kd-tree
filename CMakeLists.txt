@@ -56,6 +56,7 @@ endif ()
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
+add_compile_definitions($<$<CONFIG:Debug>:DEBUG>)
 
 include(git)
 include(version.cmake)

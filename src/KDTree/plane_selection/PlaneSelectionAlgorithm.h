@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstddef>
 #include <iterator>
 #include <limits>
@@ -82,6 +83,9 @@ namespace kdtree {
             }
 
             std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> getPointsSplit() {
+                if (cost == std::numeric_limits<double>::infinity()) {
+                    return {};
+                }
                 return std::apply(
                         [this](auto &&...args) {
                             return boundGeometrySplit(*this, std::forward<decltype(args)>(args)...);
