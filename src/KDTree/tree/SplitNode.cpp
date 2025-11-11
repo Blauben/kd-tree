@@ -5,8 +5,7 @@ namespace kdtree {
                          std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists,
                          const size_t nodeId)
         : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
-          _triangleLists{std::move(triangleIndexLists)} {
-    }
+          _triangleLists{std::move(triangleIndexLists)} {}
 
     std::shared_ptr<TreeNode> SplitNode::getChildNode(const size_t index) {
         //create a reference to store the built node in
@@ -51,7 +50,7 @@ namespace kdtree {
         const double t_split{_plane.rayPlaneIntersection(origin, inverseRay)};
         //the split plane is hit inside of the bounding box -> both child boxes need to be checked
         const bool isParallel = std::isinf(t_split);
-        bool planeIsHitInsideBox = 0 <= t_split && t_enter <= t_split && t_split <= t_exit;
+        bool planeIsHitInsideBox = 0 <= t_split && t_enter - EPSILON_NUMERICAL_TOLERANCE <= t_split && t_split <= t_exit + EPSILON_NUMERICAL_TOLERANCE;
         if (!isParallel && planeIsHitInsideBox) {
             delegates.push_back(getChildNode(0));
             delegates.push_back(getChildNode(1));

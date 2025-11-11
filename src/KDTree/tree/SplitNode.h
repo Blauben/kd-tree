@@ -57,6 +57,8 @@ namespace kdtree {
         */
         std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> _triangleLists;
 
+        static constexpr double EPSILON_NUMERICAL_TOLERANCE = 1e-9;
+
     public:
         /**
          * Takes parameters from the parent node and stores them for lazy child node creation.
