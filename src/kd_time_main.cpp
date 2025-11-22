@@ -36,13 +36,13 @@ namespace kdtree {
             std::for_each(filePaths.cbegin(), filePaths.cend(), [this](const std::string &filePath) {
                 const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath)}.getPolyhedralSource();
                 centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-                vertices.push_back(std::move(fileVertices));
-                faces.push_back(std::move(fileFaces));
+                vertices.push_back(fileVertices);
+                faces.push_back(fileFaces);
             });
         }
 
-        std::tuple<std::vector<Array3>, std::vector<IndexVector>, std::vector<Array3>> operator[](const size_t index) const {
-            return std::make_tuple(vertices[index], faces[index], centroids[index]);
+        std::tuple<const std::vector<Array3>&, const std::vector<IndexVector>&, const std::vector<Array3>&> operator[](const size_t index) const {
+            return {vertices[index], faces[index], centroids[index]};
         }
 
         static std::vector<std::string> buildCompleteFilePaths(const std::string &filePath) {
@@ -77,7 +77,7 @@ namespace kdtree {
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -93,7 +93,7 @@ namespace kdtree {
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -110,7 +110,7 @@ namespace kdtree {
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -127,7 +127,7 @@ namespace kdtree {
             std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -137,7 +137,7 @@ namespace kdtree {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
         for (auto _: state) {
-            KDTree tree{vertices, faces};
+            KDTree tree{vertices, faces, algorithm};
             tree.prebuildTree();
             benchmark::ClobberMemory();
         }
@@ -148,7 +148,7 @@ namespace kdtree {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
         for (auto _: state) {
-            KDTree tree{vertices, faces};
+            KDTree tree{vertices, faces, algorithm};
             tree.prebuildTree();
             benchmark::ClobberMemory();
         }

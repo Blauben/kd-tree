@@ -10,9 +10,10 @@ namespace kdtree {
                 return std::make_shared<SquaredPlane>();
             case Algorithm::LOGSQUARED:
                 return std::make_shared<LogNSquaredPlane>();
-            default:
             case Algorithm::LOG:
                 return std::make_shared<LogNPlane>();
+            default:
+                throw std::runtime_error("Unknown algorithm");
         }
     }
 }// namespace kdtree
