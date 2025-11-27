@@ -71,7 +71,7 @@ namespace kdtree {
          * converted to a Polyhedron.
          * @return a Polyhedron
          */
-        std::tuple<std::vector<Array3>, std::vector<IndexVector>> getPolyhedralSource();
+        std::tuple<std::vector<Vertex>, std::vector<IndexVector>> getPolyhedralSource();
 
         /**
          * Reads nodes from a .node file

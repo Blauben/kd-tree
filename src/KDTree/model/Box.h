@@ -13,11 +13,11 @@ namespace kdtree {
         /**
          * The point closer to the origin, thus minimal
          */
-        Array3 minPoint;
+        Vertex minPoint;
         /**
          * The point further away from the origin, thus maximal.
          */
-        Array3 maxPoint;
+        Vertex maxPoint;
 
         /**
          * Calculates the intersection points of a ray and a box.
@@ -25,7 +25,7 @@ namespace kdtree {
          * @param inverseRay The inverse ray direction vector of the ray to be intersected (used for faster calculations).
          * @return Parameters t of the equation $ intersection_point = origin + t * ray $ for the entry and exit intersection points.
          */
-        [[nodiscard]] std::pair<double, double> rayBoxIntersection(const Array3 &origin, const Array3 &inverseRay) const;
+        [[nodiscard]] std::pair<double, double> rayBoxIntersection(const Vertex &origin, const Vertex &inverseRay) const;
 
         /**
         * Calculates the surface area of a box.
@@ -57,9 +57,9 @@ namespace kdtree {
         * @param points The corner points of the face to be clipped.
         * @return The new corner points of the clipped face.
         */
-        [[nodiscard]] std::vector<Array3> clipToVoxel(const std::vector<Array3> &points) const;
+        [[nodiscard]] std::vector<Vertex> clipToVoxel(const std::vector<Vertex> &points) const;
 
-        explicit Box(const std::pair<Array3, Array3> &pair);
+        explicit Box(const std::pair<Vertex, Vertex> &pair);
         Box();
 
     private:
@@ -71,6 +71,6 @@ namespace kdtree {
          * @param source The vertices to be transformed to lie on the inside of the plane.
          * @param dest The transformed vertices.
          */
-        static void clipToVoxelPlane(const Plane &plane, bool flipPlaneNormal, const std::vector<Array3> &source, std::vector<Array3> &dest);
+        static void clipToVoxelPlane(const Plane &plane, bool flipPlaneNormal, const std::vector<Vertex> &source, std::vector<Vertex> &dest);
     };
 }

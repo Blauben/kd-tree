@@ -20,8 +20,12 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
+    //forward declaration
     struct SplitParam;
 
+    /**
+     * A strategy for calculating optimal planes. Part of the Strategy Software pattern.
+     */
     class LogNSquaredPlane final : public PlaneEventAlgorithm {
         using OptimalPlaneLogNSquared = OptimalPlane<PlaneEventVector, bool>;
 

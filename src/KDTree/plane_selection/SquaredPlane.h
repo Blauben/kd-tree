@@ -24,12 +24,16 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
+    //forward declaration
     struct SplitParam;
 
     /**
-* O(N^2) implementation to finding optimal split planes.
-*/
+     * A strategy for calculating optimal planes. Part of the Strategy Software pattern.
+    * O(N^2) time complexity.
+    */
     class SquaredPlane final : public PlaneSelectionAlgorithm {
+        using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
+
         /**
         * Finds the optimal split plane to split a provided rectangle section optimally.
         * @param splitParam specifies the polyhedron section to be split @link SplitParam.

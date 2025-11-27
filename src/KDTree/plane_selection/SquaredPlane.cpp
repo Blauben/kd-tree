@@ -7,7 +7,6 @@ namespace kdtree {
         if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
             throw std::invalid_argument("SquaredPlane does not support PlaneEventLists in SplitParam argument");
         }
-        using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
         const auto &boundFaces = std::get<ObjectIndexVector>(splitParam.boundObjects);
         const std::function geoSubsetCallback = [this](const OptimalPlaneSquared &, TriangleIndexVectors<3> indexVectors, const bool minSideChosen) {
             return addEqualPointsToSubset<TriangleIndexVectors>(std::move(indexVectors), minSideChosen);
@@ -24,7 +23,7 @@ namespace kdtree {
                              const auto [index, vertices] = indexAndVertices;
                              //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
                              const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3>>(
+                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(
                                      clippedVertices);
                              for (const auto planeSurfacePoint: {minPoint, maxPoint}) {
                                  //constructs the plane that goes through a vertex lying on the bounding box of the face to be checked and spans in a specified direction.
@@ -79,11 +78,11 @@ namespace kdtree {
         auto [begin, end] = transformIterator(boundFaces.cbegin(), boundFaces.cend(), splitParam.geometryObjects);
         std::for_each(
                 begin, end,
-                [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, std::vector<Array3>> pair) {
+                [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, std::vector<Vertex>> pair) {
                     auto [faceIndex, vertices] = pair;
                     bool less{false}, greater{false};
                     auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
-                    for (const Array3 vertex: clippedVertices) {
+                    for (const Vertex vertex: clippedVertices) {
                         //vertex is closer to the origin than the plane
                         if (vertex[static_cast<int>(split.orientation)] < split.axisCoordinate && !less) {
                             less = true;

@@ -38,7 +38,7 @@ namespace kdtree {
                                                                        std::vector<Direction> directions) {
         // each face has min and max point and each proposes a plane in each of the directions
         PlaneEventVector events{};
-        events.reserve(countFaces(splitParam.boundObjects) * 2 * directions.size());
+        events.reserve(countGeometryObjects(splitParam.boundObjects) * 2 * directions.size());
         //mutex used for synchronizing insertions through threads
         std::mutex eventsMutex{};
         if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
@@ -52,7 +52,7 @@ namespace kdtree {
                          [&splitParam, &events, &directions, &eventsMutex](const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
                              //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3>>(
+                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(
                                      splitParam.boundingBox.clipToVoxel(vertices));
                              std::lock_guard lock(eventsMutex);
                              for (const auto &direction: directions) {

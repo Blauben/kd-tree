@@ -31,17 +31,17 @@ namespace kdtree {
         std::unordered_set<size_t> processedFaces{};
         auto insertIfAbsent = [&triangles, &processedFaces](const auto &planeEvent) {
             const auto faceIndex{planeEvent.faceIndex};
-            if (processedFaces.find(faceIndex) == processedFaces.end()) {
+            if (!processedFaces.contains(faceIndex)) {
                 processedFaces.insert(faceIndex);
                 triangles.push_back(faceIndex);
             }
         };
-        std::for_each(eventList.cbegin(), eventList.cend(), insertIfAbsent);
+        std::ranges::for_each(eventList, insertIfAbsent);
         triangles.shrink_to_fit();
         return triangles;
     }
 
-    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles) {
+    size_t countGeometryObjects(const std::variant<ObjectIndexVector, PlaneEventVector> &geometry) {
         return std::visit(util::overloaded{
                                   [](const ObjectIndexVector &indexList) {
                                       return indexList.size();
@@ -49,15 +49,15 @@ namespace kdtree {
                                   [](const PlaneEventVector &eventList) {
                                       size_t count{0};
                                       std::unordered_set<size_t> processedFaces{};
-                                      std::for_each(eventList.cbegin(), eventList.cend(),
+                                      std::ranges::for_each(eventList,
                                                     [&processedFaces, &count](const auto &planeEvent) {
-                                                        if (processedFaces.find(planeEvent.faceIndex) == processedFaces.end()) {
+                                                        if (!processedFaces.contains(planeEvent.faceIndex)) {
                                                             processedFaces.insert(planeEvent.faceIndex);
                                                             count++;
                                                         }
                                                     });
                                       return count;
                                   }},
-                          triangles);
+                          geometry);
     }
 }

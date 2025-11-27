@@ -45,7 +45,7 @@ namespace kdtree {
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.
         */
-        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections);
 
         [[nodiscard]] std::string toString() const override;
 
@@ -59,7 +59,7 @@ namespace kdtree {
          * @param object the face to test against, described by the vertices that comprise it (passed by index reference).
          * @return
          */
-        static std::optional<Array3> rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
+        static std::optional<Vertex> rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
                                                                   const GeometryObject &object) ;
 
         /**
@@ -69,10 +69,10 @@ namespace kdtree {
          * @param triangleVertices the face to test against, described by the vertices that comprise it (passed by value).
          * @return
          */
-        static std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                           const std::vector<Array3> &triangleVertices);
+        static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
+                                                           const std::vector<Vertex> &triangleVertices);
 
-        static std::optional<Array3> rayIntersectsPoint(const Array3 &rayOrigin, const Array3 &rayVector, const Array3 &center);
+        static std::optional<Vertex> rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center);
 
         /**
          * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces

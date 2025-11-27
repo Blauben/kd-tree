@@ -23,14 +23,14 @@ NB_MODULE(KDTree_Python, m) {
             .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
             .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
     nb::class_<KDTree>(m, "KDTree")
-            .def(nb::init<const std::vector<Array3> &, const std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-            .def(nb::init<const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::vector<Vertex> &, const std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a)
-            .def("getIntersections", [](KDTree &self, const Array3 &origin, const Array3 &ray) {
-        std::set<Array3> intersections{};
+            .def("getIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
+        std::set<Vertex> intersections{};
         self.getIntersections(origin, ray, intersections);
-        return std::vector<Array3>(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a)
+        return std::vector<Vertex>(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a)
             .def("prebuildTree", &KDTree::prebuildTree, nb::rv_policy::reference_internal)
             .def("printTree", [](const KDTree &tree) {
         std::ostringstream os;

@@ -64,10 +64,10 @@ namespace kdtree {
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
         * @return the lazily built KDTree.
         */
-        KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
+        KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces,
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
-        explicit KDTree(const std::vector<Array3>& particles,  PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+        explicit KDTree(const std::vector<Vertex>& particles,  PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
          * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
@@ -84,7 +84,7 @@ namespace kdtree {
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,
+        KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
                PlaneSelectionAlgorithm::Algorithm algorithm);
 
 
@@ -100,7 +100,7 @@ namespace kdtree {
         * @param ray Specifies the ray direction.
         * @param intersections The set found intersection points are added to.
         */
-        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections);
 
         /**
          * Calculates the number of intersections of a ray with the polyhedron.
@@ -108,7 +108,7 @@ namespace kdtree {
          * @param ray The ray direction vector.
          * @return the number of intersections.
          */
-        size_t countIntersections(const Array3 &origin, const Array3 &ray);
+        size_t countIntersections(const Vertex &origin, const Vertex &ray);
 
         /**
          * Prebuilds the whole KDTree bypassing lazy loading entirely.

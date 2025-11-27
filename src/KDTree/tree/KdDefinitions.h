@@ -25,10 +25,10 @@
 namespace kdtree {
 
     /**
-     * Alias for an array of size 3 (double)
+     * Alias for an array of size 3 (double), representing a vertex
      * @example for x, y, z coordinates.
      */
-    using Array3 = std::array<double, 3>;
+    using Vertex = std::array<double, 3>;
 
     /**
      * Alias for an array of size 3 (size_t)
@@ -40,7 +40,7 @@ namespace kdtree {
      * Alias for a triplet of arrays of size 3
      * @example for the segment of a triangular face
      */
-    using Array3Triplet = std::array<Array3, 3>;
+    using VertexTriplet = std::array<Vertex, 3>;
 
     /**
      * Assigns an integer index to the coordinate axes
@@ -63,14 +63,14 @@ namespace kdtree {
      * @param direction The direction to return the normal vector for.
      * @return The normal vector.
      */
-    inline Array3 normal(const Direction direction) {
+    inline Vertex normal(const Direction direction) {
         switch (direction) {
             case Direction::X:
-                return Array3{1, 0, 0};
+                return Vertex{1, 0, 0};
             case Direction::Y:
-                return Array3{0, 1, 0};
+                return Vertex{0, 1, 0};
             case Direction::Z:
-                return Array3{0, 0, 1};
+                return Vertex{0, 0, 1};
             default:
                 throw std::invalid_argument{"Unknown Direction enum value used during normal fetching."};
         }

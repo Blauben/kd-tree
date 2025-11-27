@@ -38,7 +38,7 @@ namespace kdtree {
     }
 
     std::vector<std::shared_ptr<TreeNode>> SplitNode::getChildrenForIntersection(
-            const Array3 &origin, const Array3 &ray, const Array3 &inverseRay) {
+            const Vertex &origin, const Vertex &ray, const Vertex &inverseRay) {
         DEBUG("SplitNode: getChildrenForIntersection called for nodeId " + std::to_string(this->nodeId));
         using namespace kdtree::util;
         std::vector<std::shared_ptr<TreeNode>> delegates{};

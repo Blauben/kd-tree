@@ -4,13 +4,15 @@ namespace kdtree {
     // O(N*log^2(N)) implementation
     std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> LogNPlane::findPlane(
             const SplitParam &splitParam) {
-        using OptimalPlaneLog = OptimalPlane<PlaneEventVector, bool>;
+        //split the geometry through the optimal plane
         const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const PlaneEventVector &events, bool minSideChosen) {
             return generatePlaneEventSubsets(optPlane.splitParam, events, optPlane.getOptimalPlane(), minSideChosen);
         };
+        //init the OptPlane to evaluate generated planes
         OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
+        //generate the PlaneEvents or fetch them if already generated
         const PlaneEventVector events{generatePlaneEvents(splitParam)};
-        TriangleCounter triangleCounter{3, {0, countFaces(splitParam.boundObjects), 0}};
+        TriangleCounter triangleCounter{3, {0, countGeometryObjects(splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, triangleCounter);
         //generate the triangle index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
         return {optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit()};
@@ -37,13 +39,13 @@ namespace kdtree {
         std::unordered_set<size_t> processedIndices{};
 
         auto insertToBothIfAbsent = [&facesIndexBoth, &processedIndices](const auto faceIndex) {
-            if (processedIndices.find(faceIndex) == processedIndices.end()) {
+            if (!processedIndices.contains(faceIndex)) {
                 processedIndices.insert(faceIndex);
                 facesIndexBoth.push_back(faceIndex);
             }
         };
 
-        std::for_each(planeEvents.cbegin(), planeEvents.cend(),
+        std::ranges::for_each(planeEvents,
                       [&faceClassification, &planeEventsMin, &planeEventsMax, &insertToBothIfAbsent](const auto &event) {
                           switch (faceClassification.at(event.faceIndex)) {
                               //face of event only contributes to min side event can be added to side without clipping because no overlap with split plane
@@ -75,11 +77,11 @@ namespace kdtree {
         //each face generates 6 plane events on average, thus the amount of faces can be roughly estimated.
         result.reserve(events.size() / 6);
         //preparing the map by initializing all faces with them having area in both sub bounding boxes
-        std::for_each(events.cbegin(), events.cend(), [&result](const auto &event) {
+        std::ranges::for_each(events, [&result](const auto &event) {
             result[event.faceIndex] = Locale::BOTH;
         });
         //now search for conditions proving that the faces DO NOT have area in both boxes
-        std::for_each(events.begin(), events.end(), [minSide, &result, &plane](const auto &event) {
+        std::ranges::for_each(events, [minSide, &result, &plane](const auto &event) {
             if (event.type == PlaneEventType::ending && event.plane.orientation == plane.orientation && event.plane.axisCoordinate <= plane.axisCoordinate) {
                 result[event.faceIndex] = Locale::MIN_ONLY;
             } else if (event.type == PlaneEventType::starting && event.plane.orientation == plane.orientation && event.plane.axisCoordinate >= plane.axisCoordinate) {
@@ -113,7 +115,7 @@ namespace kdtree {
             //create split plane anchor points using the bounding box
             const auto [minPoint, maxPoint] = Box::getBoundingBox(clipped);
             //associate parameters for PlaneEvent creation
-            std::array<std::pair<const Array3, PlaneEventType>, 2> planeEventParam{
+            std::array<std::pair<const Vertex, PlaneEventType>, 2> planeEventParam{
                     std::make_pair(minPoint, PlaneEventType::starting),
                     std::make_pair(maxPoint, PlaneEventType::ending)};
             //create planes in each dimension, be careful to cluster similar anchor points together.
@@ -149,6 +151,7 @@ namespace kdtree {
 
     std::unique_ptr<PlaneEventVector> LogNPlane::mergePlaneEventLists(const PlaneEventVector &first,
                                                                       const PlaneEventVector &second) {
+        //mergeSort implementation
         auto first_it{first.cbegin()};
         auto second_it{second.cbegin()};
         auto result{std::make_unique<PlaneEventVector>()};

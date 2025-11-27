@@ -4,7 +4,7 @@
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
-    KDTree::KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
+    KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces,
                    const PlaneSelectionAlgorithm::Algorithm algorithm) {
         INFO("KDTree: Constructing from vertices and faces");
         GeometryObject::vertices = vertices;
@@ -16,7 +16,7 @@ namespace kdtree {
                                          PlaneSelectionAlgorithmFactory::create(algorithm));
         DEBUG("KDTree: Construction complete, split parameters initialized");
     }
-    KDTree::KDTree(const std::vector<Array3> &particles, PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
+    KDTree::KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
         particles,
         [&particles]() {
             std::vector<IndexVector> faces{};
@@ -31,7 +31,7 @@ namespace kdtree {
         INFO("KDTree: Constructed from particles");
     }
 
-    KDTree::KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,
+    KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {}
 
@@ -50,22 +50,22 @@ namespace kdtree {
         return this->_rootNode;
     }
 
-    size_t KDTree::countIntersections(const Array3 &origin, const Array3 &ray) {
+    size_t KDTree::countIntersections(const Vertex &origin, const Vertex &ray) {
         DEBUG("KDTree: Counting intersections");
         //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
-        std::set<Array3> set{};
+        std::set<Vertex> set{};
         this->getIntersections(origin, ray, set);
         INFO("KDTree: Intersections counted: " + std::to_string(set.size()));
         return set.size();
     }
 
-    void KDTree::getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections) {
+    void KDTree::getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections) {
         DEBUG("KDTree: getIntersections called");
         //iterative approach to avoid stack and heap overflows
         //queue for children of processed nodes
         std::deque<std::shared_ptr<TreeNode>> queue{};
         //calculate inverse ray direction
-        const Array3 inverseRay{1. / ray[0], 1. / ray[1], 1. / ray[2]};
+        const Vertex inverseRay{1. / ray[0], 1. / ray[1], 1. / ray[2]};
         //init with tree root
         queue.push_back(getRootNode());
         while (!queue.empty()) {

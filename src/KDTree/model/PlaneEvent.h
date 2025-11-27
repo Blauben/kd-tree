@@ -61,5 +61,10 @@ namespace kdtree {
      */
     ObjectIndexVector convertEventsToGeometry(const std::variant<ObjectIndexVector, PlaneEventVector> &events);
 
-    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles);
+    /**
+     * Calculate the number of distinct geometryObjects encoded in the 'geometry' argument.
+     * @param geometry a collection of encoded GeometryObjects (indices or PlaneEvents)
+     * @return the number of distinct geometryObjects
+     */
+    size_t countGeometryObjects(const std::variant<ObjectIndexVector, PlaneEventVector> &geometry);
 }

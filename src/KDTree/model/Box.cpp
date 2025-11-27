@@ -1,7 +1,7 @@
 #include "KDTree/model/Box.h"
 
 namespace kdtree {
-        Box::Box(const std::pair<Array3, Array3> &pair)
+        Box::Box(const std::pair<Vertex, Vertex> &pair)
         : minPoint{pair.first}, maxPoint{pair.second} {
     }
 
@@ -9,9 +9,9 @@ namespace kdtree {
         : minPoint{0.0, 0.0, 0.0}, maxPoint{0.0, 0.0, 0.0} {
     }
 
-    std::pair<double, double> Box::rayBoxIntersection(const Array3 &origin, const Array3 &inverseRay) const {
+    std::pair<double, double> Box::rayBoxIntersection(const Vertex &origin, const Vertex &inverseRay) const {
         //calculate the parameter t in $ origin + t * ray = point $
-        const auto lambdaIntersectSlabPoint = [&origin, &inverseRay](const Array3 &point) {
+        const auto lambdaIntersectSlabPoint = [&origin, &inverseRay](const Vertex &point) {
             using namespace util;
             std::array<double, 3> result{};
             for (const auto &direction: ALL_DIRECTIONS) {
@@ -61,12 +61,12 @@ namespace kdtree {
         return std::make_pair(box1, box2);
     }
 
-    std::vector<Array3> Box::clipToVoxel(const std::vector<Array3> &points) const {
+    std::vector<Vertex> Box::clipToVoxel(const std::vector<Vertex> &points) const {
         using namespace util;
         //use clipped as the input vector because the inner for loop swaps input and clipped each iteration,
         //since each iteration needs the output of the previous iteration as input.
         std::vector clipped(points.cbegin(), points.cend());
-        std::vector<Array3> input{};
+        std::vector<Vertex> input{};
         input.reserve(points.size());
         //every plane defined by the maxPoint has to flip its normal because the normals have to point inside the bounding box.
         bool flipPlane = false;
@@ -82,19 +82,19 @@ namespace kdtree {
         return clipped;
     }
 
-    void Box::clipToVoxelPlane(const Plane &plane, const bool flipPlaneNormal, const std::vector<Array3> &source,
-                               std::vector<Array3> &dest) {
+    void Box::clipToVoxelPlane(const Plane &plane, const bool flipPlaneNormal, const std::vector<Vertex> &source,
+                               std::vector<Vertex> &dest) {
         using namespace util;
         //the distance is interpreted in the normal direction, negative values are in opposite direction of the normal.
         auto distanceMeasures = [&plane, &flipPlaneNormal](
-                                        const Array3 &point) -> double {
+                                        const Vertex &point) -> double {
             // works for arbitrary plane orientations:
             // return dot(point - plane.originPoint(), plane.normal(flipPlaneNormal));
             // only works for axis aligned planes:
             return (point[static_cast<int>(plane.orientation)] - plane.axisCoordinate) * (flipPlaneNormal ? -1. : 1.);
         };
         static constexpr auto isInside = [](const double distance) { return distance >= 0.0; };
-        static constexpr auto intersectionPoint = [](const Array3 &from, const Array3 &to, const double distanceFrom,
+        static constexpr auto intersectionPoint = [](const Vertex &from, const Vertex &to, const double distanceFrom,
                                                      const double distanceTo) {
             // solve for t in $ [(t * from + (1-t) * to ) - origin] * normal = 0 $
             // equation explained: search for a point on the plane defined by $ (point - origin) * normal $, where point is linearly interpolated using vectors from and to.
@@ -102,8 +102,8 @@ namespace kdtree {
             return from * t + to * (1.0 - t);
         };
         for (size_t i{0}; i < source.size(); i++) {
-            const Array3 &from{source[i]};
-            const Array3 &to{source[(i + 1) % source.size()]};
+            const Vertex &from{source[i]};
+            const Vertex &to{source[(i + 1) % source.size()]};
             // $ (from - origin) * normal = cos alpha * |from - origin| * |normal| = cos alpha * |from - origin| * 1 $ ^= distance of from to the plane in the direction of the normal.
             const auto distanceFrom = distanceMeasures(from);
             const auto distanceTo = distanceMeasures(to);

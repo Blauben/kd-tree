@@ -19,23 +19,23 @@ namespace kdtree {
     using testing::Pair;
     using Algorithm = PlaneSelectionAlgorithm::Algorithm;
 
-    class KDTreeTest : public ::testing::TestWithParam<std::tuple<std::vector<Array3>, std::vector<IndexVector>,
+    class KDTreeTest : public ::testing::TestWithParam<std::tuple<std::vector<Vertex>, std::vector<IndexVector>,
                                                                   Algorithm,
-                                                                  std::vector<Array3>>> {
+                                                                  std::vector<Vertex>>> {
     public:
-        static const std::vector<Array3> cube_vertices;
+        static const std::vector<Vertex> cube_vertices;
         static const std::vector<IndexVector> cube_faces;
 
-        static std::tuple<std::vector<Array3>, std::vector<IndexVector>, Algorithm, std::vector<Array3>>
-        generateRandomPointsOnPolyhedron(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
+        static std::tuple<std::vector<Vertex>, std::vector<IndexVector>, Algorithm, std::vector<Vertex>>
+        generateRandomPointsOnPolyhedron(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces,
                                          Algorithm algorithm,
                                          const size_t n) {
-            std::vector<Array3> randomPoints;
+            std::vector<Vertex> randomPoints;
             randomPoints.reserve(n);
             for (size_t i = 0; i < n; i++) {
                 const auto faceIndex = getRandomIndex(faces.size() - 1);
                 const auto &verticeIndices = faces.at(faceIndex);
-                std::array<Array3, 3> faceVertices{};
+                std::array<Vertex, 3> faceVertices{};
                 std::transform(verticeIndices.cbegin(), verticeIndices.cend(), faceVertices.begin(),
                                [&](const auto index) { return vertices.at(index); });
                 const auto point = randomPointOnFace(faceVertices);
@@ -89,7 +89,7 @@ namespace kdtree {
             return distrib(gen);
         }
 
-        static Array3 randomPointOnFace(const std::array<Array3, 3> &vertices) {
+        static Vertex randomPointOnFace(const std::array<Vertex, 3> &vertices) {
             using namespace util;
             std::uniform_real_distribution<> distrib(0, 1);
             const double a{distrib(gen)};
@@ -101,7 +101,7 @@ namespace kdtree {
         }
     };
 
-    const std::vector<Array3> KDTreeTest::cube_vertices{
+    const std::vector<Vertex> KDTreeTest::cube_vertices{
             {-1.0, -1.0, -1.0},
             {1.0, -1.0, -1.0},
             {1.0, 1.0, -1.0},
@@ -126,7 +126,7 @@ namespace kdtree {
 
     std::mt19937 KDTreeTest::gen = std::mt19937(SEED);// NOLINT(*-msc51-cpp), predictable sequence wanted
 
-    const auto [bigVertices, bigFaces] = TetgenAdapter{{"resources/Eros_scaled-1732.node", "resources/Eros_scaled-1732.face"}}.getPolyhedralSource();
+    const auto [bigVertices, bigFaces] = TetgenAdapter{{"resources/Eros_scaled-140296.node", "resources/Eros_scaled-140296.face"}}.getPolyhedralSource();
 
 
     TEST_P(KDTreeTest, PointsTest) {
@@ -134,10 +134,10 @@ namespace kdtree {
         using namespace util;
         const auto [vertices, faces, algorithm, points] = GetParam();
         KDTree tree{vertices, faces, algorithm};
-        constexpr Array3 origin{200, 200, 200};
-        const auto pointTest = [&tree, &origin](const Array3 &point) {
+        constexpr Vertex origin{200, 200, 200};
+        const auto pointTest = [&tree, &origin](const Vertex &point) {
             const auto ray{(point - origin) / 10.0};
-            std::set<Array3> intersections;
+            std::set<Vertex> intersections;
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], DELTA), DoubleNear(point[1], DELTA), DoubleNear(point[2], DELTA))));
@@ -154,10 +154,10 @@ namespace kdtree {
         std::mt19937 gen = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
         tree.prebuildTree();
-        constexpr Array3 origin{200, 200, 200};
-        const auto pointTest = [&tree, &origin](const Array3 &point, const size_t pointIndex) {
+        constexpr Vertex origin{200, 200, 200};
+        const auto pointTest = [&tree, &origin](const Vertex &point, const size_t pointIndex) {
             const auto ray{(point - origin) / 10.0};
-            std::set<Array3> intersections{};
+            std::set<Vertex> intersections{};
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], SPHERE_INTERSECTION_DELTA), DoubleNear(point[1], SPHERE_INTERSECTION_DELTA), DoubleNear(point[2], SPHERE_INTERSECTION_DELTA))))
@@ -174,7 +174,7 @@ namespace kdtree {
     TEST_P(KDTreeTest, AlgorithmRegressionTest) {
         using namespace kdtree;
         using namespace util;
-        std::vector<Array3> vertices;
+        std::vector<Vertex> vertices;
         std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();

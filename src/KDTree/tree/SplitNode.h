@@ -81,7 +81,7 @@ namespace kdtree {
          * @param inverseRay The inverse of the ray (1/ray), used to speed up calculations where it is divided by ray. Instead, we multiply with inverseRay.
          * @return the child nodes that intersect with the ray
          */
-        [[nodiscard]] std::vector<std::shared_ptr<TreeNode>> getChildrenForIntersection(const Array3 &origin, const Array3 &ray, const Array3 &inverseRay);
+        [[nodiscard]] std::vector<std::shared_ptr<TreeNode>> getChildrenForIntersection(const Vertex &origin, const Vertex &ray, const Vertex &inverseRay);
 
         [[nodiscard]] std::string toString() const override;
 

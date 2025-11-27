@@ -9,17 +9,17 @@
 
 namespace kdtree {
 
-    static Array3 getFaceCentroid(const std::vector<Array3> &vertices, const IndexVector &face) {
+    static Vertex getFaceCentroid(const std::vector<Vertex> &vertices, const IndexVector &face) {
         using namespace kdtree::util;
-        Array3 centroid{0, 0, 0};
+        Vertex centroid{0, 0, 0};
         std::for_each(face.cbegin(), face.cend(), [&](const size_t vertexIndex) {
             centroid = centroid + vertices[vertexIndex];
         });
         return centroid / 3.0;
     }
 
-    static std::vector<Array3> getPolyhedralFaceCentroids(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces) {
-        std::vector<Array3> centroids;
+    static std::vector<Vertex> getPolyhedralFaceCentroids(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces) {
+        std::vector<Vertex> centroids;
         centroids.reserve(faces.size());
         std::transform(faces.begin(), faces.end(), std::back_inserter(centroids), [&vertices](const IndexVector &face) {
             return getFaceCentroid(vertices, face);
@@ -28,9 +28,9 @@ namespace kdtree {
     }
 
     struct Meshes {
-        std::vector<std::vector<Array3>> vertices{};
+        std::vector<std::vector<Vertex>> vertices{};
         std::vector<std::vector<IndexVector>> faces{};
-        std::vector<std::vector<Array3>> centroids{};
+        std::vector<std::vector<Vertex>> centroids{};
 
         explicit Meshes(const std::vector<std::string> &filePaths) {
             std::for_each(filePaths.cbegin(), filePaths.cend(), [this](const std::string &filePath) {
@@ -41,7 +41,7 @@ namespace kdtree {
             });
         }
 
-        std::tuple<const std::vector<Array3>&, const std::vector<IndexVector>&, const std::vector<Array3>&> operator[](const size_t index) const {
+        std::tuple<const std::vector<Vertex>&, const std::vector<IndexVector>&, const std::vector<Vertex>>& operator[](const size_t index) const {
             return {vertices[index], faces[index], centroids[index]};
         }
 
@@ -70,11 +70,11 @@ namespace kdtree {
     void BM_Eros_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -86,11 +86,11 @@ namespace kdtree {
     void BM_Sphere_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -102,12 +102,12 @@ namespace kdtree {
     void BM_Eros_Intersection_Tree_Twice(benchmark::State &state) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -119,12 +119,12 @@ namespace kdtree {
     void BM_Sphere_Intersection_Tree_Twice(benchmark::State &state) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();

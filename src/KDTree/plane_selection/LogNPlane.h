@@ -27,7 +27,15 @@
 namespace kdtree {
     struct SplitParam;
 
+    /**
+     * A strategy for calculating optimal planes. Part of the Strategy Software pattern.
+     */
     class LogNPlane final : public PlaneEventAlgorithm {
+        /**
+         * Specifies the arguments to be passed to geoSubsetCallback in findPlane
+         */
+        using OptimalPlaneLog = OptimalPlane<PlaneEventVector, bool>;
+
     public:
         std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(const SplitParam &splitParam) override;
 
