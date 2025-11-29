@@ -6,7 +6,7 @@
 
 int main() {
     using namespace kdtree;
-    PlaneSelectionAlgorithm::Algorithm algorithm{PlaneSelectionAlgorithm::Algorithm::LOG};
+    constexpr auto algorithm{PlaneSelectionAlgorithm::Algorithm::LOG};
 
     INFO("Starting KD-Tree construction using algorithm: " + std::to_string(static_cast<int>(algorithm)));
 

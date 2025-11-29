@@ -1,7 +1,7 @@
 #include "KDTree/model/Box.h"
 
 namespace kdtree {
-        Box::Box(const std::pair<Vertex, Vertex> &pair)
+    Box::Box(const std::pair<Vertex, Vertex> &pair)
         : minPoint{pair.first}, maxPoint{pair.second} {
     }
 
@@ -119,4 +119,4 @@ namespace kdtree {
             }
         }
     }
-}
+}// namespace kdtree

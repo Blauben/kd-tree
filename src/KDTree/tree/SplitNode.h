@@ -49,25 +49,29 @@ namespace kdtree {
         */
         Plane _plane;
         /**
-         * the bounding box for all triangles contained in this node.
+         * the bounding box for all shapes contained in this node.
          */
         Box _boundingBox;
         /**
-         * Contains the triangle lists for the lesser and greater bounding boxes. {@link TriangleIndexVectors}
+         * Contains the shape lists for the lesser and greater bounding boxes. {@link ObjectIndexVectors}
         */
-        std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> _triangleLists;
+        std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> _shapeLists;
 
+        /**
+         * Numerical tolerance for ray box intersections. Necessary to handle cases where the intersection ray is almost parallel to the split plane.
+         */
         static constexpr double EPSILON_NUMERICAL_TOLERANCE = 1e-9;
 
     public:
         /**
-         * Takes parameters from the parent node and stores them for lazy child node creation.
-         * @param splitParam Parameters produced during the split that resulted in the creation of this node.
-         * @param plane The plane that splits this node's bounding box into two sub boxes. The child nodes are created based on these boxes.
-         * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link ObjectIndexVector}
-         * @param nodeId Unique Id given by the TreeNodeFactory.
-         */
-        SplitNode(const SplitParam &splitParam, const Plane &plane, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists, size_t nodeId);
+ * Takes parameters from the parent node and stores them for lazy child node creation.
+ * @param splitParam Parameters produced during the split that resulted in the creation of this node.
+ * @param plane The plane that splits this node's bounding box into two sub boxes. The child nodes are created based on these boxes.
+ * @param shapeIndexLists Index sets of the shapes contained in the lesser and greater child nodes. {@link ObjectIndexVector}
+ * @param nodeId Unique Id given by the TreeNodeFactory.
+ */
+        SplitNode(const SplitParam &splitParam, const Plane &plane, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &shapeIndexLists, size_t nodeId);
+
         /**
          * Computes the child node decided by the given index (0 for lesser, 1 for greater) if not present already and returns it to the caller.
          * @param index Specifies which node to build. 0 or LESSER for _lesser, 1 or GREATER for _greater.
@@ -83,8 +87,18 @@ namespace kdtree {
          */
         [[nodiscard]] std::vector<std::shared_ptr<TreeNode>> getChildrenForIntersection(const Vertex &origin, const Vertex &ray, const Vertex &inverseRay);
 
+        /**
+         * Generates a string representation of this SplitNode.
+         * @return the string representation.
+         */
         [[nodiscard]] std::string toString() const override;
 
+        /**
+         * Overloads the output stream operator for SplitNode.
+         * @param os The output stream.
+         * @param node The SplitNode to be printed.
+         * @return The output stream with the SplitNode representation appended.
+         */
         friend std::ostream &operator<<(std::ostream &os, const SplitNode &node);
     };
 

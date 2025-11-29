@@ -30,7 +30,7 @@ NB_MODULE(KDTree_Python, m) {
             .def("getIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
         std::set<Vertex> intersections{};
         self.getIntersections(origin, ray, intersections);
-        return std::vector<Vertex>(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a)
+        return std::vector(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a)
             .def("prebuildTree", &KDTree::prebuildTree, nb::rv_policy::reference_internal)
             .def("printTree", [](const KDTree &tree) {
         std::ostringstream os;

@@ -7,7 +7,7 @@ namespace kdtree {
     std::tuple<std::vector<Vertex>, std::vector<IndexVector>> TetgenAdapter::getPolyhedralSource() {
         //1. Step: Read in from files
         for (const auto &fileName: _fileNames) {
-            size_t pos = fileName.find_last_of('.');
+            const size_t pos = fileName.find_last_of('.');
             std::string name = fileName.substr(0, pos);
             if (!std::filesystem::exists(fileName)) {
                 throw std::runtime_error("TetgenAdapter::getPolyhedralSource(): File " + fileName + " does not exist");
@@ -83,7 +83,7 @@ namespace kdtree {
         }
     }
 
-    void TetgenAdapter::checkIntegrity(const std::string &filename, char what) const {
+    void TetgenAdapter::checkIntegrity(const std::string &filename, const char what) const {
         if ((what == 'v' || what == 'a') && _tetgenio.numberofpoints != 0) {
             throw std::runtime_error(
                     "The Polyhedron already has well defined nodes! The information of " + filename + ".node is redundant!");

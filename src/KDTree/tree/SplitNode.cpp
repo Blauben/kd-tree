@@ -2,10 +2,11 @@
 
 namespace kdtree {
         SplitNode::SplitNode(const SplitParam &splitParam, const Plane &plane,
-                                                 std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists,
+                                                 std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &shapeIndexLists,
                                                  const size_t nodeId)
                 : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
-                    _triangleLists{std::move(triangleIndexLists)} {
+                    _shapeLists{std::move(shapeIndexLists)} {
+    
                 INFO("SplitNode: Constructed with nodeId " + std::to_string(nodeId));
         }
 
@@ -21,11 +22,11 @@ namespace kdtree {
             //get the bounding box after splitting;
             auto [lesserBox, greaterBox] = this->_boundingBox.splitBox(this->_plane);
             childParam.boundingBox = index == 0 ? lesserBox : greaterBox;
-            //get the triangles of the box
+            //get the shapes of the box
             std::visit([&childParam, index](auto &typeLists) -> void {
                 childParam.boundObjects = *std::move(typeLists[index]);
             },
-                       _triangleLists);
+                       _shapeLists);
             childParam.splitDirection = static_cast<Direction>(
                     (static_cast<int>(_splitParam->splitDirection) + 1) % DIMENSIONS);
             //increase the recursion depth of the direct child by 1
@@ -94,10 +95,10 @@ namespace kdtree {
         sstream << "Children; Lesser: " << (this->_lesser != nullptr ? std::to_string(this->_lesser->nodeId) : "None")
                 << "; Greater: " << (this->_greater != nullptr ? std::to_string(this->_greater->nodeId) : "None") << std::endl;
         if (this->_lesser != nullptr) {
-            sstream << *(this->_lesser);
+            sstream << *this->_lesser;
         }
         if (this->_greater != nullptr) {
-            sstream << *(this->_greater);
+            sstream << *this->_greater;
         }
         return sstream.str();
     }

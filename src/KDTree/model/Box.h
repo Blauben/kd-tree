@@ -1,7 +1,7 @@
 #pragma once
 
-#include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/model/Plane.h"
+#include "KDTree/tree/KdDefinitions.h"
 
 #include <stdexcept>
 
@@ -52,10 +52,10 @@ namespace kdtree {
         }
 
         /**
-        * Takes points of a face of a polyhedron and clips them to this box. If all the points lie in the box no changes are made but if points lie outside of the box they are linearly interpolated onto the box.
+        * Takes points of a shape of a polyhedron and clips them to this box. If all the points lie in the box no changes are made but if points lie outside of the box they are linearly interpolated onto the box.
         * Uses the Sutherland-Hodgman-Algorithm.
-        * @param points The corner points of the face to be clipped.
-        * @return The new corner points of the clipped face.
+        * @param points The corner points of the shape to be clipped.
+        * @return The new corner points of the clipped shape.
         */
         [[nodiscard]] std::vector<Vertex> clipToVoxel(const std::vector<Vertex> &points) const;
 
@@ -73,4 +73,4 @@ namespace kdtree {
          */
         static void clipToVoxelPlane(const Plane &plane, bool flipPlaneNormal, const std::vector<Vertex> &source, std::vector<Vertex> &dest);
     };
-}
+}// namespace kdtree

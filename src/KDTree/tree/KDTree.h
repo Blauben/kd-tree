@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/model/GeometryObject.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
@@ -23,7 +24,6 @@
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
-#include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
@@ -58,21 +58,21 @@ namespace kdtree {
 
     public:
         /**
-        * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
+        * Call to build a KDTree to speed up intersections of rays with a polyhedron's shapes.
         * @param vertices The vertex coordinates of the polyhedron
-        * @param faces The faces of the polyhedron with a face being a triplet of vertex indices
+        * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
         * @return the lazily built KDTree.
         */
-        KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces,
+        KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
-        explicit KDTree(const std::vector<Vertex>& particles,  PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+        explicit KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
-         * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
+         * Call to build a KDTree to speed up intersections of rays with a polyhedron's shapes.
          * @param nodeFilePath The path to the .node file containing information about the polyhedron's vertices.
-         * @param faceFilePath The path to the .face file containing information about the polyhedron's faces.
+         * @param faceFilePath The path to the .face file containing information about the polyhedron's shapes.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
@@ -95,7 +95,7 @@ namespace kdtree {
         std::shared_ptr<TreeNode> getRootNode();
 
         /**
-        * Used to calculate intersections of a ray and the polyhedron's faces contained in this node.
+        * Used to calculate intersections of a ray and the polyhedron's shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
         * @param intersections The set found intersection points are added to.
@@ -115,6 +115,12 @@ namespace kdtree {
          */
         KDTree &prebuildTree();
 
+        /**
+         * Overloads the output stream operator to print a representation of the KDTree.
+         * @param os The output stream.
+         * @param kdTree The KDTree to be printed.
+         * @return The output stream with the KDTree representation appended.
+         */
         friend std::ostream &operator<<(std::ostream &os, const KDTree &kdTree);
 
         friend std::string to_string(const KDTree &kdTree);

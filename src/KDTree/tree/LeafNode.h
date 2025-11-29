@@ -28,7 +28,7 @@ namespace kdtree {
     struct SplitParam;
 
     /**
-     * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained triangles here.
+     * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained shapes here.
      */
     class LeafNode final : public TreeNode {
     public:
@@ -40,7 +40,7 @@ namespace kdtree {
         explicit LeafNode(const SplitParam &splitParam, size_t nodeId);
 
         /**
-        * Used to calculated intersections of a ray and the polyhedron's faces contained in this node.
+        * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.
@@ -60,7 +60,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                                  const GeometryObject &object) ;
+                                                         const GeometryObject &object);
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -72,11 +72,18 @@ namespace kdtree {
         static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
                                                            const std::vector<Vertex> &triangleVertices);
 
+        /**
+         * Ray-Point intersection test. Also counts the intersection if the ray passes the point with distance smaller than a specified epsilon.
+         * @param rayOrigin The point where the ray originates from.
+         * @param rayVector Specifies the ray direction.
+         * @param center the point to test against.
+         * @return The intersection point if an intersection was found.
+         */
         static std::optional<Vertex> rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center);
 
         /**
-         * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces
+         * Flags set when _splitParam boundObjects are converted from PlaneEvents to shapes
          */
-        std::once_flag convertedToFace;
+        std::once_flag convertedToObjects;
     };
 }// namespace kdtree

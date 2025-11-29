@@ -32,24 +32,24 @@ namespace kdtree {
     * O(N^2) time complexity.
     */
     class SquaredPlane final : public PlaneSelectionAlgorithm {
-        using OptimalPlaneSquared = OptimalPlane<TriangleIndexVectors<3>, bool>;
+        using OptimalPlaneSquared = OptimalPlane<ObjectIndexVectors<3>, bool>;
 
         /**
         * Finds the optimal split plane to split a provided rectangle section optimally.
         * @param splitParam specifies the polyhedron section to be split @link SplitParam.
-        * @return Tuple of the optimal plane to split the specified bounding box, its cost as double and a list of triangle sets with respective positions to the found plane. Refer to {@link TriangleIndexVectors<2>} for more information.
+        * @return Tuple of the optimal plane to split the specified bounding box, its cost as double and a list of shape sets with respective positions to the found plane. Refer to {@link ObjectIndexVectors<2>} for more information.
         */
-        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
+        std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
                 const SplitParam &splitParam) override;
 
         /**
-        * Splits a section of a polyhedron into two bounding boxes and calculates the triangle face sets contained in the new bounding boxes.
+        * Splits a section of a polyhedron into two bounding boxes and calculates the shape shape sets contained in the new bounding boxes.
         * @param splitParam specifies the polyhedron section to be split.
         * @param split the plane by which to split the polyhedron section.
-        * @return Three triangle lists contained in an array. Those being the set of triangles with non-zero area in the bounding box closer to the origin with respect to the split plane,
-        * the set of triangles with non-zero area in the bounding box further away from the origin with respect to the split plane.
-        * The set of triangles that lies on the plane.
+        * @return Three shape lists contained in an array. Those being the set of shapes with non-zero area in the bounding box closer to the origin with respect to the split plane,
+        * the set of shapes with non-zero area in the bounding box further away from the origin with respect to the split plane.
+        * The set of shapes that lies on the plane.
         */
-        static TriangleIndexVectors<3> containedTriangles(const SplitParam &splitParam, const Plane &split);
+        static ObjectIndexVectors<3> containedShapes(const SplitParam &splitParam, const Plane &split);
     };
 }// namespace kdtree

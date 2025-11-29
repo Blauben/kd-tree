@@ -3,17 +3,18 @@
 #include "KDTree/Logging.h"
 
 namespace kdtree {
-    //on initialization of the tree a single bounding box which includes all the faces of the polyhedron is generated. Both the list of included faces and the parameters of the box are written to the split parameters
-    KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces,
+    //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
+    KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
                    const PlaneSelectionAlgorithm::Algorithm algorithm) {
         INFO("KDTree: Constructing from vertices and faces");
         GeometryObject::vertices = vertices;
-        _geometryObjects.reserve(faces.size());
-        std::for_each(faces.cbegin(), faces.cend(), [this](const IndexVector& vertexIndices) {
+        _geometryObjects.reserve(shapes.size());
+        //transform shape indices to GeometryObjects
+        std::ranges::for_each(shapes, [this](const IndexVector &vertexIndices) {
             _geometryObjects.emplace_back(vertexIndices);
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
-                                         PlaneSelectionAlgorithmFactory::create(algorithm));
+        PlaneSelectionAlgorithmFactory::create(algorithm));
         DEBUG("KDTree: Construction complete, split parameters initialized");
     }
     KDTree::KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
@@ -29,6 +30,20 @@ namespace kdtree {
         algorithm
     } {
         INFO("KDTree: Constructed from particles");
+    }
+
+    KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
+                                                                                                                       particles,
+                                                                                                                       [&particles] {
+                                                                                                                           //each particle is represented by a single vertex, so each shape only contains one vertex index
+                                                                                                                           std::vector<IndexVector> shapes{};
+                                                                                                                           shapes.reserve(particles.size());
+                                                                                                                           for (size_t index = 0; index < particles.size(); index++) {
+                                                                                                                               shapes.emplace_back(1, index);
+                                                                                                                           }
+                                                                                                                           return shapes;
+                                                                                                                       }(),
+                                                                                                                       algorithm} {
     }
 
     KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
@@ -51,6 +66,7 @@ namespace kdtree {
     }
 
     size_t KDTree::countIntersections(const Vertex &origin, const Vertex &ray) {
+        //it's possible that a single intersection point is on the edge between two shapes. The point would be counted twice if the intersection points were not documented -> use of std::set
         DEBUG("KDTree: Counting intersections");
         //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
         std::set<Vertex> set{};
@@ -74,11 +90,11 @@ namespace kdtree {
             if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
                 DEBUG("KDTree: SplitNode with nodeId " + std::to_string(split->nodeId) + " encountered in getIntersections");
                 const auto children = split->getChildrenForIntersection(origin, ray, inverseRay);
-                std::for_each(std::begin(children), std::end(children), [&queue](const auto &child) {
+                std::ranges::for_each(children, [&queue](const auto &child) {
                     queue.push_back(child);
                 });
             }
-            //if node is leaf then perform intersections with the triangles contained
+            //if node is leaf then perform intersections with the shapes contained
             else if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
                 DEBUG("KDTree: LeafNode with nodeId " + std::to_string(leaf->nodeId) + " encountered in getIntersections");
                 leaf->getIntersections(origin, ray, intersections);
@@ -118,7 +134,7 @@ namespace kdtree {
     std::string to_string(const KDTree &kdTree) {
         std::ostringstream os{};
         if (kdTree._rootNode != nullptr) {
-            os << *(kdTree._rootNode);
+            os << *kdTree._rootNode;
         } else {
             os << "KDTree rootNode is empty!";
         }

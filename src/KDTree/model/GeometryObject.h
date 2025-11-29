@@ -29,7 +29,7 @@ namespace kdtree {
          * Stores information on the corner vertices of this GeometryObject by storing their respective indices referencing the static vertices.
          */
         const IndexVector objVertices;
-        explicit GeometryObject(const IndexVector& objVertices);
+        explicit GeometryObject(IndexVector objVertices);
 
         /**
          * Returns the index-th vertex of the shape represented by this GeometryObject.
@@ -53,12 +53,11 @@ namespace kdtree {
     };
 
     /**
-        * An iterator transforming face indices to vertices and returning both.
+        * An iterator transforming shape indices to vertices and returning both.
         * This function returns a pair of transform iterators (first = begin(), second = end()).
-        * @param begin begin iterator of the face indice vector to transform.
-        * @param end end iterator of the face indice vector to transform.
-        * @param vertices the vector of vertices to look up the indices obtained from the faces vector.
-        * @param objectIndices the faces vector to lookup face indices.
+        * @param begin begin iterator of the shape indice vector to transform.
+        * @param end end iterator of the shape indice vector to transform.
+        * @param geometryObjects the list of GeometryObjects to retrieve the vertices from.
         * @return pair of transform iterators.
         */
     [[nodiscard]] inline auto transformIterator(const std::vector<size_t>::const_iterator begin, const std::vector<size_t>::const_iterator end, const std::vector<GeometryObject> &geometryObjects) {
@@ -72,4 +71,4 @@ namespace kdtree {
         auto last = thrust::make_transform_iterator(end, lambdaApplication);
         return std::make_pair(first, last);
     }
-};
+};// namespace kdtree

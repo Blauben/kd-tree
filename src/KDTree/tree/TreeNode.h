@@ -21,8 +21,18 @@ namespace kdtree {
          */
         const size_t nodeId;
 
+        /**
+         * Converts the node to a string representation.
+         * @return the string representation of the node.
+         */
         [[nodiscard]] virtual std::string toString() const = 0;
 
+        /**
+         * Overloads the output stream operator for TreeNode.
+         * @param os The output stream.
+         * @param node The TreeNode to be printed.
+         * @return The output stream with the TreeNode representation appended.
+         */
         friend std::ostream &operator<<(std::ostream &os, const TreeNode &node);
 
     protected:

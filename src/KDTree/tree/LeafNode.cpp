@@ -7,9 +7,10 @@ namespace kdtree {
     }
 
     void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
-                                        std::set<Vertex> &intersections) {
+                                    std::set<Vertex> &intersections) {
         DEBUG("LeafNode: getIntersections called for nodeId " + std::to_string(this->nodeId));
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
+            std::call_once(convertedToObjects, [this] {
             std::call_once(convertedToFace, [this]() {
                 INFO("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                 _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
@@ -17,12 +18,11 @@ namespace kdtree {
         }
         std::mutex writeLock{};
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
-        std::vector<Vertex> results(boundObjects.size());
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
         thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
-                         [this, &ray, &origin, &intersections, &writeLock](const size_t faceIndex) {
+                         [this, &ray, &origin, &intersections, &writeLock](const size_t objIndex) {
                              const std::optional<Vertex> intersection = rayIntersectsObject(
-                                     origin, ray, _splitParam->geometryObjects[faceIndex]);
+                                     origin, ray, _splitParam->geometryObjects[objIndex]);
                              if (intersection.has_value()) {
                                  std::unique_lock lock(writeLock);
                                  intersections.insert(intersection.value());
@@ -32,7 +32,7 @@ namespace kdtree {
     }
 
     std::optional<Vertex> LeafNode::rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                          const GeometryObject &object) {
+                                                        const GeometryObject &object) {
         if (object.getIndexVector().size() == 3) {
             return rayIntersectsTriangle(rayOrigin, rayVector, object.getVertices());
         }
@@ -76,19 +76,20 @@ namespace kdtree {
         }
         return std::nullopt;
     }
+
     std::optional<Vertex> LeafNode::rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center) {
         using namespace util;
-        const double EPSILON_OFFSET = 1e-9 /* TODO: get radius from object, or use a default small value */;
+        constexpr double EPSILON_OFFSET = 1e-2 /* TODO: get radius from object, or use a default small value */;
 
         // Vector from ray origin to sphere center
         const Vertex oc = rayOrigin - center;
 
         // Calculate the nearest intersection point
-        const double t = - dot(rayVector, oc) / dot(rayVector, rayVector);
+        const double t = -dot(rayVector, oc) / dot(rayVector, rayVector);
 
         const Vertex intersection = rayOrigin + rayVector * t;
 
-        const double distance = std::sqrt(dot(intersection - center, intersection - center));
+        const double distance = dot(intersection - center, intersection - center);
         if (distance > EPSILON_OFFSET) {
             return std::nullopt;
         }

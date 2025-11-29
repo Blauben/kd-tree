@@ -1,6 +1,9 @@
 # Includes the gtest.cmake
 include(gtest)
 
+# includes indicators.cmake for progress bars in tests
+include(indicators)
+
 # Recursively collects all the test files in the test Directory
 file(GLOB_RECURSE TEST_SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
@@ -12,6 +15,7 @@ add_executable(${PROJECT_NAME}_test ${TEST_SRC})
 
 # Links target breakupModelTest against gtest_main (entry point, so no own main method is required)
 target_link_libraries(${PROJECT_NAME}_test
+        indicators
         GTest::gtest_main
         GTest::gtest
         GTest::gmock
@@ -21,7 +25,7 @@ target_link_libraries(${PROJECT_NAME}_test
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${PROJECT_SOURCE_DIR}/src)
 
 # Copies the test resources into a directory next to the test executable
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
+file(COPY "${PROJECT_SOURCE_DIR}/resources" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 include(GoogleTest)
 

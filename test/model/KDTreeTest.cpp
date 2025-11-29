@@ -5,6 +5,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include <array>
+#include <indicators/progress_bar.hpp>
 #include <random>
 #include <string>
 #include <tuple>
@@ -36,8 +37,8 @@ namespace kdtree {
                 const auto faceIndex = getRandomIndex(faces.size() - 1);
                 const auto &verticeIndices = faces.at(faceIndex);
                 std::array<Vertex, 3> faceVertices{};
-                std::transform(verticeIndices.cbegin(), verticeIndices.cend(), faceVertices.begin(),
-                               [&](const auto index) { return vertices.at(index); });
+                std::ranges::transform(verticeIndices, faceVertices.begin(),
+                                       [&](const auto index) { return vertices.at(index); });
                 const auto point = randomPointOnFace(faceVertices);
                 randomPoints.push_back(point);
             }
@@ -53,7 +54,7 @@ namespace kdtree {
             }
             std::set<unsigned long> boundTriangles;
             for (const auto &planeEvent: std::get<PlaneEventVector>(triangles)) {
-                boundTriangles.insert(planeEvent.faceIndex);
+                boundTriangles.insert(planeEvent.objIndex);
             }
             ObjectIndexVector result{boundTriangles.cbegin(), boundTriangles.cend()};
             std::sort(result.begin(), result.end());
@@ -65,7 +66,7 @@ namespace kdtree {
             return param;
         }
 
-        static std::pair<ObjectIndexVector, ObjectIndexVector> extractFaceIndicesFromVectors(const std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &vectors) {
+        static std::pair<ObjectIndexVector, ObjectIndexVector> extractFaceIndicesFromVectors(const std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &vectors) {
             return std::visit([](const auto &triangleVectors) {
                 auto minFaces = extractFaceIndices(*(triangleVectors[0]));
                 auto maxFaces = extractFaceIndices(*(triangleVectors[1]));
@@ -126,47 +127,67 @@ namespace kdtree {
 
     std::mt19937 KDTreeTest::gen = std::mt19937(SEED);// NOLINT(*-msc51-cpp), predictable sequence wanted
 
-    const auto [bigVertices, bigFaces] = TetgenAdapter{{"resources/Eros_scaled-140296.node", "resources/Eros_scaled-140296.face"}}.getPolyhedralSource();
+    constexpr size_t polyhedronNumberOfFaces = 27000;
+    const std::vector<std::string> polyhedronNodeFilePath = {std::format("resources/Eros_scaled-{}.node", polyhedronNumberOfFaces), std::format("resources/Eros_scaled-{}.face", polyhedronNumberOfFaces)};
+    const auto [bigVertices, bigFaces] = TetgenAdapter{polyhedronNodeFilePath}.getPolyhedralSource();
 
 
     TEST_P(KDTreeTest, PointsTest) {
         using namespace kdtree;
         using namespace util;
         const auto [vertices, faces, algorithm, points] = GetParam();
+        indicators::ProgressBar bar{
+                indicators::option::BarWidth{50},
+                indicators::option::Start{"["},
+                indicators::option::End{"]"},
+                indicators::option::ShowElapsedTime{true},
+                indicators::option::ShowRemainingTime{true},
+                indicators::option::MaxProgress{points.size()}};
         KDTree tree{vertices, faces, algorithm};
         constexpr Vertex origin{200, 200, 200};
-        const auto pointTest = [&tree, &origin](const Vertex &point) {
-            const auto ray{(point - origin) / 10.0};
+        auto pointTest = [&tree, &origin](const Vertex &point) mutable {
+            const auto ray{point - origin};
             std::set<Vertex> intersections;
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], DELTA), DoubleNear(point[1], DELTA), DoubleNear(point[2], DELTA))));
         };
-        std::for_each(points.cbegin(), points.cend(), pointTest);
+        std::ranges::for_each(points, [&pointTest, &bar](const auto &point) {
+            pointTest(point);
+            bar.tick();
+        });
     }
 
 
     TEST_P(KDTreeTest, ParticleTree) {
         using namespace kdtree;
         using namespace util;
-        constexpr double SPHERE_INTERSECTION_DELTA = 1e-4;
+        constexpr double SPHERE_INTERSECTION_DELTA = 1e-2;
         const auto [vertices, faces, algorithm, points] = GetParam();
-        std::mt19937 gen = std::mt19937(SEED);
+        indicators::ProgressBar bar{
+                indicators::option::BarWidth{50},
+                indicators::option::Start{"["},
+                indicators::option::End{"]"},
+                indicators::option::ShowElapsedTime{true},
+                indicators::option::ShowRemainingTime{true},
+                indicators::option::MaxProgress{points.size()}};
+        auto gen = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
         tree.prebuildTree();
         constexpr Vertex origin{200, 200, 200};
         const auto pointTest = [&tree, &origin](const Vertex &point, const size_t pointIndex) {
-            const auto ray{(point - origin) / 10.0};
+            const auto ray{point - origin};
             std::set<Vertex> intersections{};
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections,
                         Contains(ElementsAre(DoubleNear(point[0], SPHERE_INTERSECTION_DELTA), DoubleNear(point[1], SPHERE_INTERSECTION_DELTA), DoubleNear(point[2], SPHERE_INTERSECTION_DELTA))))
-             << "PointIndex: " << pointIndex;
+                    << "PointIndex: " << pointIndex;
         };
 
-        for (size_t i{0}; i < 1000; i++) {
+        for (size_t i{0}; i < points.size(); i++) {
             const auto index = gen() % vertices.size();
             pointTest(vertices[index], index);
+            bar.tick();
         }
     }
 

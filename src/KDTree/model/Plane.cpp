@@ -43,4 +43,4 @@ namespace kdtree {
     bool Plane::operator!=(const Plane &other) const {
         return !(*this == other);
     }
-}
+}// namespace kdtree

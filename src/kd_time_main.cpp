@@ -12,7 +12,7 @@ namespace kdtree {
     static Vertex getFaceCentroid(const std::vector<Vertex> &vertices, const IndexVector &face) {
         using namespace kdtree::util;
         Vertex centroid{0, 0, 0};
-        std::for_each(face.cbegin(), face.cend(), [&](const size_t vertexIndex) {
+        std::ranges::for_each(face, [&](const size_t vertexIndex) {
             centroid = centroid + vertices[vertexIndex];
         });
         return centroid / 3.0;
@@ -21,7 +21,7 @@ namespace kdtree {
     static std::vector<Vertex> getPolyhedralFaceCentroids(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces) {
         std::vector<Vertex> centroids;
         centroids.reserve(faces.size());
-        std::transform(faces.begin(), faces.end(), std::back_inserter(centroids), [&vertices](const IndexVector &face) {
+        std::ranges::transform(faces, std::back_inserter(centroids), [&vertices](const IndexVector &face) {
             return getFaceCentroid(vertices, face);
         });
         return centroids;
@@ -33,7 +33,7 @@ namespace kdtree {
         std::vector<std::vector<Vertex>> centroids{};
 
         explicit Meshes(const std::vector<std::string> &filePaths) {
-            std::for_each(filePaths.cbegin(), filePaths.cend(), [this](const std::string &filePath) {
+            std::ranges::for_each(filePaths, [this](const std::string &filePath) {
                 const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath)}.getPolyhedralSource();
                 centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
                 vertices.push_back(fileVertices);
@@ -41,7 +41,7 @@ namespace kdtree {
             });
         }
 
-        std::tuple<const std::vector<Vertex>&, const std::vector<IndexVector>&, const std::vector<Vertex>>& operator[](const size_t index) const {
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
             return {vertices[index], faces[index], centroids[index]};
         }
 
@@ -74,7 +74,7 @@ namespace kdtree {
         std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -90,7 +90,7 @@ namespace kdtree {
         std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -107,7 +107,7 @@ namespace kdtree {
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -124,7 +124,7 @@ namespace kdtree {
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Vertex &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
             intersections.clear();
@@ -159,13 +159,13 @@ namespace kdtree {
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronNoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronQuadratic",
                       PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
-            ->DenseRange(0, erosMeshes.size() - 1, 1);
+            ->DenseRange(0, erosMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronLogSquared",
                       PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
             ->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronLog", PlaneSelectionAlgorithm::Algorithm::LOG)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK(BM_Eros_Intersection_Tree_Twice)->Name("ErosPolyhedronSecondRun")->DenseRange(0, erosMeshes.size() - 1, 1);
-    BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->DenseRange(0, erosMeshes.size() - 1, 1);
+    BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->DenseRange(0, erosMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeLogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeLog", PlaneSelectionAlgorithm::Algorithm::LOG)->DenseRange(0, erosMeshes.size() - 1, 1);
 
@@ -173,7 +173,7 @@ namespace kdtree {
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronNoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE)->DenseRange(0, sphereMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronQuadratic",
                       PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
-            ->DenseRange(0, sphereMeshes.size() - 1, 1);
+            ->DenseRange(0, sphereMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronLogSquared",
                       PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
             ->DenseRange(0, sphereMeshes.size() - 1, 1);

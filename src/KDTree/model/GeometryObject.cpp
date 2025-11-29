@@ -1,7 +1,9 @@
 #include "KDTree/model/GeometryObject.h"
 
+#include <utility>
+
 namespace kdtree {
-    GeometryObject::GeometryObject(const IndexVector& objVertices) : objIndex{runningIndex++}, objVertices{objVertices} {
+    GeometryObject::GeometryObject(IndexVector objVertices) : objIndex{runningIndex++}, objVertices{std::move(objVertices)} {
     }
 
     //static initialization
@@ -10,9 +12,9 @@ namespace kdtree {
     std::vector<std::array<double, 3>> GeometryObject::vertices;
 
     Vertex GeometryObject::operator[](const size_t index) const {
-        return GeometryObject::vertices[objVertices[index]];
+        return vertices[objVertices[index]];
     }
-    const IndexVector& GeometryObject::getIndexVector() const {
+    const IndexVector &GeometryObject::getIndexVector() const {
         return objVertices;
     }
     std::vector<Vertex> GeometryObject::getVertices() const {

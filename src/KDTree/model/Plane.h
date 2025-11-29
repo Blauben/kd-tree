@@ -73,4 +73,4 @@ namespace kdtree {
          */
         Plane(double point, Direction direction);
     };
-}
+}// namespace kdtree
