@@ -5,13 +5,13 @@ namespace kdtree {
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> LogNPlane::findPlane(
             const SplitParam &splitParam) {
         //split the geometry through the optimal plane
-        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const PlaneEventVector &events, const bool minSideChosen) {
-            return generatePlaneEventSubsets(optPlane.splitParam, events, optPlane.getOptimalPlane(), minSideChosen);
+        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const std::shared_ptr<PlaneEventVector>& events, const bool minSideChosen) {
+            return generatePlaneEventSubsets(optPlane.splitParam, *events, optPlane.getOptimalPlane(), minSideChosen);
         };
         //init the OptPlane to evaluate generated planes
         OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
         //generate the PlaneEvents or fetch them if already generated
-        const PlaneEventVector events{generatePlaneEvents(splitParam)};
+        const auto events = std::make_shared<PlaneEventVector>(generatePlaneEvents(splitParam));
         ShapeCounter shapeCounter{3, {0, countGeometryObjects(splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, shapeCounter);
         //generate the shape index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.

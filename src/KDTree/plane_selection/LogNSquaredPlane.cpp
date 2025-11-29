@@ -5,7 +5,7 @@ namespace kdtree {
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>>
     LogNSquaredPlane::findPlane(const SplitParam &splitParam) {
         //split the geometry through the optimal plane
-        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared &optPlane, const PlaneEventVector &events, const bool minSideChosen) {
+        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared &optPlane, const std::shared_ptr<PlaneEventVector> &events, const bool minSideChosen) {
             return generateGeometrySubsets(events, optPlane.getOptimalPlane(), minSideChosen);
         };
         //init the OptPlane to evaluate generated planes
@@ -21,12 +21,12 @@ namespace kdtree {
     }
 
     void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane) {
-        const PlaneEventVector events{generatePlaneEventsFromGeometry(optPlane.splitParam, {optPlane.splitParam.splitDirection})};
+        const auto events = std::make_shared<PlaneEventVector>(generatePlaneEventsFromGeometry(optPlane.splitParam, {optPlane.splitParam.splitDirection}));
         ShapeCounter shapeCounter{1, {0, countGeometryObjects(optPlane.splitParam.boundObjects), 0}};
         traversePlaneEvents(optPlane, events, shapeCounter);
     }
 
-    ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(const PlaneEventVector &planeEvents,
+    ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(const std::shared_ptr<PlaneEventVector> &planeEvents,
                                                                     const Plane &plane, const bool minSide) {
         auto geometryMin = std::make_unique<ObjectIndexVector>();
         auto geometryMax = std::make_unique<ObjectIndexVector>();
@@ -35,12 +35,12 @@ namespace kdtree {
         std::unordered_set<size_t> geometryMaxLookup{};
         //each shape will most of the time generate two events, the split plane will try to distribute the shapes evenly
         //Thus reserving 0.5 * 0.5 * planeEvents.size() for each vector
-        geometryMin->reserve(planeEvents.size() / 4);
-        geometryMax->reserve(planeEvents.size() / 4);
-        geometryMinLookup.reserve(planeEvents.size() / 4);
-        geometryMaxLookup.reserve(planeEvents.size() / 4);
+        geometryMin->reserve(planeEvents->size() / 4);
+        geometryMax->reserve(planeEvents->size() / 4);
+        geometryMinLookup.reserve(planeEvents->size() / 4);
+        geometryMaxLookup.reserve(planeEvents->size() / 4);
         std::array<std::mutex, 2> geometryMutex{};
-        thrust::for_each(thrust::device, planeEvents.cbegin(), planeEvents.cend(),
+        thrust::for_each(thrust::device, planeEvents->cbegin(), planeEvents->cend(),
                          [&geometryMin, &geometryMax, &plane, minSide, &geometryMinLookup, &geometryMaxLookup, &geometryMutex](
                                  const auto &event) {
                              //lambda function to combine lookup and insertion into one place

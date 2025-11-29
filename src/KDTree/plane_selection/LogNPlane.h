@@ -34,7 +34,7 @@ namespace kdtree {
         /**
          * Specifies the arguments to be passed to geoSubsetCallback in findPlane
          */
-        using OptimalPlaneLog = OptimalPlane<PlaneEventVector, const bool>;
+        using OptimalPlaneLog = OptimalPlane<std::shared_ptr<PlaneEventVector>, const bool>;
 
     public:
         std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(const SplitParam &splitParam) override;

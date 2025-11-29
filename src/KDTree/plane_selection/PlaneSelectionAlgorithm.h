@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <iterator>
 #include <limits>
+#include <shared_mutex>
 #include <tuple>
 #include <utility>
 #include <variant>
@@ -58,7 +59,7 @@ namespace kdtree {
         class OptimalPlane final {
             /** Mutex to synchronize access to the optimal plane data.
             */
-            std::mutex planeMutex{};
+            std::shared_mutex planeMutex{};
 
             /** The cost of the optimal plane found so far.
             */
@@ -93,12 +94,15 @@ namespace kdtree {
              * @param args The arguments to be passed to the callback function when retrieving the geometry split (should the candidate be optimal).
              */
             void evaluatePlane(const Plane &candidatePlane, const double candidateCost, CallbackArgs... args) {
-                std::unique_lock lock(planeMutex);
-                // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
-                // this is not important for functionality but for testing purposes
-                if (candidateCost == cost && optPlane.axisCoordinate < candidatePlane.axisCoordinate) {
-                    return;
+                {
+                    std::shared_lock readLock(planeMutex);
+                    // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
+                    // this is not important for functionality but for testing purposes
+                    if ((candidateCost == cost && optPlane.axisCoordinate < candidatePlane.axisCoordinate) || candidateCost > cost) {
+                        return;
+                    }
                 }
+                std::unique_lock writeLock(planeMutex);
                 if (candidateCost <= cost) {
                     cost = candidateCost;
                     optPlane = candidatePlane;

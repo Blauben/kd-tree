@@ -100,28 +100,28 @@ namespace kdtree {
          * @return Tuple of optimal plane, its cost and where to include planar shapes.
          */
         template<typename... OptimalPlaneArgs>
-        static void traversePlaneEvents(OptimalPlane<OptimalPlaneArgs...> &optPlane, const PlaneEventVector &events,
+        static void traversePlaneEvents(OptimalPlane<OptimalPlaneArgs...> &optPlane, const std::shared_ptr<PlaneEventVector> &events,
                                         ShapeCounter &shapeCounter) {
             const Box &boundingBox = optPlane.splitParam.boundingBox;
             //traverse all the events
             size_t i{0};
-            while (i < events.size()) {
+            while (i < events->size()) {
                 //poll a plane to test
-                const Plane &candidatePlane = events[i].plane;
+                const Plane &candidatePlane = (*events)[i].plane;
                 //for each plane calculate the shapes whose vertices lie in the plane. Differentiate between the shape starting in the plane, ending in the plane or all vertices lying in the plane
                 size_t p_start{0}, p_end{0}, p_planar{0};
                 //count all shapes that end in the plane, this works because the PlaneEvents are sorted by position and then by PlaneEventType
-                while (i < events.size() && events[i].plane.orientation == candidatePlane.orientation && events[i].plane.axisCoordinate == candidatePlane.axisCoordinate && events[i].type == PlaneEventType::ending) {
+                while (i < events->size() && (*events)[i].plane.orientation == candidatePlane.orientation && (*events)[i].plane.axisCoordinate == candidatePlane.axisCoordinate && (*events)[i].type == PlaneEventType::ending) {
                     p_end++;
                     i++;
                 }
                 //count all the shapes that lie in the plane
-                while (i < events.size() && events[i].plane.orientation == candidatePlane.orientation && events[i].plane.axisCoordinate == candidatePlane.axisCoordinate && events[i].type == PlaneEventType::planar) {
+                while (i < events->size() && (*events)[i].plane.orientation == candidatePlane.orientation && (*events)[i].plane.axisCoordinate == candidatePlane.axisCoordinate && (*events)[i].type == PlaneEventType::planar) {
                     p_planar++;
                     i++;
                 }
                 //count all the shapes that start in the plane
-                while (i < events.size() && events[i].plane.orientation == candidatePlane.orientation && events[i].plane.axisCoordinate == candidatePlane.axisCoordinate && events[i].type == PlaneEventType::starting) {
+                while (i < events->size() && (*events)[i].plane.orientation == candidatePlane.orientation && (*events)[i].plane.axisCoordinate == candidatePlane.axisCoordinate && (*events)[i].type == PlaneEventType::starting) {
                     p_start++;
                     i++;
                 }

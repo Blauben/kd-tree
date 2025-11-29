@@ -27,7 +27,7 @@ namespace kdtree {
      * A strategy for calculating optimal planes. Part of the Strategy Software pattern.
      */
     class LogNSquaredPlane final : public PlaneEventAlgorithm {
-        using OptimalPlaneLogNSquared = OptimalPlane<PlaneEventVector, bool>;
+        using OptimalPlaneLogNSquared = OptimalPlane<std::shared_ptr<PlaneEventVector>, const bool>;
 
     public:
         std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
@@ -49,7 +49,7 @@ namespace kdtree {
         * @param minSide Whether to include planar shapes to the bounding box closer to the origin.
         * @return The shapeIndexlists for the bounding boxes closer and further away from the origin.
         */
-        static ObjectIndexVectors<2> generateGeometrySubsets(const PlaneEventVector &planeEvents, const Plane &plane,
+        static ObjectIndexVectors<2> generateGeometrySubsets(const std::shared_ptr<PlaneEventVector> &planeEvents, const Plane &plane,
                                                              bool minSide);
     };
 }// namespace kdtree
