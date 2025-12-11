@@ -13,9 +13,9 @@ add_executable(${PROJECT_NAME}_test ${TEST_SRC})
 # check whether gtest was fetched or is already installed in the system
 # Links target breakupModelTest against gtest_main (entry point, so no own main method is required)
 target_link_libraries(${PROJECT_NAME}_test
-        gtest_main
-        gtest
-        gmock
+        GTest::gtest_main
+        GTest::gtest
+        GTest::gmock
         ${PROJECT_NAME}_lib
 )
 

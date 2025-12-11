@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "-Wall -Werror -Wextra -fsanitize=address")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Appends the the module path to contain additional CMake modules for this project
@@ -43,6 +42,7 @@ cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" 
 option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: ON)" ON)
 # Option to build tests or not
 option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: ON)" ON)
+option(KD_TREE_forceGtestFetch "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
 option(BUILD_KD_TREE_TIME_MEASUREMENT "Set to on if the benchmark executable should be built (Default: OFF)" OFF)
 # Option to enable Include-What-You-Use warnings during compilation
