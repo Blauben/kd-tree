@@ -15,7 +15,7 @@ include(CMakeDependentOption)
 # Parallelization on the HOST
 set(KD_TREE_PARALLELIZATION "CPP" CACHE STRING "Host parallelization chosen by the user
  (CPP= Serial, OMP = OpenMP, TBB = Intel Threading Building Blocks")
-set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP, OMP, TBB)
+set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP TBB)
 
 # Set the Logging Level
 set(KD_TREE_LOGGING_LEVEL_LIST "TRACE" "DEBUG" "INFO" "WARN" "ERROR" "CRITICAL" "OFF")
