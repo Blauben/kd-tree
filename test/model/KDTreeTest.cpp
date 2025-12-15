@@ -1,6 +1,5 @@
 #include "KDTree/tree/KDTree.h"
 
-#include "../../src/KDTree/input/TetgenAdapter.h"
 #include "KDTree/input/TetgenAdapter.h"
 
 #include "gmock/gmock.h"
