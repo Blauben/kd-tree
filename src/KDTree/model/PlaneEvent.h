@@ -1,6 +1,3 @@
-//
-// Created by saruman on 07.11.25.
-//
 #pragma once
 
 #include "KDTree/model/Plane.h"

@@ -1,6 +1,3 @@
-//
-// Created by saruman on 06.11.25.
-//
 #pragma once
 
 #include "KDTree/tree/KdDefinitions.h"
