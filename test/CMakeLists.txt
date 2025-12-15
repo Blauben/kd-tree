@@ -10,7 +10,6 @@ file(GLOB_RECURSE TEST_SRC
 # Creates the Test Target
 add_executable(${PROJECT_NAME}_test ${TEST_SRC})
 
-# check whether gtest was fetched or is already installed in the system
 # Links target breakupModelTest against gtest_main (entry point, so no own main method is required)
 target_link_libraries(${PROJECT_NAME}_test
         GTest::gtest_main
