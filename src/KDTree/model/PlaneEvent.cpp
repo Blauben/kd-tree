@@ -1,6 +1,3 @@
-//
-// Created by saruman on 07.11.25.
-//
 #include "KDTree/model/PlaneEvent.h"
 
 namespace kdtree {
