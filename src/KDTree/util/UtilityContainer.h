@@ -43,7 +43,7 @@ namespace kdtree::util {
      */
     template<Container C, typename BinOp>
     C applyBinaryFunction(const C &lhs, const C &rhs, BinOp binOp) {
-        Container ret = lhs;
+        C ret = lhs;
         std::transform(std::begin(lhs), std::end(lhs), std::begin(rhs), std::begin(ret), binOp);
         return ret;
     }
@@ -62,7 +62,7 @@ namespace kdtree::util {
      */
     template<Container C, typename Scalar, typename BinOp>
     C applyBinaryFunction(const C &lhs, const Scalar &scalar, BinOp binOp) {
-        Container ret = lhs;
+        C ret = lhs;
         std::transform(std::begin(lhs), std::end(lhs), std::begin(ret), [&binOp, &scalar](const Scalar &element) {
             return binOp(element, scalar);
         });
@@ -197,7 +197,7 @@ namespace kdtree::util {
      */
     template<Container C>
     C abs(const C &container) {
-        Container ret = container;
+        C ret = container;
         std::transform(std::begin(container), std::end(container), std::begin(ret),
                        [](const auto &element) { return std::abs(element); });
         return ret;
