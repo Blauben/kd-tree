@@ -1,14 +1,14 @@
 #include "KDTree/tree/SplitNode.h"
 
 namespace kdtree {
-        SplitNode::SplitNode(const SplitParam &splitParam, const Plane &plane,
-                                                 std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &shapeIndexLists,
-                                                 const size_t nodeId)
-                : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
-                    _shapeLists{std::move(shapeIndexLists)} {
-    
-                INFO("SplitNode: Constructed with nodeId " + std::to_string(nodeId));
-        }
+    SplitNode::SplitNode(const SplitParam &splitParam, const Plane &plane,
+                         std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &shapeIndexLists,
+                         const size_t nodeId)
+        : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
+          _shapeLists{std::move(shapeIndexLists)} {
+
+        INFO("SplitNode: Constructed with nodeId " + std::to_string(nodeId));
+    }
 
     std::shared_ptr<TreeNode> SplitNode::getChildNode(const size_t index) {
         DEBUG("SplitNode: getChildNode(" + std::to_string(index) + ") called for nodeId " + std::to_string(this->nodeId));

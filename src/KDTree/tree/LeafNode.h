@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree/Logging.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
@@ -8,7 +9,6 @@
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
-#include "KDTree/Logging.h"
 
 #include <algorithm>
 #include <array>

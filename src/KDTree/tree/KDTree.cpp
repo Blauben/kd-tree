@@ -14,22 +14,8 @@ namespace kdtree {
             _geometryObjects.emplace_back(vertexIndices);
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
-        PlaneSelectionAlgorithmFactory::create(algorithm));
+                                                   PlaneSelectionAlgorithmFactory::create(algorithm));
         DEBUG("KDTree: Construction complete, split parameters initialized");
-    }
-    KDTree::KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
-        particles,
-        [&particles]() {
-            std::vector<IndexVector> faces{};
-            faces.reserve(particles.size());
-            for (size_t index = 0; index < particles.size(); index++) {
-                faces.emplace_back(1, index);
-            }
-            return faces;
-        }(),
-        algorithm
-    } {
-        INFO("KDTree: Constructed from particles");
     }
 
     KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
@@ -44,11 +30,13 @@ namespace kdtree {
                                                                                                                            return shapes;
                                                                                                                        }(),
                                                                                                                        algorithm} {
+        INFO("KDTree: Constructed from particles");
     }
 
     KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
-        : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {}
+        : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
+    }
 
 
     KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {

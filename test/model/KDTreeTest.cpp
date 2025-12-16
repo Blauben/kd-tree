@@ -30,28 +30,34 @@ namespace kdtree {
         auto gen = std::mt19937(SEED);
 
         const std::vector<Vertex> cube_vertices{
-            {-1.0, -1.0, -1.0},
-            {1.0, -1.0, -1.0},
-            {1.0, 1.0, -1.0},
-            {-1.0, 1.0, -1.0},
-            {-1.0, -1.0, 1.0},
-            {1.0, -1.0, 1.0},
-            {1.0, 1.0, 1.0},
-            {-1.0, 1.0, 1.0}
-        };
+                {-1.0, -1.0, -1.0},
+                {1.0, -1.0, -1.0},
+                {1.0, 1.0, -1.0},
+                {-1.0, 1.0, -1.0},
+                {-1.0, -1.0, 1.0},
+                {1.0, -1.0, 1.0},
+                {1.0, 1.0, 1.0},
+                {-1.0, 1.0, 1.0}};
 
         const std::vector<IndexVector> cube_faces{
-            {1, 3, 2}, {0, 3, 1}, {0, 1, 5}, {0, 5, 4},
-            {0, 7, 3}, {0, 4, 7}, {1, 2, 6}, {1, 6, 5},
-            {2, 3, 6}, {3, 7, 6}, {4, 5, 6}, {4, 6, 7}
-        };
+                {1, 3, 2},
+                {0, 3, 1},
+                {0, 1, 5},
+                {0, 5, 4},
+                {0, 7, 3},
+                {0, 4, 7},
+                {1, 2, 6},
+                {1, 6, 5},
+                {2, 3, 6},
+                {3, 7, 6},
+                {4, 5, 6},
+                {4, 6, 7}};
 
         // Lazy load big polyhedron to avoid expensive global initialization at translation time
         const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &getBigPolyhedron() {
             static const std::vector<std::string> polyhedronNodeFilePath = {
-                std::format("resources/Eros_scaled-{}.node", 27000),
-                std::format("resources/Eros_scaled-{}.face", 27000)
-            };
+                    std::format("resources/Eros_scaled-{}.node", 27000),
+                    std::format("resources/Eros_scaled-{}.face", 27000)};
             static const auto poly = TetgenAdapter{polyhedronNodeFilePath}.getPolyhedralSource();
             return poly;
         }
@@ -72,8 +78,8 @@ namespace kdtree {
         }
 
         std::vector<Vertex> generateRandomPointsOnPolyhedron(const std::vector<Vertex> &vertices,
-                                                                    const std::vector<IndexVector> &faces,
-                                                                    const size_t n) {
+                                                             const std::vector<IndexVector> &faces,
+                                                             const size_t n) {
             std::vector<Vertex> randomPoints;
             randomPoints.reserve(n);
             for (size_t i = 0; i < n; ++i) {
@@ -113,9 +119,10 @@ namespace kdtree {
                 auto minFaces = extractFaceIndices(*(triangleVectors[0]));
                 auto maxFaces = extractFaceIndices(*(triangleVectors[1]));
                 return std::make_pair(minFaces, maxFaces);
-            }, vectors);
+            },
+                              vectors);
         }
-    } // namespace
+    }// namespace
 
     class KDTreeTest : public ::testing::TestWithParam<ParamType> {};
 
@@ -123,11 +130,10 @@ namespace kdtree {
         using namespace util;
         const auto [vertices, faces, algorithm, points] = GetParam();
         indicators::ProgressBar bar{
-            indicators::option::BarWidth{50},
-            indicators::option::Start{"["},
-            indicators::option::End{"]"},
-            indicators::option::MaxProgress{points.size()}
-        };
+                indicators::option::BarWidth{50},
+                indicators::option::Start{"["},
+                indicators::option::End{"]"},
+                indicators::option::MaxProgress{points.size()}};
         KDTree tree{vertices, faces, algorithm};
         constexpr Vertex origin{200, 200, 200};
         auto pointTest = [&tree, &origin](const Vertex &point) {
@@ -138,7 +144,7 @@ namespace kdtree {
                                                             DoubleNear(point[1], DELTA),
                                                             DoubleNear(point[2], DELTA))));
         };
-        for (const auto &p : points) {
+        for (const auto &p: points) {
             pointTest(p);
             bar.tick();
         }
@@ -147,13 +153,12 @@ namespace kdtree {
     TEST_P(KDTreeTest, ParticleTree) {
         using namespace util;
         constexpr double SPHERE_INTERSECTION_DELTA = 1e-2;
-        const auto [vertices, _, algorithm, points] = GetParam(); // faces unused here
+        const auto [vertices, _, algorithm, points] = GetParam();// faces unused here
         indicators::ProgressBar bar{
-            indicators::option::BarWidth{50},
-            indicators::option::Start{"["},
-            indicators::option::End{"]"},
-            indicators::option::MaxProgress{points.size()}
-        };
+                indicators::option::BarWidth{50},
+                indicators::option::Start{"["},
+                indicators::option::End{"]"},
+                indicators::option::MaxProgress{points.size()}};
         auto rng = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
         tree.prebuildTree();
@@ -166,7 +171,7 @@ namespace kdtree {
                         Contains(ElementsAre(DoubleNear(point[0], SPHERE_INTERSECTION_DELTA),
                                              DoubleNear(point[1], SPHERE_INTERSECTION_DELTA),
                                              DoubleNear(point[2], SPHERE_INTERSECTION_DELTA))))
-                << "PointIndex: " << pointIndex;
+                    << "PointIndex: " << pointIndex;
         };
 
         for (size_t i = 0; i < points.size(); ++i) {
@@ -204,9 +209,11 @@ namespace kdtree {
                 ASSERT_EQ(optimalPlane, variantPlane) << "Plane check failed for node with id: " << splitNodePtr->nodeId << "; " << variantPlane << " != " << optimalPlane << std::endl;
 
                 ASSERT_THAT(optimalTriangleIndices.first, ContainerEq(variantTriangleIndices.first))
-                    << "Triangle locality check (minFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl << "Plane: " << optimalPlane;
+                        << "Triangle locality check (minFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
+                        << "Plane: " << optimalPlane;
                 ASSERT_THAT(optimalTriangleIndices.second, ContainerEq(variantTriangleIndices.second))
-                    << "Triangle locality check (maxFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl << "Plane: " << optimalPlane;
+                        << "Triangle locality check (maxFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
+                        << "Plane: " << optimalPlane;
 
                 nodePtrQueue.push_back(splitNodePtr->getChildNode(0));
                 nodePtrQueue.push_back(splitNodePtr->getChildNode(1));
@@ -220,106 +227,84 @@ namespace kdtree {
 
     // Instantiate tests using lazy-loaded big polyhedron
     INSTANTIATE_TEST_SUITE_P(NoTreePointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::NOTREE,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::NOTREE,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
+                                     }()));
 
     INSTANTIATE_TEST_SUITE_P(QuadraticPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::QUADRATIC,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::QUADRATIC,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
+                                     }()));
 
     INSTANTIATE_TEST_SUITE_P(LogSquaredPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
+                                     }()));
 
     INSTANTIATE_TEST_SUITE_P(LogPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::LOG,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::LOG,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
+                                     }()));
 
     // Cube-based instantiations
     INSTANTIATE_TEST_SUITE_P(NoTreePointsCube, KDTreeTest,
-    ::testing::Values(
-        []() -> ParamType {
-            return std::make_tuple(cube_vertices, cube_faces, Algorithm::NOTREE,
-                                   generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints));
-        }()
-    )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         return std::make_tuple(cube_vertices, cube_faces, Algorithm::NOTREE,
+                                                                generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints));
+                                     }()));
 
     // Explicit cube instances
     INSTANTIATE_TEST_SUITE_P(QuadraticPointsCube, KDTreeTest,
-        ::testing::Values(
-            std::make_tuple(cube_vertices, cube_faces, Algorithm::QUADRATIC,
-                            generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))
-        )
-    );
+                             ::testing::Values(
+                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::QUADRATIC,
+                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
 
     INSTANTIATE_TEST_SUITE_P(LogSquaredPointsCube, KDTreeTest,
-        ::testing::Values(
-            std::make_tuple(cube_vertices, cube_faces, Algorithm::LOGSQUARED,
-                            generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))
-        )
-    );
+                             ::testing::Values(
+                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::LOGSQUARED,
+                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
 
     INSTANTIATE_TEST_SUITE_P(LogPointsCube, KDTreeTest,
-        ::testing::Values(
-            std::make_tuple(cube_vertices, cube_faces, Algorithm::LOG,
-                            generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))
-        )
-    );
+                             ::testing::Values(
+                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::LOG,
+                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
 
     // Large point-count instantiations
     INSTANTIATE_TEST_SUITE_P(NoTreeGreatNumberOfPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::NOTREE,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::NOTREE,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
+                                     }()));
 
     INSTANTIATE_TEST_SUITE_P(LogSquaredGreatNumberOfPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
+                                     }()));
 
     INSTANTIATE_TEST_SUITE_P(LogGreatNumberOfPointsBig, KDTreeTest,
-        ::testing::Values(
-            []() -> ParamType {
-                const auto [vertices, faces] = getBigPolyhedron();
-                return std::make_tuple(vertices, faces, Algorithm::LOG,
-                                       generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-            }()
-        )
-    );
+                             ::testing::Values(
+                                     []() -> ParamType {
+                                         const auto [vertices, faces] = getBigPolyhedron();
+                                         return std::make_tuple(vertices, faces, Algorithm::LOG,
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
+                                     }()));
 
-} // namespace kdtree
+}// namespace kdtree

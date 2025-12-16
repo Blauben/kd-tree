@@ -5,7 +5,7 @@ namespace kdtree {
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> LogNPlane::findPlane(
             const SplitParam &splitParam) {
         //split the geometry through the optimal plane
-        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const std::shared_ptr<PlaneEventVector>& events, const bool minSideChosen) {
+        const std::function geoSubsetCallback = [](const OptimalPlaneLog &optPlane, const std::shared_ptr<PlaneEventVector> &events, const bool minSideChosen) {
             return generatePlaneEventSubsets(optPlane.splitParam, *events, optPlane.getOptimalPlane(), minSideChosen);
         };
         //init the OptPlane to evaluate generated planes
