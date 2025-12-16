@@ -79,7 +79,7 @@ message(STATUS "################################################################
 #######################################################
 
 include(thrust)
-#include(spdlog)
+include(spdlog)
 include(tetgen)
 include(xsimd)
 include(clang_format)

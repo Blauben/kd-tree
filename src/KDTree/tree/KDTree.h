@@ -116,5 +116,7 @@ namespace kdtree {
         KDTree &prebuildTree();
 
         friend std::ostream &operator<<(std::ostream &os, const KDTree &kdTree);
+
+        friend std::string to_string(const KDTree &kdTree);
     };
 }// namespace kdtree

@@ -3,12 +3,15 @@
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
         : TreeNode(splitParam, nodeId) {
+        INFO("LeafNode: Constructed with nodeId " + std::to_string(nodeId));
     }
 
     void LeafNode::getIntersections(const Array3 &origin, const Array3 &ray,
                                         std::set<Array3> &intersections) {
+        DEBUG("LeafNode: getIntersections called for nodeId " + std::to_string(this->nodeId));
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(convertedToFace, [this]() {
+                INFO("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                 _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
             });
         }
@@ -25,6 +28,7 @@ namespace kdtree {
                                  intersections.insert(intersection.value());
                              }
                          });
+        INFO("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
     }
 
     std::optional<Array3> LeafNode::rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
@@ -35,9 +39,8 @@ namespace kdtree {
         if (object.getIndexVector().size() == 1) {
             return rayIntersectsPoint(rayOrigin, rayVector, object.getVertices()[0]);
         }
-
+        INFO("LeafNode: rayIntersectsObject called with invalid object (neither triangle nor point)");
         throw std::runtime_error("Error: rayIntersectsObject called with neither a triangle nor a point.");
-
     }
 
     std::optional<Array3> LeafNode::rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,

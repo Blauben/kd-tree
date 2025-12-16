@@ -14,6 +14,7 @@ if (BUILD_KD_TREE_LIBRARY)
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
             tetgen_lib
+            spdlog
             xsimd
             Thrust
     )

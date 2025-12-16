@@ -8,6 +8,7 @@
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
+#include "KDTree/Logging.h"
 
 #include <algorithm>
 #include <array>
