@@ -1,8 +1,11 @@
-.idea
+.idea/
+.vscode/
 cmake-build-*
-build
+build/
 polyhedral_gravity.egg-info
-dist
+dist/
 docs/Doxyfile
 src/KDTree/Info.h
 .venv/
+.pytest_cache/
+__pycache__/

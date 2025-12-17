@@ -1,5 +1,16 @@
 include(FetchContent)
 
+message(STATUS "Finding Python installation.")
+
+find_package(Python COMPONENTS Interpreter Development REQUIRED)
+
+if (NOT PYTHON_FOUND)
+    message(FATAL_ERROR "Python executable not found! Please install Python.")
+    return()
+endif()
+
+message(STATUS "Python found at ${Python_EXECUTABLE}")
+
 message(STATUS "Setting up Nanobind Library")
 
 set(NANOBIND_VERSION 2.8.0)
