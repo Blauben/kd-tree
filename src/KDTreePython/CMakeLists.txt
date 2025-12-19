@@ -20,6 +20,13 @@ if (INSTALL_KD_TREE_PYTHON_INTERFACE)
     )
 endif()
 
+# Place the executable in the top level directory
+set_target_properties(KDTree_Python PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+)
+
 
 add_custom_command(TARGET KDTree_Python POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "KDTree_Python built at: $<TARGET_FILE:KDTree_Python>"
