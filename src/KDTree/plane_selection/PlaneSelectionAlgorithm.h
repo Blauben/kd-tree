@@ -134,7 +134,7 @@ namespace kdtree {
                 }
                 return std::apply(
                         [this]<typename... Args>(Args &&...args) {
-                            return boundGeometrySplit(*this, std::forward<Args>(args)...);
+                            return _boundGeometrySplit(*this, std::forward<Args>(args)...);
                         },
                         std::move(_callbackArgs));
             }
