@@ -9,9 +9,12 @@ on:
     prerelease: false
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
+  push:
+    branches:
+      - debug-pypi
   
 jobs:
-  # 1.a Buidl the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
+  # 1.a Build the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
   build_wheels:
     name: Build wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -31,7 +34,7 @@ jobs:
           platforms: all
         if: matrix.os == 'ubuntu-latest'
       - name: Build wheels (Linux)
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.1.0
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_FREE_THREADED_SUPPORT: 1
@@ -47,7 +50,7 @@ jobs:
       # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
       # The macOS GitHub Runner is nowadays arm64 based
       - name: Build wheels (macOS)
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.1.0
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_FREE_THREADED_SUPPORT: 1
@@ -77,7 +80,7 @@ jobs:
           reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
         if: matrix.os == 'windows-latest'
       - name: Build wheels (Windows)
-        uses: pypa/cibuildwheel@v2.20.0
+        uses: pypa/cibuildwheel@v3.1.0
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_ARCHS_WINDOWS: "auto64"
