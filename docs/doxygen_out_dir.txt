@@ -1,1 +1,1 @@
-/home/saruman/Repositories/kd-tree/cmake-build-debug/docs/doxygenen
+/home/saruman/Repositories/kd-tree/cmake-build-release/docs/doxygen

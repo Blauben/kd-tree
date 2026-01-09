@@ -84,6 +84,6 @@ namespace kdtree {
         /**
          * Flags set when _splitParam boundObjects are converted from PlaneEvents to shapes
          */
-        std::once_flag convertedToObjects;
+        std::once_flag _convertedToObjects;
     };
 }// namespace kdtree

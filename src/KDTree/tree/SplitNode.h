@@ -43,7 +43,7 @@ namespace kdtree {
         /**
          * Flags set when child node is created. Index 0 for lesser and 1 for greater.
          */
-        std::array<std::once_flag, 2> childNodeCreated;
+        std::array<std::once_flag, 2> _childNodeCreated;
         /**
         * The plane splitting the two TreeNodes contained in this SplitNode
         */

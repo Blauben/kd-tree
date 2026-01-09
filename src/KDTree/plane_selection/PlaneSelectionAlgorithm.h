@@ -59,23 +59,23 @@ namespace kdtree {
         class OptimalPlane final {
             /** Mutex to synchronize access to the optimal plane data.
             */
-            std::shared_mutex planeMutex{};
+            std::shared_mutex _planeMutex{};
 
             /** The cost of the optimal plane found so far.
             */
-            double cost = std::numeric_limits<double>::infinity();
+            double _cost = std::numeric_limits<double>::infinity();
 
             /** The optimal plane found so far.
             */
-            Plane optPlane;
+            Plane _optPlane;
 
             /** The arguments to be passed to the callback function when retrieving the geometry split.
             */
-            std::tuple<std::decay_t<CallbackArgs>...> callbackArgs;
+            std::tuple<std::decay_t<CallbackArgs>...> _callbackArgs;
 
             /** The callback function to generate the geometry split for the optimal plane.
             */
-            std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, std::decay_t<CallbackArgs> &&...)> boundGeometrySplit;
+            std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, std::decay_t<CallbackArgs> &&...)> _boundGeometrySplit;
 
         public:
             /** The parameters of the scene to find the optimal plane for.
@@ -84,7 +84,7 @@ namespace kdtree {
 
             ~OptimalPlane() = default;
 
-            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit) : optPlane(0, splitParam.splitDirection), boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
+            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit) : _optPlane(0, splitParam.splitDirection), _boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
             }
 
             /**
@@ -95,19 +95,19 @@ namespace kdtree {
              */
             void evaluatePlane(const Plane &candidatePlane, const double candidateCost, CallbackArgs... args) {
                 {
-                    std::shared_lock readLock(planeMutex);
+                    std::shared_lock readLock(_planeMutex);
                     // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                     // this is not important for functionality but for testing purposes
-                    if ((candidateCost == cost && optPlane.axisCoordinate < candidatePlane.axisCoordinate) || candidateCost > cost) {
+                    if ((candidateCost == _cost && _optPlane.axisCoordinate < candidatePlane.axisCoordinate) || candidateCost > _cost) {
                         return;
                     }
                 }
-                std::unique_lock writeLock(planeMutex);
-                if (candidateCost <= cost) {
-                    cost = candidateCost;
-                    optPlane = candidatePlane;
+                std::unique_lock writeLock(_planeMutex);
+                if (candidateCost <= _cost) {
+                    _cost = candidateCost;
+                    _optPlane = candidatePlane;
                     //store the callback arguments for later use
-                    callbackArgs = std::tuple<std::decay_t<CallbackArgs>...>(std::forward<CallbackArgs>(args)...);
+                    _callbackArgs = std::tuple<std::decay_t<CallbackArgs>...>(std::forward<CallbackArgs>(args)...);
                 }
             }
 
@@ -115,28 +115,28 @@ namespace kdtree {
             * @return The optimal split plane.
             */
             [[nodiscard]] Plane getOptimalPlane() const {
-                return optPlane;
+                return _optPlane;
             }
 
             /** Retrieves the cost of the optimal split plane found so far.
             * @return The cost of the optimal split plane.
             */
             [[nodiscard]] double getCost() const {
-                return cost;
+                return _cost;
             }
 
             /** Retrieves the geometry split for the optimal split plane found so far.
             * @return The geometry split for the optimal split plane.
             */
             std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> getPointsSplit() {
-                if (cost == std::numeric_limits<double>::infinity()) {
+                if (_cost == std::numeric_limits<double>::infinity()) {
                     return {};
                 }
                 return std::apply(
                         [this]<typename... Args>(Args &&...args) {
                             return boundGeometrySplit(*this, std::forward<Args>(args)...);
                         },
-                        std::move(callbackArgs));
+                        std::move(_callbackArgs));
             }
         };
 

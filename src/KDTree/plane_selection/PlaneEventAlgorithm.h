@@ -78,7 +78,7 @@ namespace kdtree {
         /**
          * Keeps track of shape counts for every dimension in order MIN, MAX, PLANAR
          */
-        std::vector<std::array<size_t, 3>> dimensionShapeValues;
+        std::vector<std::array<size_t, 3>> _dimensionShapeValues;
     };
 
     class PlaneEventAlgorithm : public PlaneSelectionAlgorithm {

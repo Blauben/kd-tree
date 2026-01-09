@@ -2,36 +2,36 @@
 
 namespace kdtree {
     ShapeCounter::ShapeCounter(const size_t dimensionCount, const std::array<size_t, 3> &initialValues)
-        : dimensionShapeValues(dimensionCount, initialValues) {
+        : _dimensionShapeValues(dimensionCount, initialValues) {
         if (dimensionCount == 0) {
             throw std::invalid_argument("Dimension count must be greater than zero");
         }
     }
 
     void ShapeCounter::updateMax(Direction direction, const size_t p_planar, const size_t p_end) {
-        dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(1) -= p_planar +
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(1) -= p_planar +
                                                                                                        p_end;
     }
 
     void ShapeCounter::updateMin(Direction direction, const size_t p_planar, const size_t p_start) {
-        dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(0) += p_planar +
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(0) += p_planar +
                                                                                                        p_start;
     }
 
     void ShapeCounter::setPlanar(Direction direction, const size_t p_planar) {
-        dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(2) = p_planar;
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(2) = p_planar;
     }
 
     size_t ShapeCounter::getMin(Direction direction) const {
-        return dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(0);
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(0);
     }
 
     size_t ShapeCounter::getMax(Direction direction) const {
-        return dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(1);
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(1);
     }
 
     size_t ShapeCounter::getPlanar(Direction direction) const {
-        return dimensionShapeValues.at(static_cast<size_t>(direction) % dimensionShapeValues.size()).at(2);
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(2);
     }
 
     PlaneEventVector PlaneEventAlgorithm::generatePlaneEventsFromGeometry(const SplitParam &splitParam,

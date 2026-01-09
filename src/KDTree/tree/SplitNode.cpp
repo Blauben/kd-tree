@@ -15,7 +15,7 @@ namespace kdtree {
         //create a reference to store the built node in
         std::shared_ptr<TreeNode> &node = index == 0 ? _lesser : _greater;
         //node is not yet built
-        std::call_once(childNodeCreated[index], [this, &node, &index] {
+        std::call_once(_childNodeCreated[index], [this, &node, &index] {
             INFO("SplitNode: Building child " + std::string(index == 0 ? "min" : "max") + " node for nodeId " + std::to_string(this->nodeId));
             //copy parent param and modify to fit new node
             SplitParam childParam{*_splitParam};

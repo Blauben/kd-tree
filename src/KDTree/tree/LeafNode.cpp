@@ -10,7 +10,7 @@ namespace kdtree {
                                     std::set<Vertex> &intersections) {
         DEBUG("LeafNode: getIntersections called for nodeId " + std::to_string(this->nodeId));
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
-            std::call_once(convertedToObjects, [this] {
+            std::call_once(_convertedToObjects, [this] {
                     INFO("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                     _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
                 });
