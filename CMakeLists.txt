@@ -1,3 +1,9 @@
+# The CMake config files and structure were adapted from:
+#   https://https://github.com/esa/polyhedral-gravity-model
+#
+# Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
+# License: GPL-3.0
+
 cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
@@ -61,6 +67,13 @@ IF (_LIBCPP_DISABLE_AVAILABILITY)
     message(STATUS "Disabling availability macros for libc++")
     add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)
 endif ()
+
+# AppleClang options
+if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+    add_compile_options(-stdlib=libc++)
+    add_link_options(-stdlib=libc++)
+endif()
+
 
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660

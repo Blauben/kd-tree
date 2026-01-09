@@ -39,5 +39,3 @@ def test_kdtree_instantiation_and_methods():
     assert isinstance(intersections, list)
     # Test printTree (should not raise)
     tree.printTree()
-def test_kdtree():
-    pass

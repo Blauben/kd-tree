@@ -1,5 +1,4 @@
-nanobind_add_module(KDTree_Python 
-    STABLE_ABI
+nanobind_add_module(KDTree_Python
     KDTreePython.cpp
 )
 

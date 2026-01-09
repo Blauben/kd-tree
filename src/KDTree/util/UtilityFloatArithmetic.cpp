@@ -1,3 +1,11 @@
+/*
+ * This file is taken from:
+ *   https://https://github.com/esa/polyhedral-gravity-model
+ *
+ * Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
+ * License: GPL-3.0
+ */
+
 #include "KDTree/util/UtilityFloatArithmetic.h"
 
 
