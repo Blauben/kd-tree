@@ -23,13 +23,9 @@ exclude_patterns = []
 
 # Breathe Configuration
 
-xml_dir_file = os.path.join('..', 'doxygen_out_dir.txt')
-with open(xml_dir_file) as f:
-    xml_dir = os.path.join(f.read().strip(), 'xml')
-
 breathe_projects = {
-    # "KDTree": xml_dir
-    "KDTree": "../../cmake-build-release/docs/doxygen/xml"
+    # "KDTree": xml_dir set by cli
+    "KDTree": ""
 }
 breathe_default_project = "KDTree"
 

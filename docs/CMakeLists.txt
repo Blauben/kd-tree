@@ -21,7 +21,6 @@ configure_file(${DOXYFILE_IN} ${DOXYFILE_OUT} @ONLY)
 
 # Doxygen won't create this for us
 file(MAKE_DIRECTORY ${DOXYGEN_OUTPUT_DIR})
-file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/doxygen_out_dir.txt" "${DOXYGEN_OUTPUT_DIR}")
 
 # Only regenerate Doxygen when the Doxyfile.in or public headers change
 add_custom_command(OUTPUT ${DOXYGEN_INDEX_FILE}
@@ -39,7 +38,7 @@ set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 # Sphinx target depends on Recurse_rst
 add_custom_target(Sphinx ALL
         COMMAND ${SPHINX_EXECUTABLE} -b html
-        -Dbreathe_projects.kdtree=${DOXYGEN_OUTPUT_DIR}/xml
+        -Dbreathe_projects.KDTree=${DOXYGEN_OUTPUT_DIR}/xml
         ${SPHINX_SOURCE} ${SPHINX_BUILD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS
