@@ -28,7 +28,7 @@
 
 namespace kdtree {
     /**
-     * A KDTree for a given polyhedron to speed up ray intersections with the polyhedron. It is thread safe.
+     * A KDTree for given particles or shapes to for example speed up ray intersections or any other operation that requires * spatial partitioning. It is thread safe.
      */
     class KDTree {
         /**

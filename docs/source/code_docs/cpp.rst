@@ -1,17 +1,12 @@
-KDTree Code Documentation
-==========================
-
-Overview
-========
-
-The KDTree library provides efficient spatial indexing and querying capabilities for 3D geometric objects.
+C++ Documentation
+========================
 
 Core Classes
-============
+------------
 
-
+.. _KDTree:
 KDTree
-------
+^^^^^^
 
 .. doxygenclass:: kdtree::KDTree
    :project: KDTree
@@ -19,7 +14,7 @@ KDTree
    :undoc-members:
 
 Tree Nodes
-----------
+^^^^^^^^^^
 
 .. doxygenclass:: kdtree::TreeNode
    :project: KDTree
@@ -37,10 +32,10 @@ Tree Nodes
    :undoc-members:
 
 Plane Selection Algorithms
-===========================
+---------------------------
 
 Base Algorithm
---------------
+^^^^^^^^^^^^^^
 
 .. doxygenclass:: kdtree::PlaneSelectionAlgorithm
    :project: KDTree
@@ -53,7 +48,7 @@ Base Algorithm
    :undoc-members:
 
 Implementations
----------------
+^^^^^^^^^^^^^^^
 
 .. doxygenclass:: kdtree::LogNPlane
    :project: KDTree
@@ -81,7 +76,7 @@ Implementations
    :undoc-members:
 
 Factory
--------
+^^^^^^^
 
 .. doxygenclass:: kdtree::PlaneSelectionAlgorithmFactory
    :project: KDTree
@@ -89,7 +84,7 @@ Factory
    :undoc-members:
 
 Geometry and Data Structures
-=============================
+-----------------------------
 .. doxygenclass:: kdtree::GeometryObject
    :project: KDTree
    :members:
@@ -121,7 +116,7 @@ Geometry and Data Structures
    :undoc-members:
 
 Utilities
-=========
+---------
 .. doxygenclass:: kdtree::ShapeCounter
    :project: KDTree
    :members:
@@ -133,7 +128,7 @@ Utilities
    :undoc-members:
 
 Utility Namespaces
-------------------
+^^^^^^^^^^^^^^^^^^
 
 .. doxygennamespace:: kdtree::util
    :project: KDTree
@@ -146,10 +141,10 @@ Utility Namespaces
    :undoc-members:
 
 Header Files
-============
+------------
 
 Core Headers
-------------
+^^^^^^^^^^^^
 
 .. doxygenfile:: KDTree.h
    :project: KDTree
@@ -167,7 +162,7 @@ Core Headers
    :project: KDTree
 
 Plane Selection
----------------
+^^^^^^^^^^^^^^^
 
 .. doxygenfile:: PlaneSelectionAlgorithm.h
    :project: KDTree
@@ -191,7 +186,7 @@ Plane Selection
    :project: KDTree
 
 Geometry
---------
+^^^^^^^^
 .. doxygenfile:: GeometryObject.h
    :project: KDTree
 
@@ -208,7 +203,7 @@ Geometry
    :project: KDTree
 
 Utilities
----------
+^^^^^^^^^
 
 .. doxygenfile:: TetgenAdapter.h
    :project: KDTree
@@ -229,6 +224,6 @@ Utilities
    :project: KDTree
 
 Indices and tables
-==================
+------------------
 * :ref:`genindex`
 * :ref:`search`
