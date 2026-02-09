@@ -107,25 +107,25 @@ jobs:
           path: dist/*.tar.gz
           name: sdist
 
-  # # 2. Upload the wheels and the source distribution to testpypi
-  # #    using trusted publishing
-  # upload_testpypi:
-  #   needs: [build_wheels, make_sdist]
-  #   environment:
-  #     name: testpypi
-  #     url: https://test.pypi.org/p/polyhedral-gravity
-  #   permissions:
-  #     id-token: write
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         name: *
-  #         path: dist
-  #         merge-multiple: true
-  #     - uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         repository-url: https://test.pypi.org/legacy/
+   # 2. Upload the wheels and the source distribution to testpypi
+   #    using trusted publishing
+  upload_testpypi:
+     needs: [build_wheels, make_sdist]
+     environment:
+       name: testpypi
+       url: https://test.pypi.org/p/kdtree
+     permissions:
+       id-token: write
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/download-artifact@v4
+         with:
+           name: *
+           path: dist
+           merge-multiple: true
+       - uses: pypa/gh-action-pypi-publish@release/v1
+         with:
+           repository-url: https://test.pypi.org/legacy/
 
   # # 3. Upload the wheels to the actually Python Package Index
   # #    using trusted publishing
