@@ -1,0 +1,20 @@
+name: documentation
+
+on:
+  push:
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+# Build the C++ library & test that it is working using GoogleTest
+  build-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build documentation in build/docs
+        run: |
+          mkdir build
+          cd build
+          cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_KD_TREE_DOCS=ON ..
+          cmake --build . --config Release --target Sphinx
