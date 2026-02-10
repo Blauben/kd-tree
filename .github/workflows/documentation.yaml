@@ -12,9 +12,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build documentation in build/docs
+      - uses: actions/setup-python@v5
+      - name: Install dependencies
+        run: |
+          pip install sphinx sphinx_rtd_theme breathe
+          sudo apt-get install doxygen
+      - name: Build documentation in sphinx/docs
         run: |
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_KD_TREE_DOCS=ON ..
           cmake --build . --config Release --target Sphinx
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'sphinx/docs'
+      - name: Deploy to GitHub Pages
+        id: build-documentation
+        uses: actions/deploy-pages@v4

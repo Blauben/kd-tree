@@ -680,6 +680,8 @@ Public License instead of this License.  But first, please read
 This software depends on the following third party software
 and users must comply to its license terms.
 
+- polyhedral-gravity-model (GNU GPL v3)
+  https://github.com/esa/polyhedral-gravity-model
 - spdlog (MIT License)
   https://github.com/gabime/spdlog/blob/76dfc7e7c0d3c69d3cdaa3399b63545235ccbb02/LICENSE
 - yaml-cpp (MIT License)
