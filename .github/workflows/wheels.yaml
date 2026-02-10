@@ -120,7 +120,6 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          pattern: '*'
           path: dist
           merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1
@@ -133,13 +132,13 @@ jobs:
   #   needs: [build_wheels, make_sdist, upload_testpypi]
   #   environment:
   #     name: pypi
-  #     url: https://pypi.org/p/polyhedral-gravity
+  #     url: https://pypi.org/p/KDTree_Python
   #   permissions:
   #     id-token: write
   #   runs-on: ubuntu-latest
   #   steps:
   #     - uses: actions/download-artifact@v4
   #       with:
-  #         name: artifact
   #         path: dist
+  #         merge-multiple: true
   #     - uses: pypa/gh-action-pypi-publish@release/v1
