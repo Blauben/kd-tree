@@ -37,7 +37,7 @@ Here is a simple example demonstrating how to create a KDTree using particles an
       std::vector<std::array<int, 3>> faces{
           {0, 1, 2}, {3, 4, 5}
       };
-      
+
       // building KDTree with particles
       kdtree::KDTree tree_particles{particles};
 
@@ -46,7 +46,7 @@ Here is a simple example demonstrating how to create a KDTree using particles an
 
       // building KDTree using mesh file paths
       kdtree::KDTree tree_from_files{"path/to/mesh.node", "path/to/mesh.face"};
-      
+
       std::cout << "KDTree: " << tree_particles << std::endl;
       std::cout << "KDTree: " << tree_mesh << std::endl;
       std::cout << "KDTree: " << tree_from_files << std::endl;

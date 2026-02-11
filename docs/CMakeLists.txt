@@ -2,7 +2,7 @@
 # Include Doxygen
 find_package(Doxygen REQUIRED)
 # Include Sphinx
-find_package(Sphinx REQUIRED)
+include(sphinx)
 
 # Collect the source/ header files
 file(GLOB_RECURSE KD_TREE_DOC
