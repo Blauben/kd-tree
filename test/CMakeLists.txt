@@ -16,7 +16,7 @@ target_link_libraries(${PROJECT_NAME}_test
         GTest::gtest
         GTest::gmock
         ${PROJECT_NAME}_lib
-        )
+)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${PROJECT_SOURCE_DIR}/src)
 

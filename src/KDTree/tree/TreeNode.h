@@ -23,7 +23,7 @@ namespace kdtree {
 
         [[nodiscard]] virtual std::string toString() const = 0;
 
-        friend std::ostream& operator<<(std::ostream& os, const TreeNode& node);
+        friend std::ostream &operator<<(std::ostream &os, const TreeNode &node);
 
     protected:
         /**

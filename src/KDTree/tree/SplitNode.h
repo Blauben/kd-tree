@@ -8,8 +8,8 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <sstream>
+#include <string>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -21,7 +21,7 @@
 #include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     /**
      * A TreeNode contained in a KDTree that splits the spatial hierarchy into two new sub boxes. Intersection tests are delegated to the child nodes.
@@ -57,12 +57,14 @@ struct SplitParam;
         */
         std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> _triangleLists;
 
+        static constexpr double EPSILON_NUMERICAL_TOLERANCE = 1e-9;
+
     public:
         /**
          * Takes parameters from the parent node and stores them for lazy child node creation.
          * @param splitParam Parameters produced during the split that resulted in the creation of this node.
          * @param plane The plane that splits this node's bounding box into two sub boxes. The child nodes are created based on these boxes.
-         * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link TriangleIndexVector}
+         * @param triangleIndexLists Index sets of the triangles contained in the lesser and greater child nodes. {@link ObjectIndexVector}
          * @param nodeId Unique Id given by the TreeNodeFactory.
          */
         SplitNode(const SplitParam &splitParam, const Plane &plane, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>> &triangleIndexLists, size_t nodeId);

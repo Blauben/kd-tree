@@ -4,7 +4,7 @@
 
 namespace kdtree {
 
-    std::tuple<std::vector<Array3>, std::vector<IndexArray3>> TetgenAdapter::getPolyhedralSource() {
+    std::tuple<std::vector<Array3>, std::vector<IndexVector>> TetgenAdapter::getPolyhedralSource() {
         //1. Step: Read in from files
         for (const auto &fileName: _fileNames) {
             size_t pos = fileName.find_last_of('.');
@@ -17,7 +17,7 @@ namespace kdtree {
         }
 
         //2. Convert tetgenio to Polyhedron
-        return std::make_tuple(_vertices, _faces);
+        return std::make_tuple(this->_vertices, _faces);
     }
 
     void TetgenAdapter::readNode(const std::string &filename) {
@@ -86,19 +86,18 @@ namespace kdtree {
     void TetgenAdapter::checkIntegrity(const std::string &filename, char what) const {
         if ((what == 'v' || what == 'a') && _tetgenio.numberofpoints != 0) {
             throw std::runtime_error(
-                    "The Polyhedron already has well defined nodes! The information of " + filename
-                    + ".node is redundant!");
+                    "The Polyhedron already has well defined nodes! The information of " + filename + ".node is redundant!");
         } else if ((what == 'f' || what == 'a') && (_tetgenio.numberoftrifaces != 0 || _tetgenio.numberoffacets != 0)) {
             throw std::runtime_error(
-                    "The Polyhedron already has well defined faces! The information of " + filename
-                    + ".node is redundant!");
+                    "The Polyhedron already has well defined faces! The information of " + filename + ".node is redundant!");
         }
     }
 
     void TetgenAdapter::addVertices() {
+        size_t numberOfPoints = static_cast<size_t>(_tetgenio.numberofpoints);
         _vertices.clear();
-        _vertices.reserve(_tetgenio.numberofpoints);
-        for (size_t i = 0; i < _tetgenio.numberofpoints * 3; i += 3) {
+        _vertices.reserve(numberOfPoints);
+        for (size_t i = 0; i < numberOfPoints * 3; i += 3) {
             _vertices.push_back({_tetgenio.pointlist[i],
                                  _tetgenio.pointlist[i + 1],
                                  _tetgenio.pointlist[i + 2]});
@@ -106,9 +105,10 @@ namespace kdtree {
     }
 
     void TetgenAdapter::addFacesByTrifaces() {
+        size_t numberOfFaces = static_cast<size_t>(_tetgenio.numberoftrifaces);
         _faces.clear();
-        _faces.reserve(_tetgenio.numberoftrifaces);
-        for (size_t i = 0; i < _tetgenio.numberoftrifaces * 3; i += 3) {
+        _faces.reserve(numberOfFaces);
+        for (size_t i = 0; i < numberOfFaces * 3; i += 3) {
             _faces.push_back({static_cast<size_t>(_tetgenio.trifacelist[i]),
                               static_cast<size_t>(_tetgenio.trifacelist[i + 1]),
                               static_cast<size_t>(_tetgenio.trifacelist[i + 2])});
@@ -123,4 +123,4 @@ namespace kdtree {
         this->addFacesByTrifaces();
     }
 
-}
+}// namespace kdtree

@@ -8,6 +8,7 @@
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
+#include "KDTree/Logging.h"
 
 #include <algorithm>
 #include <array>
@@ -18,13 +19,13 @@
 #include <optional>
 #include <ostream>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <variant>
 #include <vector>
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     /**
      * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained triangles here.
@@ -44,7 +45,7 @@ struct SplitParam;
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.
         */
-        void getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
 
         [[nodiscard]] std::string toString() const override;
 
@@ -55,11 +56,11 @@ struct SplitParam;
          * Möller-Trumbore Algorithm for Ray-Face intersection.
          * @param rayOrigin The point where the ray originates from.
          * @param rayVector Specifies the ray direction.
-         * @param triangleVertexIndex the face to test against, described by the vertices that comprise it (passed by index reference).
+         * @param object the face to test against, described by the vertices that comprise it (passed by index reference).
          * @return
          */
-        [[nodiscard]] std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                                  const IndexArray3 &triangleVertexIndex) const;
+        static std::optional<Array3> rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
+                                                                  const GeometryObject &object) ;
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -69,11 +70,13 @@ struct SplitParam;
          * @return
          */
         static std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                           const Array3Triplet &triangleVertices);
+                                                           const std::vector<Array3> &triangleVertices);
+
+        static std::optional<Array3> rayIntersectsPoint(const Array3 &rayOrigin, const Array3 &rayVector, const Array3 &center);
 
         /**
-         * Flags set when _splitParam boundFaces are converted from PlaneEvents to faces
+         * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces
          */
         std::once_flag convertedToFace;
     };
-} // namespace kdtree
+}// namespace kdtree

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <bit>
 #include <cmath>
 #include <cstdint>
 #include <type_traits>
@@ -70,4 +71,4 @@ namespace kdtree::util {
     bool almostEqualRelative(FloatType lhs, FloatType rhs, double epsilon = EPSILON_ALMOST_EQUAL);
 
 
-}
+}// namespace kdtree::util
