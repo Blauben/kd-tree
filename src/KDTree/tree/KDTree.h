@@ -14,14 +14,16 @@
 #include <utility>
 #include <vector>
 
+#include "KDTree/model/GeometryObject.h"
+#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
+#include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/LeafNode.h"
 #include "KDTree/tree/SplitNode.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
+#include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
@@ -42,11 +44,7 @@ namespace kdtree {
         /**
          * The polyhedron's vertices.
          */
-        const std::vector<Array3> _vertices;
-        /**
-         * The polyhedron's faces: A face is a triplet of vertex indices.
-         */
-        const std::vector<IndexArray3> _faces;
+        std::vector<GeometryObject> _geometryObjects;
 
         /**
          * Set when the root node has been created.
@@ -66,8 +64,10 @@ namespace kdtree {
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
         * @return the lazily built KDTree.
         */
-        KDTree(const std::vector<Array3> &vertices, const std::vector<IndexArray3> &faces,
+        KDTree(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces,
                PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+
+        explicit KDTree(const std::vector<Array3>& particles,  PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
          * Call to build a KDTree to speed up intersections of rays with a polyhedron's faces.
@@ -84,7 +84,7 @@ namespace kdtree {
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexArray3>> &polySource,
+        KDTree(const std::tuple<std::vector<Array3>, std::vector<IndexVector>> &polySource,
                PlaneSelectionAlgorithm::Algorithm algorithm);
 
 
@@ -100,7 +100,7 @@ namespace kdtree {
         * @param ray Specifies the ray direction.
         * @param intersections The set found intersection points are added to.
         */
-        void getFaceIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
 
         /**
          * Calculates the number of intersections of a ray with the polyhedron.
@@ -116,5 +116,7 @@ namespace kdtree {
         KDTree &prebuildTree();
 
         friend std::ostream &operator<<(std::ostream &os, const KDTree &kdTree);
+
+        friend std::string to_string(const KDTree &kdTree);
     };
-} // namespace kdtree
+}// namespace kdtree

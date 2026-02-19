@@ -14,9 +14,9 @@
 #include <variant>
 #include <vector>
 
+#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
-#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
@@ -25,7 +25,7 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     class LogNPlane final : public PlaneEventAlgorithm {
     public:
@@ -71,7 +71,7 @@ struct SplitParam;
         * @param plane The plane that splits the scene's bounding box into two new sub boxes.
         * @return Two new PlaneEventLists for the minimal and maximal bounding boxes respectively (unsorted!).
         */
-        static std::array<PlaneEventVector, 2> generatePlaneEventsForClippedFaces(const SplitParam &splitParam, const TriangleIndexVector &faceIndices, const Plane &plane);
+        static std::array<PlaneEventVector, 2> generatePlaneEventsForClippedFaces(const SplitParam &splitParam, const ObjectIndexVector &faceIndices, const Plane &plane);
 
         /**
          * Takes two sorted PlaneEventLists and merges them in a single merge sort step.

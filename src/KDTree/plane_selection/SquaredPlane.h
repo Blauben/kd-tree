@@ -13,9 +13,9 @@
 #include <variant>
 #include <vector>
 
+#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
-#include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
@@ -24,7 +24,7 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     /**
 * O(N^2) implementation to finding optimal split planes.
@@ -35,8 +35,8 @@ struct SplitParam;
         * @param splitParam specifies the polyhedron section to be split @link SplitParam.
         * @return Tuple of the optimal plane to split the specified bounding box, its cost as double and a list of triangle sets with respective positions to the found plane. Refer to {@link TriangleIndexVectors<2>} for more information.
         */
-        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > > findPlane(
-            const SplitParam &splitParam) override;
+        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
+                const SplitParam &splitParam) override;
 
         /**
         * Splits a section of a polyhedron into two bounding boxes and calculates the triangle face sets contained in the new bounding boxes.
@@ -48,4 +48,4 @@ struct SplitParam;
         */
         static TriangleIndexVectors<3> containedTriangles(const SplitParam &splitParam, const Plane &split);
     };
-} // namespace kdtree
+}// namespace kdtree

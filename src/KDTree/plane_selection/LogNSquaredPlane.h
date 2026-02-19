@@ -12,29 +12,30 @@
 #include <variant>
 #include <vector>
 
+#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
-#include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
-struct SplitParam;
+    struct SplitParam;
 
     class LogNSquaredPlane final : public PlaneEventAlgorithm {
+        using OptimalPlaneLogNSquared = OptimalPlane<PlaneEventVector, bool>;
+
     public:
-        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > > findPlane(
-            const SplitParam &splitParam) override;
+        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
+                const SplitParam &splitParam) override;
 
     private:
         /**
          * Generates the optimal split plane considering a single dimension.
-         * @param splitParam Specifies the parameters needed to perform the splits.
+         * @param optPlane
          * @return the optimal plane, its cost, the events that were generated in the process, and whether to include planar triangles in the minimal bounding box.
          */
-        static std::tuple<Plane, double, PlaneEventVector, bool> findPlaneForSingleDimension(
-            const SplitParam &splitParam);
+        static void findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane);
 
 
         /**
@@ -47,4 +48,4 @@ struct SplitParam;
         static TriangleIndexVectors<2> generateTriangleSubsets(const PlaneEventVector &planeEvents, const Plane &plane,
                                                                bool minSide);
     };
-} // namespace kdtree
+}// namespace kdtree

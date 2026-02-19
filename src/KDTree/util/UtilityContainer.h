@@ -18,6 +18,19 @@ namespace kdtree::util {
     template<typename T, size_t M, size_t N>
     using Matrix = std::array<std::array<T, N>, M>;
 
+
+    /**
+     * A concept for containers like std::array or std::vector.
+     * The container must have a value_type, a size() method and support the [] operator.
+     * @tparam T the type to check
+     */
+    template<typename T>
+    concept Container = requires(T a) {
+        typename T::value_type;
+        { a.size() } -> std::convertible_to<size_t>;
+        { a[0] };
+    };
+
     /**
      * Applies a binary function to elements of two containers piece by piece. The objects must
      * be iterable and should have the same size!
@@ -28,9 +41,9 @@ namespace kdtree::util {
      * @param binOp a binary function like +, -, *, /
      * @return a container containing the result
      */
-    template<typename Container, typename BinOp>
-    Container applyBinaryFunction(const Container &lhs, const Container &rhs, BinOp binOp) {
-        Container ret = lhs;
+    template<Container C, typename BinOp>
+    C applyBinaryFunction(const C &lhs, const C &rhs, BinOp binOp) {
+        C ret = lhs;
         std::transform(std::begin(lhs), std::end(lhs), std::begin(rhs), std::begin(ret), binOp);
         return ret;
     }
@@ -47,9 +60,9 @@ namespace kdtree::util {
      * @param binOp a binary function like +, -, *, /
      * @return a container containing the result
      */
-    template<typename Container, typename Scalar, typename BinOp>
-    Container applyBinaryFunction(const Container &lhs, const Scalar &scalar, BinOp binOp) {
-        Container ret = lhs;
+    template<Container C, typename Scalar, typename BinOp>
+    C applyBinaryFunction(const C &lhs, const Scalar &scalar, BinOp binOp) {
+        C ret = lhs;
         std::transform(std::begin(lhs), std::end(lhs), std::begin(ret), [&binOp, &scalar](const Scalar &element) {
             return binOp(element, scalar);
         });
@@ -64,8 +77,8 @@ namespace kdtree::util {
      * @param rhs subtrahend
      * @return the difference
      */
-    template<typename Container>
-    Container operator-(const Container &lhs, const Container &rhs) {
+    template<Container C>
+    C operator-(const C &lhs, const C &rhs) {
         return applyBinaryFunction(lhs, rhs, std::minus<>());
     }
 
@@ -77,8 +90,8 @@ namespace kdtree::util {
     * @param rhs addend
     * @return the sum
     */
-    template<typename Container>
-    Container operator+(const Container &lhs, const Container &rhs) {
+    template<Container C>
+    C operator+(const C &lhs, const C &rhs) {
         return applyBinaryFunction(lhs, rhs, std::plus<>());
     }
 
@@ -90,8 +103,8 @@ namespace kdtree::util {
     * @param rhs multiplicand
     * @return the product
     */
-    template<typename Container>
-    Container operator*(const Container &lhs, const Container &rhs) {
+    template<Container C>
+    C operator*(const C &lhs, const C &rhs) {
         return applyBinaryFunction(lhs, rhs, std::multiplies<>());
     }
 
@@ -103,8 +116,8 @@ namespace kdtree::util {
     * @param rhs multiplicand
     * @return the product
     */
-    template<typename Container>
-    Container operator/(const Container &lhs, const Container &rhs) {
+    template<Container C>
+    C operator/(const C &lhs, const C &rhs) {
         return applyBinaryFunction(lhs, rhs, std::divides<>());
     }
 
@@ -117,8 +130,8 @@ namespace kdtree::util {
     * @param scalar addend
     * @return a Container
     */
-    template<typename Container, typename Scalar>
-    Container operator+(const Container &lhs, const Scalar &scalar) {
+    template<Container C, typename Scalar>
+    C operator+(const C &lhs, const Scalar &scalar) {
         return applyBinaryFunction(lhs, scalar, std::plus<>());
     }
 
@@ -146,8 +159,8 @@ namespace kdtree::util {
     * @param scalar multiplicand
     * @return a Container
     */
-    template<typename Container, typename Scalar>
-    Container operator*(const Container &lhs, const Scalar &scalar) {
+    template<Container C, typename Scalar>
+    C operator*(const C &lhs, const Scalar &scalar) {
         return applyBinaryFunction(lhs, scalar, std::multiplies<>());
     }
 
@@ -160,8 +173,8 @@ namespace kdtree::util {
      * @param scalar the divisor
      * @return a Container
      */
-    template<typename Container, typename Scalar>
-    Container operator/(const Container &lhs, const Scalar &scalar) {
+    template<Container C, typename Scalar>
+    C operator/(const C &lhs, const Scalar &scalar) {
         return applyBinaryFunction(lhs, scalar, std::divides<>());
     }
 
@@ -171,8 +184,8 @@ namespace kdtree::util {
      * @param container e.g. a vector
      * @return an double containing the L2 norm
      */
-    template<typename Container>
-    double euclideanNorm(const Container &container) {
+    template<Container C>
+    double euclideanNorm(const C &container) {
         return std::sqrt(std::inner_product(std::begin(container), std::end(container), std::begin(container), 0.0));
     }
 
@@ -182,9 +195,9 @@ namespace kdtree::util {
      * @param container the container
      * @return a container with the modified values
      */
-    template<typename Container>
-    Container abs(const Container &container) {
-        Container ret = container;
+    template<Container C>
+    C abs(const C &container) {
+        C ret = container;
         std::transform(std::begin(container), std::end(container), std::begin(ret),
                        [](const auto &element) { return std::abs(element); });
         return ret;
@@ -423,30 +436,23 @@ namespace kdtree::util {
         return os;
     }
 
-    template<typename T>
-    struct is_stdarray : std::false_type {
-    };
-
-    template<typename T, std::size_t N>
-    struct is_stdarray<std::array<T, N>> : std::true_type {
-    };
-
     /**
     * Calculates the min and max coordinate values for each dimension of the elements supplied.
     * @param elements the container of whose elements to search for min and max ccordinates
     * @return the findings formatted in a pair of new elements. E.g <(0,0,0) , (1,1,1)> if the container {(0,0,1), (1,1,0)} is passed.
     */
-    template<typename Container, typename ValueType>
-    std::pair<ValueType, ValueType> findMinMaxCoordinates(Container elements) {
+    template<Container C>
+    std::pair<typename C::value_type, typename C::value_type> findMinMaxCoordinates(C elements) {
+        using ValueType = typename C::value_type;
         //return empty box centered at the origin if no vertices provided
         if (elements.empty()) {
             return {{0, 0, 0}, {0, 0, 0}};
         }
         //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
-       ValueType min = elements[0];
+        ValueType min = elements[0];
         ValueType max = elements[0];
         //test each vertex for proximity to the origin and find minima and maxima
-        for (const auto& vertex : elements) {
+        for (const auto &vertex: elements) {
             // test each dimension separately
             for (size_t i = 0; i < vertex.size(); ++i) {
                 min[i] = std::min(min[i], vertex[i]);

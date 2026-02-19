@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Appends the the module path to contain additional CMake modules for this project
@@ -15,7 +15,7 @@ include(CMakeDependentOption)
 # Parallelization on the HOST
 set(KD_TREE_PARALLELIZATION "CPP" CACHE STRING "Host parallelization chosen by the user
  (CPP= Serial, OMP = OpenMP, TBB = Intel Threading Building Blocks")
-set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP, OMP, TBB)
+set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP TBB)
 
 # Set the Logging Level
 set(KD_TREE_LOGGING_LEVEL_LIST "TRACE" "DEBUG" "INFO" "WARN" "ERROR" "CRITICAL" "OFF")
@@ -42,6 +42,7 @@ cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" 
 option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: ON)" ON)
 # Option to build tests or not
 option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: ON)" ON)
+option(KD_TREE_forceGtestFetch "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
 option(BUILD_KD_TREE_TIME_MEASUREMENT "Set to on if the benchmark executable should be built (Default: OFF)" OFF)
 # Option to enable Include-What-You-Use warnings during compilation
@@ -55,6 +56,7 @@ endif ()
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
+add_compile_definitions($<$<CONFIG:Debug>:DEBUG>)
 
 include(git)
 include(version.cmake)
@@ -77,7 +79,7 @@ message(STATUS "################################################################
 #######################################################
 
 include(thrust)
-#include(spdlog)
+include(spdlog)
 include(tetgen)
 include(xsimd)
 include(clang_format)

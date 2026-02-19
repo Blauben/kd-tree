@@ -2,44 +2,32 @@
 
 namespace kdtree {
     // O(N*log^2(N)) implementation
-    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2> > >
+    std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>>
     LogNSquaredPlane::findPlane(const SplitParam &splitParam) {
-        Plane optPlane{};
-        double cost{std::numeric_limits<double>::infinity()};
-        PlaneEventVector optimalEvents{};
-        bool minSide{true};
+        const std::function geoSubsetCallback = [](const OptimalPlaneLogNSquared &optPlane, const PlaneEventVector &events, const bool minSideChosen) {
+            return generateTriangleSubsets(events, optPlane.getOptimalPlane(), minSideChosen);
+        };
+        OptimalPlaneLogNSquared optPlane{splitParam, geoSubsetCallback};
         for (const auto dimension: ALL_DIRECTIONS) {
             splitParam.splitDirection = dimension;
-            auto [candidatePlane, candidateCost, events, minSideChosen] = findPlaneForSingleDimension(splitParam);
+            findPlaneForSingleDimension(optPlane);
             // this if clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
             // this is not important for functionality but for testing purposes
-            if (candidateCost == cost && optPlane.axisCoordinate < candidatePlane.axisCoordinate) {
-                continue;
-            }
-            if (candidateCost < cost) {
-                optPlane = candidatePlane;
-                cost = candidateCost;
-                optimalEvents = events;
-                minSide = minSideChosen;
-            }
         }
         //generate the triangle index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
-        return {optPlane, cost, generateTriangleSubsets(optimalEvents, optPlane, minSide)};
+        return {optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit()};
     }
 
-    std::tuple<Plane, double, PlaneEventVector, bool> LogNSquaredPlane::findPlaneForSingleDimension(
-        const SplitParam &splitParam) {
-        const PlaneEventVector events{std::move(generatePlaneEventsFromFaces(splitParam, {splitParam.splitDirection}))};
-        TriangleCounter triangleCounter{1, {0, countFaces(splitParam.boundFaces), 0}};
-        auto [optPlane, cost, minSide] = traversePlaneEvents(events, triangleCounter, splitParam.boundingBox);
-        return {optPlane, cost, events, minSide};
+    void LogNSquaredPlane::findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane) {
+        const PlaneEventVector events{generatePlaneEventsFromFaces(optPlane.splitParam, {optPlane.splitParam.splitDirection})};
+        TriangleCounter triangleCounter{1, {0, countFaces(optPlane.splitParam.boundObjects), 0}};
+        traversePlaneEvents(optPlane, events, triangleCounter);
     }
-
 
     TriangleIndexVectors<2> LogNSquaredPlane::generateTriangleSubsets(const PlaneEventVector &planeEvents,
                                                                       const Plane &plane, const bool minSide) {
-        auto facesMin = std::make_unique<TriangleIndexVector>();
-        auto facesMax = std::make_unique<TriangleIndexVector>();
+        auto facesMin = std::make_unique<ObjectIndexVector>();
+        auto facesMax = std::make_unique<ObjectIndexVector>();
         //set data structure to avoid processing faces twice -> introduces O(1) lookup instead of O(n) lookup using the vectors directly
         std::unordered_set<size_t> facesMinLookup{};
         std::unordered_set<size_t> facesMaxLookup{};
@@ -52,10 +40,9 @@ namespace kdtree {
         std::array<std::mutex, 2> facesMutex{};
         thrust::for_each(thrust::device, planeEvents.cbegin(), planeEvents.cend(),
                          [&facesMin, &facesMax, &plane, minSide, &facesMinLookup, &facesMaxLookup, &facesMutex](
-                     const auto &event) {
+                                 const auto &event) {
                              //lambda function to combine lookup and insertion into one place
-                             auto insertIfAbsent = [&facesMin, &facesMinLookup, &facesMax, &facesMaxLookup, &facesMutex
-                                     ](const size_t faceIndex, const uint8_t index) {
+                             auto insertIfAbsent = [&facesMin, &facesMinLookup, &facesMax, &facesMaxLookup, &facesMutex](const size_t faceIndex, const uint8_t index) {
                                  const auto &vector = index == 0 ? facesMin : facesMax;
                                  auto &lookup = index == 1 ? facesMinLookup : facesMaxLookup;
                                  std::lock_guard lock(facesMutex[index]);
@@ -90,4 +77,4 @@ namespace kdtree {
                          });
         return {std::move(facesMin), std::move(facesMax)};
     }
-} // namespace kdtree
+}// namespace kdtree
