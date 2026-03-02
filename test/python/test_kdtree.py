@@ -2,9 +2,11 @@
 import pytest
 
 def test_import_module():
+    """Test that the KDTree_Python module can be imported without errors and that it contains the expected KDTree class."""
     import KDTree_Python
 
 def test_kdtree_instantiation_and_methods():
+    
     import KDTree_Python
     # Minimal cube data (matches C++ test)
     vertices = [

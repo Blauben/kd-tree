@@ -2,7 +2,7 @@ include(FetchContent)
 
 message(STATUS "Finding Python installation.")
 
-find_package(Python 3.9 REQUIRED COMPONENTS Interpreter Development.Module)
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
 
 # if (NOT PYTHON_FOUND)
 #     message(STATUS "Python executable not found, the build might be incomplete! Please install Python.")

@@ -33,17 +33,16 @@ A high-performance, lazily-built KD-Tree implementation for spatial partitioning
 
 ### Python Interface
 - Python >= 3.9
-- scikit-build-core >= 0.4.3
-- nanobind >= 1.3.2
+- Dependencies (automatically fetched):
+  - scikit-build-core >= 0.4.3
+  - nanobind >= 1.3.2
 
 ## Installation
 
 ### Building the C++ Library
 
 ```bash
-# Clone the repository
-git clone <repository-url>
-cd kd-tree
+cd <repo-root>
 
 # Create build directory
 mkdir build && cd build

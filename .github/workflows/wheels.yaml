@@ -34,7 +34,7 @@ jobs:
           platforms: all
         if: matrix.os == 'ubuntu-latest'
       - name: Build wheels (Linux)
-        uses: pypa/cibuildwheel@v3.1.0
+        uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_FREE_THREADED_SUPPORT: 1
@@ -50,7 +50,7 @@ jobs:
       # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
       # The macOS GitHub Runner is nowadays arm64 based
       - name: Build wheels (macOS)
-        uses: pypa/cibuildwheel@v3.1.0
+        uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_FREE_THREADED_SUPPORT: 1
@@ -80,7 +80,7 @@ jobs:
           reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
         if: matrix.os == 'windows-latest'
       - name: Build wheels (Windows)
-        uses: pypa/cibuildwheel@v3.1.0
+        uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake
           CIBW_ARCHS_WINDOWS: "auto64"

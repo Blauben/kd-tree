@@ -24,11 +24,22 @@ namespace kdtree {
     using ParamType = std::tuple<std::vector<Vertex>, std::vector<IndexVector>, Algorithm, std::vector<Vertex>>;
 
     namespace {
-        // Test constants
+        /**
+         * Test constants
+        */
         constexpr long long SEED = 4142561877;
+        /**
+         * A small delta value for comparing floating-point numbers in tests
+         */
         constexpr double DELTA = 1e-8;
+        /**
+         * seed for random number generation to ensure reproducibility in tests
+         */
         auto gen = std::mt19937(SEED);
 
+        /**
+         * A simple cube polyhedron for testing purposes: vertices
+         */
         const std::vector<Vertex> cube_vertices{
                 {-1.0, -1.0, -1.0},
                 {1.0, -1.0, -1.0},
@@ -39,6 +50,9 @@ namespace kdtree {
                 {1.0, 1.0, 1.0},
                 {-1.0, 1.0, 1.0}};
 
+        /**
+         * A simple cube polyhedron for testing purposes: faces defined by vertex indices
+         */
         const std::vector<IndexVector> cube_faces{
                 {1, 3, 2},
                 {0, 3, 1},
@@ -53,7 +67,11 @@ namespace kdtree {
                 {4, 5, 6},
                 {4, 6, 7}};
 
-        // Lazy load big polyhedron to avoid expensive global initialization at translation time
+        /** 
+         * Lazy load big polyhedron to avoid expensive global initialization at translation time
+         * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
+         * @return A tuple containing the vertices and faces of the big polyhedron.
+         */
         const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &getBigPolyhedron() {
             static const std::vector<std::string> polyhedronNodeFilePath = {
                     std::format("resources/Eros_scaled-{}.node", 27000),
@@ -62,11 +80,21 @@ namespace kdtree {
             return poly;
         }
 
+        /**
+         * Generates random point index on the surface of a polyhedron (constraint imposed by specifying the index range through size buffer) defined by its   vertices and faces. Used for testing ray intersections with the KDTree.
+         * @param sizeBuffer The size of the index range to generate the random index from.
+         * @return A random point index on the surface of the polyhedron.
+         */
         int getRandomIndex(const size_t sizeBuffer) {
             std::uniform_int_distribution<> distrib(0, static_cast<int>(sizeBuffer) - 1);
             return distrib(gen);
         }
 
+        /**
+         * Generates a random point on the surface of a triangle defined by its vertices. Used for testing ray intersections with the KDTree.
+         * @param vertices The vertices of the triangle.
+         * @return A random point on the surface of the triangle.
+         */
         Vertex randomPointOnFace(const std::array<Vertex, 3> &vertices) {
             using namespace util;
             std::uniform_real_distribution<> distrib(0.0, 1.0);
@@ -77,6 +105,13 @@ namespace kdtree {
             return vertices[0] * a + vertices[1] * b + vertices[2] * c;
         }
 
+        /** 
+         * Generates a vector of random points on the surface of a polyhedron defined by its vertices and faces.
+         * @param vertices The vertices of the polyhedron.
+         * @param faces The faces of the polyhedron defined by vertex indices.
+         * @param n The number of random points to generate.
+         * @return A vector of random points on the surface of the polyhedron.
+         */
         std::vector<Vertex> generateRandomPointsOnPolyhedron(const std::vector<Vertex> &vertices,
                                                              const std::vector<IndexVector> &faces,
                                                              const size_t n) {
@@ -93,6 +128,11 @@ namespace kdtree {
             return randomPoints;
         }
 
+        /**
+         * Extracts the indices of the shapes that are referenced by the given PlaneEvents. Used for testing purposes to compare the plane selection algorithms.
+         * @param triangles The PlaneEvents containing information about the shapes.
+         * @return A list of shape indices.
+         */
         ObjectIndexVector extractFaceIndices(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles) {
             if (std::holds_alternative<ObjectIndexVector>(triangles)) {
                 auto triangleVector = std::get<ObjectIndexVector>(triangles);
@@ -108,11 +148,21 @@ namespace kdtree {
             return result;
         }
 
+        /**
+         * Extracts the indices of the shapes that are referenced by the given PlaneEvents and updates the boundObjects field of the given SplitParam. Used for testing purposes to compare the plane selection algorithms.
+          * @param param The SplitParam containing the PlaneEvents in its boundObjects field.
+          * @return The updated SplitParam with the extracted shape indices in its boundObjects field.
+         */
         SplitParam &holdsFaceIndices(SplitParam &param) {
             param.boundObjects = extractFaceIndices(param.boundObjects);
             return param;
         }
 
+        /** 
+         * Extracts the face indices from a pair of vectors of face indices.
+         * @param vectors The pair of vectors of face indices.
+         * @return A pair of vectors of face indices.
+         */
         std::pair<ObjectIndexVector, ObjectIndexVector> extractFaceIndicesFromVectors(
                 const std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> &vectors) {
             return std::visit([](const auto &triangleVectors) {
@@ -124,8 +174,15 @@ namespace kdtree {
         }
     }// namespace
 
+    /**
+     * @class KDTreeTest
+     * @brief Test suite for the KDTree class functionality.
+     */
     class KDTreeTest : public ::testing::TestWithParam<ParamType> {};
 
+    /**
+     * Tests the intersection of rays with points on the surface of a polyhedron using the KDTree. The test generates random points on the surface of the polyhedron and checks if the KDTree correctly identifies the intersection points when rays are cast from a fixed origin towards these points. The test uses a progress bar to track the progress of testing multiple points.
+     */
     TEST_P(KDTreeTest, PointsTest) {
         using namespace util;
         const auto [vertices, faces, algorithm, points] = GetParam();
@@ -150,6 +207,9 @@ namespace kdtree {
         }
     }
 
+    /**
+     * This test is similar to the PointsTest but only builds a KDTree with the vertices of the polyhedron and no faces (particles). This means that the tree will not contain any shapes and the test checks if the KDTree can identify the nearest point on a ray to a targeted vertex given a DELTA tolerance.
+     */
     TEST_P(KDTreeTest, ParticleTree) {
         using namespace util;
         constexpr double SPHERE_INTERSECTION_DELTA = 1e-2;
@@ -181,6 +241,9 @@ namespace kdtree {
         }
     }
 
+    /**
+     * Tests the regression of the plane selection algorithms used in the KDTree. The test builds a KDTree using a specified plane selection algorithm and then traverses the tree to compare the planes selected by the algorithm with those selected by a reference quadratic algorithm. The test checks if the planes, their costs, and the locality of the triangles they reference are consistent between the two algorithms for each split node in the tree. As the quadratic algorithm is used as a reference due to its simplicity and correctness, this may take a while.
+     */
     TEST_P(KDTreeTest, AlgorithmRegressionTest) {
         using namespace util;
         std::vector<Vertex> vertices;
@@ -226,6 +289,8 @@ namespace kdtree {
     constexpr size_t bigNumberOfPoints = 1000;
 
     // Instantiate tests using lazy-loaded big polyhedron
+
+    // Instatiations for the big polyhedron with different plane selection algorithms and different amount of random points on the surface
     INSTANTIATE_TEST_SUITE_P(NoTreePointsBig, KDTreeTest,
                              ::testing::Values(
                                      []() -> ParamType {
@@ -266,7 +331,6 @@ namespace kdtree {
                                                                 generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints));
                                      }()));
 
-    // Explicit cube instances
     INSTANTIATE_TEST_SUITE_P(QuadraticPointsCube, KDTreeTest,
                              ::testing::Values(
                                      std::make_tuple(cube_vertices, cube_faces, Algorithm::QUADRATIC,
