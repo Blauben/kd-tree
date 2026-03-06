@@ -48,14 +48,20 @@ cd <repo-root>
 mkdir build && cd build
 
 # Configure with CMake
-cmake .. -DCMAKE_BUILD_TYPE=Release \
-         -DKD_TREE_PARALLELIZATION=TBB \
-         -DKD_TREE_LOGGING_LEVEL=INFO
+cmake ..
 
 # Build
-cmake --build . --config Release
+cmake --build .
+```
 
-# Run tests (optional)
+#### Building the C++ Tests
+
+```bash
+# From the build directory
+cmake .. -DBUILD_KD_TREE_TESTS=ON
+cmake --build .
+
+# Run tests
 ctest --output-on-failure
 ```
 
@@ -67,7 +73,7 @@ pip install .
 
 # Or with conda environment
 conda env create -f environment.yml
-conda activate polyhedral-gravity-env
+conda activate kdtree-env
 pip install .
 ```
 
@@ -112,7 +118,7 @@ tree.getIntersections(origin, ray, intersections);
 ### Python Example
 
 ```python
-from KDTree_Python import KDTree, PlaneSelectionAlgorithm
+from kdtree_py import KDTree, PlaneSelectionAlgorithm
 import numpy as np
 
 # Create vertices and faces

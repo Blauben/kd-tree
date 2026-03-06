@@ -3,7 +3,7 @@ requires = ["scikit-build-core >=0.4.3", "nanobind >=1.3.2"]
 build-backend = "scikit_build_core.build"
 
 [project]
-name = "KDTree_Python"
+name = "kdtree_py"
 version = "1.0.0"
 description = "This project provides a lazily built KD_TREE operating on particles or triangle faces in three dimensional space."
 readme = "README.md"
@@ -35,7 +35,7 @@ wheel.py-api = "cp312"
 cmake.version = ">=3.15"
 cmake.verbose = true
 cmake.build-type = "Release"
-wheel.packages = ["KDTree_Python"]
+wheel.packages = ["kdtree_py"]
 
 # CMake configuration
 [tool.scikit-build.cmake.define]
@@ -49,6 +49,11 @@ BUILD_KD_TREE_EXECUTABLE = "OFF"
 BUILD_KD_TREE_PYTHON_INTERFACE = "ON"
 BUILD_SHARED_LIBS = {env = "BUILD_SHARED_LIBS", default = "OFF"}
 
-# TODO review
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.15"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = [
+    "test",
+]

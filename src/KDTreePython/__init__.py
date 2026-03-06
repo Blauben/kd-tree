@@ -1,11 +1,11 @@
 try:
-    from .KDTree_Python import *
+    from .kdtree_py import *
 
-    del KDTree_Python
+    del kdtree_py
 except Exception as e:
     print(f"Import error: {e}")
-    # This will fail because KDTree_Python isn't imported yet
-    # print(dir(KDTree_Python))
+    # This will fail because kdtree_py isn't imported yet
+    # print(dir(kdtree_py))
 
     # Better: Try to find what's actually in the package
     import os

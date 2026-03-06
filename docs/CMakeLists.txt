@@ -6,11 +6,11 @@ include(sphinx)
 
 # Collect the source/ header files
 file(GLOB_RECURSE KD_TREE_DOC
-        "${PROJECT_SOURCE_DIR}/src/*.h"
-        "${PROJECT_SOURCE_DIR}/src/*.cpp"
+        "${KD_TREE_SOURCE_DIR}/src/*.h"
+        "${KD_TREE_SOURCE_DIR}/src/*.cpp"
 )
 
-set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/src)
+set(DOXYGEN_INPUT_DIR ${KD_TREE_SOURCE_DIR}/src)
 set(DOXYGEN_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/doxygen)
 set(DOXYGEN_INDEX_FILE ${DOXYGEN_OUTPUT_DIR}/xml/index.xml)
 set(DOXYFILE_IN ${CMAKE_CURRENT_SOURCE_DIR}/source/Doxyfile.in)

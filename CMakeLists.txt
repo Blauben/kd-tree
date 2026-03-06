@@ -10,9 +10,12 @@ project(KDTree)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+set(KD_TREE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+set(KD_TREE_BINARY_DIR ${PROJECT_BINARY_DIR})
+
 # Appends the the module path to contain additional CMake modules for this project
 # and include everything necessary
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${KD_TREE_SOURCE_DIR}/cmake)
 include(CMakeDependentOption)
 
 if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -55,7 +58,7 @@ option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface sh
 # Option to install the python interface
 option(INSTALL_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be installed (Default: ON)" ON)
 # Option to build tests or not
-option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: ON)" ON)
+option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: OFF)" OFF)
 # Option to force fetching Google Test even if it is already installed locally
 option(KD_TREE_FORCE_GTEST_FETCH "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
@@ -132,13 +135,13 @@ message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}"
 ############################################################
 # KD Tree Library & Executable & Python Interface
 ############################################################
-add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(${KD_TREE_SOURCE_DIR}/src)
 
 ##############################
 # Building the Polyhedral Docs
 ##############################
 if (BUILD_KD_TREE_DOCS)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/docs)
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/docs)
 endif ()
 
 ###############################
@@ -150,5 +153,5 @@ if (BUILD_KD_TREE_TESTS)
     enable_testing()
 
     # Subdirectory where the tests are located
-    add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
 endif ()

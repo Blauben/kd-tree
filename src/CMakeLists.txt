@@ -52,7 +52,7 @@ if (BUILD_KD_TREE_PYTHON_INTERFACE)
 
     add_subdirectory(KDTreePython)
 
-    target_link_libraries(KDTree_Python PUBLIC ${PROJECT_NAME}_lib)
+    target_link_libraries(kdtree_py PUBLIC ${PROJECT_NAME}_lib)
 endif ()
 
 #####################################################
@@ -76,6 +76,6 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT)
             RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
     )
 
-    file(COPY ${PROJECT_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
+    file(COPY ${KD_TREE_SOURCE_DIR}/resources DESTINATION ${PROJECT_BINARY_DIR})
 
 endif ()
