@@ -29,11 +29,11 @@ void printTree(const kdtree::KDTree &tree) {
 }
 
 /**
- * @brief Python module definition for kdtree_py.
+ * @brief Python module definition for scikdtree.
  *
  * Exposes KDTree and PlaneSelectionAlgorithm to Python, including constructors and intersection methods.
  */
-NB_MODULE(kdtree_py, m) {
+NB_MODULE(scikdtree, m) {
     using namespace kdtree;
     // Expose PlaneSelectionAlgorithm enum to Python
     nb::enum_<PlaneSelectionAlgorithm::Algorithm>(m, "PlaneSelectionAlgorithm")

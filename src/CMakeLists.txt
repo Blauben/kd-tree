@@ -52,7 +52,7 @@ if (BUILD_KD_TREE_PYTHON_INTERFACE)
 
     add_subdirectory(KDTreePython)
 
-    target_link_libraries(kdtree_py PUBLIC ${PROJECT_NAME}_lib)
+    target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib)
 endif ()
 
 #####################################################

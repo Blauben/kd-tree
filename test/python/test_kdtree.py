@@ -3,12 +3,12 @@ import pytest
 
 def test_import_module():
     """Test that the KDTree_Python module can be imported without errors and that it contains the expected KDTree class."""
-    import kdtree_py
+    import scikdtree
 
 def test_kdtree_instantiation_and_methods():
     """Test that a KDTree can be instantiated and that its methods can be called without errors."""
     
-    import kdtree_py
+    import scikdtree
     # Minimal cube data (matches C++ test)
     vertices = [
         [-1.0, -1.0, -1.0],
@@ -26,7 +26,7 @@ def test_kdtree_instantiation_and_methods():
         [2, 3, 6], [3, 7, 6], [4, 5, 6], [4, 6, 7]
     ]
     # Instantiate KDTree
-    tree = kdtree_py.KDTree(vertices, faces)
+    tree = scikdtree.KDTree(vertices, faces)
     # Test __str__
     s = str(tree)
     assert isinstance(s, str)
