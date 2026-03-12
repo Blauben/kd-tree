@@ -31,20 +31,8 @@ wheel.py-api = "cp312"
 # Read version from version.cmake
 cmake.version = ">=3.15"
 cmake.verbose = true
-cmake.build-type = "Release"
+cmake.args = ["--preset", "python-tbb"]
 wheel.packages = ["scikdtree"]
-
-# CMake configuration
-[tool.scikit-build.cmake.define]
-CMAKE_BUILD_TYPE = "Release"
-KD_TREE_PARALLELIZATION = {env = "KD_TREE_PARALLELIZATION", default = "TBB"}
-KD_TREE_LOGGING_LEVEL = {env = "KD_TREE_LOGGING_LEVEL", default = "INFO"}
-BUILD_KD_TREE_DOCS = "OFF"
-BUILD_KD_TREE_TESTS = "OFF"
-BUILD_KD_TREE_LIBRARY = "ON"
-BUILD_KD_TREE_EXECUTABLE = "OFF"
-BUILD_KD_TREE_PYTHON_INTERFACE = "ON"
-BUILD_SHARED_LIBS = {env = "BUILD_SHARED_LIBS", default = "OFF"}
 
 [tool.cibuildwheel.macos.environment]
 MACOSX_DEPLOYMENT_TARGET = "10.15"

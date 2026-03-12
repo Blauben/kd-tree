@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": { "major": 3, "minor": 16, "patch": 0 },
   "configurePresets": [
     {
@@ -97,28 +97,28 @@
   ],
   "buildPresets": [
     {
-      "name": "release-all",
-      "displayName": "Release - All",
+      "name": "release",
+      "displayName": "Release",
       "configurePreset": "release"
     },
     {
-      "name": "release-omp-all",
-      "displayName": "Release (OpenMP) - All",
+      "name": "release-omp",
+      "displayName": "Release (OpenMP)",
       "configurePreset": "release-omp"
     },
     {
-      "name": "release-tbb-all",
-      "displayName": "Release (TBB) - All",
+      "name": "release-tbb",
+      "displayName": "Release (TBB)",
       "configurePreset": "release-tbb"
     },
     {
-      "name": "debug-all",
-      "displayName": "Debug - All",
+      "name": "debug",
+      "displayName": "Debug",
       "configurePreset": "debug"
     },
     {
-      "name": "test-all",
-      "displayName": "Test - All",
+      "name": "test",
+      "displayName": "Test",
       "configurePreset": "test"
     },
     {
@@ -143,6 +143,82 @@
       "displayName": "Run Tests",
       "configurePreset": "test",
       "output": { "outputOnFailure": true }
+    }
+  ],
+  "workflowPresets": [
+    {
+        "name": "build-release-default",
+        "displayName": "Build Release - Default",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release"
+            },
+            {
+            "type": "build",
+            "name": "release"
+            }
+        ]
+    },
+    {
+        "name": "build-release-tbb",
+        "displayName": "Build Release - TBB Parallelization Backend",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release-tbb"
+            },
+            {
+            "type": "build",
+            "name": "release-tbb"
+            }
+        ]
+    },
+    {
+        "name": "build-release-omp",
+        "displayName": "Build Release - OMP Parallelization Backend",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release-omp"
+            },
+            {
+            "type": "build",
+            "name": "release-omp"
+            }
+        ]
+    },
+    {
+      "name": "build-and-test",
+      "displayName": "Build and Test",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "test"
+        },
+	{
+	"type": "build",
+	"name": "test"
+	},        
+	{
+          "type": "test",
+          "name": "test"
+        }
+      ]
+    },
+    {
+      "name": "build-python-interface",
+      "displayName": "Build Python Interface",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "python-tbb"
+        },
+        {
+            "type": "build",
+            "name": "python-tbb"
+        }
+      ]
     }
   ]
 }

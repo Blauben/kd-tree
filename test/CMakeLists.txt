@@ -13,6 +13,12 @@ file(GLOB_RECURSE TEST_SRC
 # Creates the Test Target
 add_executable(${PROJECT_NAME}_test ${TEST_SRC})
 
+set_target_properties(${PROJECT_NAME}_test PROPERTIES
+            ARCHIVE_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+            LIBRARY_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+            RUNTIME_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+)
+
 # Links target breakupModelTest against gtest_main (entry point, so no own main method is required)
 target_link_libraries(${PROJECT_NAME}_test
         indicators

@@ -8,7 +8,7 @@ namespace kdtree {
         constexpr unsigned long geometryIndex = 2124;
         const auto &bound = std::get<ObjectIndexVector>(this->_splitParam->boundObjects);
         if (std::find(bound.cbegin(), bound.cend(), geometryIndex) != bound.end()) {
-            DEBUG("Traced geoObject " << geometryIndex << " to Node: " << this->nodeId);
+            LOG_DEBUG("Traced geoObject ", geometryIndex, " to Node: ", this->nodeId);
         }
 #endif
     }

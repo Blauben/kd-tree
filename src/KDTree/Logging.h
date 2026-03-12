@@ -4,6 +4,7 @@
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 
 namespace kdtree {
@@ -42,22 +43,34 @@ namespace kdtree {
         }
     };
 
-    inline void DEBUG(std::string_view msg) {
+    template<typename... Args>
+    inline void LOG_DEBUG(Args... argument) {
 #ifdef DEBUG
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->debug(msg);
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->debug(msg.str());
 #endif
     }
 
-    inline void INFO(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->info(msg);
+    template<typename... Args>
+    inline void LOG_INFO(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->info(msg.str());
     }
 
-    inline void WARN(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->warn(msg);
+    template<typename... Args>
+    inline void LOG_WARN(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->warn(msg.str());
     }
 
-    inline void ERROR(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->error(msg);
+    template<typename... Args>
+    inline void LOG_ERROR(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->error(msg.str());
     }
 
 }// namespace kdtree

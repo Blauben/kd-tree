@@ -6,7 +6,7 @@ namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
                    const PlaneSelectionAlgorithm::Algorithm algorithm) {
-        INFO("KDTree: Constructing from vertices and faces");
+        LOG_INFO("KDTree: Constructing from vertices and faces");
         GeometryObject::vertices = vertices;
         _geometryObjects.reserve(shapes.size());
         //transform shape indices to GeometryObjects
@@ -15,7 +15,7 @@ namespace kdtree {
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
                                                    PlaneSelectionAlgorithmFactory::create(algorithm));
-        DEBUG("KDTree: Construction complete, split parameters initialized");
+        LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
     }
 
     KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
@@ -30,7 +30,7 @@ namespace kdtree {
                                                                                                                            return shapes;
                                                                                                                        }(),
                                                                                                                        algorithm} {
-        INFO("KDTree: Constructed from particles");
+        LOG_INFO("KDTree: Constructed from particles");
     }
 
     KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
@@ -40,14 +40,14 @@ namespace kdtree {
 
 
     KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
-        INFO("KDTree: Data fetched from node and face file paths");
+        LOG_INFO("KDTree: Data fetched from node and face file paths");
     }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
-        DEBUG("KDTree: getRootNode called");
+        LOG_DEBUG("KDTree: getRootNode called");
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
         std::call_once(_rootNodeCreated, [this] {
-            INFO("KDTree: Creating root node via TreeNodeFactory");
+            LOG_INFO("KDTree: Creating root node via TreeNodeFactory");
             this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
         });
         return this->_rootNode;
@@ -55,16 +55,16 @@ namespace kdtree {
 
     size_t KDTree::countIntersections(const Vertex &origin, const Vertex &ray) {
         //it's possible that a single intersection point is on the edge between two shapes. The point would be counted twice if the intersection points were not documented -> use of std::set
-        DEBUG("KDTree: Counting intersections");
+        LOG_DEBUG("KDTree: Counting intersections");
         //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
         std::set<Vertex> set{};
         this->getIntersections(origin, ray, set);
-        INFO("KDTree: Intersections counted: " + std::to_string(set.size()));
+        LOG_INFO("KDTree: Intersections counted: " + std::to_string(set.size()));
         return set.size();
     }
 
     void KDTree::getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections) {
-        DEBUG("KDTree: getIntersections called");
+        LOG_DEBUG("KDTree: getIntersections called");
         //iterative approach to avoid stack and heap overflows
         //queue for children of processed nodes
         std::deque<std::shared_ptr<TreeNode>> queue{};
@@ -76,7 +76,7 @@ namespace kdtree {
             auto node = queue.front();
             //if node is SplitNode perform intersection checks on the children and queue them accordingly
             if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
-                DEBUG("KDTree: SplitNode with nodeId " + std::to_string(split->nodeId) + " encountered in getIntersections");
+                LOG_DEBUG("KDTree: SplitNode with nodeId ", std::to_string(split->nodeId), " encountered in getIntersections");
                 const auto children = split->getChildrenForIntersection(origin, ray, inverseRay);
                 std::ranges::for_each(children, [&queue](const auto &child) {
                     queue.push_back(child);
@@ -84,16 +84,16 @@ namespace kdtree {
             }
             //if node is leaf then perform intersections with the shapes contained
             else if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
-                DEBUG("KDTree: LeafNode with nodeId " + std::to_string(leaf->nodeId) + " encountered in getIntersections");
+                LOG_DEBUG("KDTree: LeafNode with nodeId ", std::to_string(leaf->nodeId), " encountered in getIntersections");
                 leaf->getIntersections(origin, ray, intersections);
             }
             queue.pop_front();
         }
-        INFO("KDTree: getIntersections finished");
+        LOG_INFO("KDTree: getIntersections finished");
     }
 
     KDTree &KDTree::prebuildTree() {
-        INFO("KDTree: prebuildTree called");
+        LOG_INFO("KDTree: prebuildTree called");
         //queue for children of processed nodes
         std::deque<std::shared_ptr<TreeNode>> queue{};
         //subsequently call getter functions for the root node and all child nodes to initiate a full build of the tree
@@ -102,7 +102,7 @@ namespace kdtree {
             auto node = queue.front();
             //if node is SplitNode perform intersection checks on the children and queue them accordingly
             if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
-                DEBUG("KDTree: SplitNode encountered in prebuildTree");
+                LOG_DEBUG("KDTree: SplitNode encountered in prebuildTree");
                 //build child nodes and add them to the queue
                 queue.push_back(split->getChildNode(0));
                 queue.push_back(split->getChildNode(1));
@@ -110,7 +110,7 @@ namespace kdtree {
             //remove the processed node as its direct children have been built by getChildNode
             queue.pop_front();
         }
-        INFO("KDTree: prebuildTree finished");
+        LOG_INFO("KDTree: prebuildTree finished");
         return *this;
     }
 

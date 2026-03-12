@@ -5,6 +5,7 @@
 
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
+#include "KDTree/Logging.h"
 
 namespace kdtree {
 

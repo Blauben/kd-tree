@@ -26,18 +26,20 @@ endif ()
 if (BUILD_KD_TREE_EXECUTABLE)
     message(STATUS "Building the KD Tree Executable")
 
+    include(cli11)
+
     # Building the standalone Executable
-    add_executable(${PROJECT_NAME} kd_tree_main.cpp)
+    add_executable(${PROJECT_NAME} main.cpp)
     set_target_properties(${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE FALSE)
 
     # Link executable with library
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib CLI11::CLI11)
 
     # Place the executable in the top level directory
     set_target_properties(${PROJECT_NAME} PROPERTIES
-            ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-            LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
-            RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}
+            ARCHIVE_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+            LIBRARY_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+            RUNTIME_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
     )
 endif ()
 
