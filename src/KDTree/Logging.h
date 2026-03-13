@@ -35,7 +35,7 @@ namespace kdtree {
          */
         KDTreeLogger()
             : _logger(spdlog::stdout_color_mt<spdlog::synchronous_factory>("KDTREE_LOGGER")) {
-            _logger->set_level(spdlog::level::trace);
+            _logger->set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
         }
 
         [[nodiscard]] inline std::shared_ptr<spdlog::logger> getLogger() const {
@@ -44,30 +44,28 @@ namespace kdtree {
     };
 
     template<typename... Args>
-    inline void LOG_DEBUG(Args... argument) {
-#ifdef DEBUG
+    void LOG_DEBUG(Args... argument) {
         std::stringstream msg;
         (msg << ... << argument);
         KDTreeLogger::DEFAULT_LOGGER.getLogger()->debug(msg.str());
-#endif
     }
 
     template<typename... Args>
-    inline void LOG_INFO(Args... argument) {
+    void LOG_INFO(Args... argument) {
         std::stringstream msg;
         (msg << ... << argument);
         KDTreeLogger::DEFAULT_LOGGER.getLogger()->info(msg.str());
     }
 
     template<typename... Args>
-    inline void LOG_WARN(Args... argument) {
+    void LOG_WARN(Args... argument) {
         std::stringstream msg;
         (msg << ... << argument);
         KDTreeLogger::DEFAULT_LOGGER.getLogger()->warn(msg.str());
     }
 
     template<typename... Args>
-    inline void LOG_ERROR(Args... argument) {
+    void LOG_ERROR(Args... argument) {
         std::stringstream msg;
         (msg << ... << argument);
         KDTreeLogger::DEFAULT_LOGGER.getLogger()->error(msg.str());

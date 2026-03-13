@@ -25,16 +25,13 @@ jobs:
           sudo apt-get install doxygen
       - name: Build documentation in sphinx/docs
         run: |
-          mkdir build
-          cd build
-          cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_KD_TREE_DOCS:BOOL=ON -DBUILD_KD_TREE_LIBRARY:BOOL=OFF -DBUILD_KD_TREE_EXECUTABLE:BOOL=OFF -DBUILD_KD_TREE_PYTHON_INTERFACE:BOOL=OFF -DBUILD_KD_TREE_TESTS:BOOL=OFF ..
-          cmake --build . --config Release --target Sphinx
+          cmake --workflow --preset build-docs
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './build/docs/sphinx/'
+          path: './build/docs/html/'
       - name: Deploy to GitHub Pages
         id: build-documentation
         uses: actions/deploy-pages@v4

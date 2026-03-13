@@ -3,6 +3,7 @@ nanobind_add_module(scikdtree
 )
 
 target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib ${Python_LIBRARIES})
+kd_tree_copy_runtime_dlls(scikdtree)
 
 target_include_directories(scikdtree PUBLIC ${CMAKE_SOURCE_DIR}/src)
 
@@ -14,6 +15,10 @@ if (INSTALL_KD_TREE_PYTHON_INTERFACE)
         COMPONENT python_interface
     )
     install(FILES __init__.py
+        DESTINATION scikdtree
+        COMPONENT python_interface
+    )
+    install(FILES $<TARGET_RUNTIME_DLLS:scikdtree>
         DESTINATION scikdtree
         COMPONENT python_interface
     )

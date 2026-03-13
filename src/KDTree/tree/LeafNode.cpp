@@ -3,7 +3,7 @@
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
         : TreeNode(splitParam, nodeId) {
-        LOG_INFO("LeafNode: Constructed with nodeId " + std::to_string(nodeId));
+        LOG_DEBUG("LeafNode: Constructed with nodeId " + std::to_string(nodeId));
     }
 
     void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
@@ -11,7 +11,7 @@ namespace kdtree {
         LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(_convertedToObjects, [this] {
-                    LOG_INFO("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
+                    LOG_DEBUG("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                     _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
                 });
         }
@@ -27,7 +27,7 @@ namespace kdtree {
                     intersections.insert(intersection.value());
                 }
                          });
-        LOG_INFO("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
+        LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
         }
 
         std::optional<Vertex> LeafNode::rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
@@ -38,7 +38,7 @@ namespace kdtree {
             if (object.getIndexVector().size() == 1) {
                 return rayIntersectsPoint(rayOrigin, rayVector, object.getVertices()[0]);
             }
-            LOG_INFO("LeafNode: rayIntersectsObject called with invalid object (neither triangle nor point)");
+            LOG_ERROR("LeafNode: rayIntersectsObject called with invalid object (neither triangle nor point)");
             throw std::runtime_error("Error: rayIntersectsObject called with neither a triangle nor a point.");
         }
 

@@ -1,10 +1,8 @@
+.. _KDTree:
+
 C++ Documentation
 ========================
 
-Core Classes
-------------
-
-.. _KDTree:
 KDTree
 ^^^^^^
 
@@ -38,11 +36,6 @@ Base Algorithm
 ^^^^^^^^^^^^^^
 
 .. doxygenclass:: kdtree::PlaneSelectionAlgorithm
-   :project: KDTree
-   :members:
-   :undoc-members:
-
-.. doxygenclass:: kdtree::PlaneSelectionAlgorithm::OptimalPlane
    :project: KDTree
    :members:
    :undoc-members:
@@ -140,88 +133,6 @@ Utility Namespaces
    :members:
    :undoc-members:
 
-Header Files
-------------
-
-Core Headers
-^^^^^^^^^^^^
-
-.. doxygenfile:: KDTree.h
-   :project: KDTree
-
-.. doxygenfile:: TreeNode.h
-   :project: KDTree
-
-.. doxygenfile:: SplitNode.h
-   :project: KDTree
-
-.. doxygenfile:: LeafNode.h
-   :project: KDTree
-
-.. doxygenfile:: TreeNodeFactory.h
-   :project: KDTree
-
-Plane Selection
-^^^^^^^^^^^^^^^
-
-.. doxygenfile:: PlaneSelectionAlgorithm.h
-   :project: KDTree
-
-.. doxygenfile:: PlaneSelectionAlgorithmFactory.h
-   :project: KDTree
-
-.. doxygenfile:: LogNPlane.h
-   :project: KDTree
-
-.. doxygenfile:: LogNSquaredPlane.h
-   :project: KDTree
-
-.. doxygenfile:: SquaredPlane.h
-   :project: KDTree
-
-.. doxygenfile:: NoTreePlane.h
-   :project: KDTree
-
-.. doxygenfile:: PlaneEventAlgorithm.h
-   :project: KDTree
-
-Geometry
-^^^^^^^^
-.. doxygenfile:: GeometryObject.h
-   :project: KDTree
-
-.. doxygenfile:: Box.h
-   :project: KDTree
-
-.. doxygenfile:: Plane.h
-   :project: KDTree
-
-.. doxygenfile:: PlaneEvent.h
-   :project: KDTree
-
-.. doxygenfile:: SplitParam.h
-   :project: KDTree
-
-Utilities
-^^^^^^^^^
-
-.. doxygenfile:: TetgenAdapter.h
-   :project: KDTree
-
-.. doxygenfile:: UtilityContainer.h
-   :project: KDTree
-
-.. doxygenfile:: UtilityFloatArithmetic.h
-   :project: KDTree
-
-.. doxygenfile:: UtilityThrust.h
-   :project: KDTree
-
-.. doxygenfile:: Info.h
-   :project: KDTree
-
-.. doxygenfile:: KdDefinitions.h
-   :project: KDTree
 
 Indices and tables
 ------------------

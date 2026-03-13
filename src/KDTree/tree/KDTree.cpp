@@ -47,7 +47,7 @@ namespace kdtree {
         LOG_DEBUG("KDTree: getRootNode called");
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
         std::call_once(_rootNodeCreated, [this] {
-            LOG_INFO("KDTree: Creating root node via TreeNodeFactory");
+            LOG_DEBUG("KDTree: Creating root node via TreeNodeFactory");
             this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
         });
         return this->_rootNode;

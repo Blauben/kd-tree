@@ -34,6 +34,7 @@ if (BUILD_KD_TREE_EXECUTABLE)
 
     # Link executable with library
     target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib CLI11::CLI11)
+    kd_tree_copy_runtime_dlls(${PROJECT_NAME})
 
     # Place the executable in the top level directory
     set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -70,6 +71,7 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT)
 
     # Link executable with library
     target_link_libraries(${PROJECT_NAME}_time PUBLIC ${PROJECT_NAME}_lib benchmark::benchmark)
+    kd_tree_copy_runtime_dlls(${PROJECT_NAME}_time)
 
     # Place the executable in the top level directory
     set_target_properties(${PROJECT_NAME}_time PROPERTIES

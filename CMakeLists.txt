@@ -82,7 +82,6 @@ endif()
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
-add_compile_definitions($<$<CONFIG:Debug>:DEBUG>)
 
 include(git)
 include(version.cmake)
@@ -131,6 +130,13 @@ endif ()
 # Thrust set-up i.e. the parallelization library, create targets according to the users specification
 thrust_create_target(Thrust HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
 message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}")
+
+# Fallback for non-TBB builds: tbb.cmake defines the real implementation.
+if (NOT COMMAND kd_tree_copy_runtime_dlls)
+    function(kd_tree_copy_runtime_dlls target_name)
+    endfunction()
+endif ()
+
 
 ############################################################
 # KD Tree Library & Executable & Python Interface

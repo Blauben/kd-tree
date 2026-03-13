@@ -93,6 +93,20 @@
       "cacheVariables": {
         "KD_TREE_PARALLELIZATION": "OMP"
       }
+    },
+    {
+      "name": "docs",
+      "displayName": "Documentation",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/docs",
+      "cacheVariables": {
+        "BUILD_KD_TREE_DOCS": "ON",
+        "BUILD_KD_TREE_LIBRARY": "OFF",
+        "BUILD_KD_TREE_EXECUTABLE": "OFF",
+        "BUILD_KD_TREE_PYTHON_INTERFACE": "OFF",
+        "BUILD_KD_TREE_TESTS": "OFF",
+        "BUILD_KD_TREE_TIME_MEASUREMENT": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -135,6 +149,12 @@
       "name": "python-omp",
       "displayName": "Python Interface - OpenMP",
       "configurePreset": "python-omp"
+    },
+    {
+      "name": "docs-build",
+      "displayName": "Documentation",
+      "configurePreset": "docs",
+      "targets": ["Sphinx"]
     }
   ],
   "testPresets": [
@@ -199,7 +219,7 @@
 	{
 	"type": "build",
 	"name": "test"
-	},        
+	},
 	{
           "type": "test",
           "name": "test"
@@ -217,6 +237,20 @@
         {
             "type": "build",
             "name": "python-tbb"
+        }
+      ]
+    },
+    {
+      "name": "build-docs",
+      "displayName": "Build Documentation",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "docs"
+        },
+        {
+          "type": "build",
+          "name": "docs-build"
         }
       ]
     }

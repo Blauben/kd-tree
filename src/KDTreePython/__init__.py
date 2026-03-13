@@ -1,10 +1,9 @@
+import os
+
 try:
     from .scikdtree import *
-
     del scikdtree
 except Exception as e:
-    import os
-    import sys
     pkg_dir = os.path.dirname(__file__)
     print(f"Package directory: {pkg_dir}")
     print(f"Contents: {os.listdir(pkg_dir)}")

@@ -13,6 +13,8 @@ Installation is straightforward using CMake. After cloning the repository, creat
    cmake ..
    make
 
+To customize the cmake build refer to the :ref:`cmake` documentation for detailed instructions on available build options and presets and typical commands.
+
 Here are simple examples demonstrating how to create a KDTree using data in different formats:
 
 In order to build a KDTree operating on particles refer to the following code snippet:
@@ -61,6 +63,7 @@ To build a KDTree operating on triangle meshes, replace the data definition and 
 It is also possible to store the mesh data in .node and .face files and pass the file paths to the KDTree constructor, skipping the data definition section entirely. Refer to the following code snippet:
 
 .. code-block::
+
    // building KDTree using mesh file paths
    kdtree::KDTree tree_from_files{"path/to/mesh.node", "path/to/mesh.face"};
 

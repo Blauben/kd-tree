@@ -10,3 +10,4 @@ src/KDTree/Info.h
 .pytest_cache/
 __pycache__/
 CMakeFiles/
+CMakeUserPresets.json

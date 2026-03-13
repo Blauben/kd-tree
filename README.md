@@ -11,7 +11,6 @@ A high-performance, lazily-built KD-Tree implementation for spatial partitioning
   - `QUADRATIC` - O(n²) complexity
   - `NOTREE` - No tree structure (brute force)
 - **Parallel Execution**: Support for multiple parallelization backends:
-  - Serial C++ (CPP)
   - OpenMP (OMP)
   - Intel Threading Building Blocks (TBB)
 - **Thread-Safe**: Safe for concurrent ray intersection queries
@@ -52,17 +51,6 @@ cmake ..
 
 # Build
 cmake --build .
-```
-
-#### Building the C++ Tests
-
-```bash
-# From the build directory
-cmake .. -DBUILD_KD_TREE_TESTS=ON
-cmake --build .
-
-# Run tests
-ctest --output-on-failure
 ```
 
 ### Installing the Python Package
@@ -147,18 +135,8 @@ print(f"Intersection points: {intersections}")
 tree.printTree()
 ```
 
-## CMake Options
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `BUILD_KD_TREE_EXECUTABLE` | ON | Build the C++ executable |
-| `BUILD_KD_TREE_LIBRARY` | ON | Build the C++ library |
-| `BUILD_KD_TREE_PYTHON_INTERFACE` | ON | Build Python bindings |
-| `BUILD_KD_TREE_TESTS` | ON | Build unit tests |
-| `BUILD_KD_TREE_DOCS` | OFF | Build documentation |
-| `BUILD_KD_TREE_TIME_MEASUREMENT` | OFF | Build benchmark executable |
-| `KD_TREE_PARALLELIZATION` | CPP | Parallelization backend (CPP/OMP/TBB) |
-| `KD_TREE_LOGGING_LEVEL` | INFO | Logging level (TRACE/DEBUG/INFO/WARN/ERROR/CRITICAL/OFF) |
+## CMake 
+For advanced CMake configuration, refer to the [documentation](docs).
 
 ## Algorithm Comparison
 
@@ -196,27 +174,9 @@ kd-tree/
 3. **Enable parallelization**: Use TBB or OpenMP for large meshes
 4. **Reduce logging in production**: Set `KD_TREE_LOGGING_LEVEL` to ERROR or OFF for maximum performance
 
-## Testing
+## Testing and Benchmarking
 
-```bash
-# Run all tests
-cd build
-ctest --output-on-failure
-
-# Run specific test
-./test/kdtree_tests
-```
-
-## Benchmarking
-
-```bash
-# Build with benchmarks enabled
-cmake .. -DBUILD_KD_TREE_TIME_MEASUREMENT=ON
-cmake --build .
-
-# Run benchmarks
-./KDTree_time
-```
+Please refer to the [documentation](https://blauben.github.io/kd-tree/) for instructions on running unit tests and benchmarks.
 
 ## License
 

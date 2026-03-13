@@ -7,7 +7,7 @@ namespace kdtree {
         : TreeNode(splitParam, nodeId), _plane{plane}, _boundingBox{splitParam.boundingBox},
           _shapeLists{std::move(shapeIndexLists)} {
 
-        LOG_INFO("SplitNode: Constructed with nodeId " + std::to_string(nodeId));
+        LOG_DEBUG("SplitNode: Constructed with nodeId " + std::to_string(nodeId));
     }
 
     std::shared_ptr<TreeNode> SplitNode::getChildNode(const size_t index) {
@@ -16,7 +16,7 @@ namespace kdtree {
         std::shared_ptr<TreeNode> &node = index == 0 ? _lesser : _greater;
         //node is not yet built
         std::call_once(_childNodeCreated[index], [this, &node, &index] {
-            LOG_INFO("SplitNode: Building child " + std::string(index == 0 ? "min" : "max") + " node for nodeId " + std::to_string(this->nodeId));
+            LOG_DEBUG("SplitNode: Building child " + std::string(index == 0 ? "min" : "max") + " node for nodeId " + std::to_string(this->nodeId));
             //copy parent param and modify to fit new node
             SplitParam childParam{*_splitParam};
             //get the bounding box after splitting;
