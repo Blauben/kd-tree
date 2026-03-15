@@ -3,7 +3,7 @@ include(FetchContent)
 message(STATUS "Setting up tbb")
 set(TBB_VERSION 2021.12.0)
 
-find_package(TBB QUIET HINTS /opt/homebrew/Cellar/tbb)
+find_package(TBB QUIET)
 
 if(${TBB_FOUND})
     message(STATUS "Found existing TBB library: ${TBB_DIR}")

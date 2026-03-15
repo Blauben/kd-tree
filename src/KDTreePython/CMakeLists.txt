@@ -2,11 +2,10 @@ nanobind_add_module(scikdtree
     KDTreePython.cpp
 )
 
-target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib ${Python_LIBRARIES})
-kd_tree_copy_runtime_dlls(scikdtree)
+target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib)
 
 target_include_directories(scikdtree PUBLIC ${CMAKE_SOURCE_DIR}/src)
-
+kd_tree_copy_runtime_dlls(scikdtree)
 
 # Install the scikdtree module and __init__.py into the correct Python package directory
 if (INSTALL_KD_TREE_PYTHON_INTERFACE)
@@ -30,7 +29,6 @@ set_target_properties(scikdtree PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
         RUNTIME_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
 )
-
 
 add_custom_command(TARGET scikdtree POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "scikdtree built at: $<TARGET_FILE:scikdtree>"

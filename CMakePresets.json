@@ -58,7 +58,7 @@
     {
       "name": "test",
       "displayName": "Test",
-      "inherits": "debug",
+      "inherits": "release-tbb",
       "binaryDir": "${sourceDir}/build/test",
       "cacheVariables": {
         "BUILD_KD_TREE_TESTS": "ON",
@@ -216,11 +216,11 @@
           "type": "configure",
           "name": "test"
         },
-	{
-	"type": "build",
-	"name": "test"
-	},
-	{
+        {
+          "type": "build",
+          "name": "test"
+        },
+        {
           "type": "test",
           "name": "test"
         }

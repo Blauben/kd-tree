@@ -37,4 +37,7 @@ file(COPY "${KD_TREE_SOURCE_DIR}/resources" DESTINATION "${KD_TREE_BINARY_DIR}")
 include(GoogleTest)
 
 # Adds the Tests to CTest by querying the test target executable
-gtest_discover_tests(${PROJECT_NAME}_test)
+gtest_discover_tests(${PROJECT_NAME}_test
+        WORKING_DIRECTORY ${KD_TREE_BINARY_DIR}
+        DISCOVERY_TIMEOUT 120
+)
