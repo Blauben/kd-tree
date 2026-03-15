@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ "debug-pypi" ]
-  
+  pull_request:
+
 jobs:
   # 1.a Build the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
   build_wheels:

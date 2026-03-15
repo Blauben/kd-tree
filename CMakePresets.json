@@ -6,6 +6,7 @@
       "name": "base",
       "hidden": true,
       "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
         "KD_TREE_PARALLELIZATION": "CPP",
         "KD_TREE_LOGGING_LEVEL": "INFO",
         "BUILD_KD_TREE_DOCS": "OFF",
@@ -133,7 +134,8 @@
     {
       "name": "test",
       "displayName": "Test",
-      "configurePreset": "test"
+      "configurePreset": "test",
+      "configuration": "Release"
     },
     {
       "name": "python-cpp",
@@ -162,6 +164,7 @@
       "name": "test",
       "displayName": "Run Tests",
       "configurePreset": "test",
+      "configuration": "Release",
       "output": { "outputOnFailure": true }
     }
   ],
