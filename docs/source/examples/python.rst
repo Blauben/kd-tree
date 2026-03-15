@@ -92,4 +92,4 @@ Sometimes it can be beneficial to specify a certain plane selection algorithm wh
    # Building KDTree with a specific plane selection algorithm
    tree_mesh = KDTree(vertices, faces, PlaneSelectionAlgorithm.LOG)
 
-For advanced usage and configuration options, please refer to the detailed documentation in :ref:`KDTree`.
+For advanced usage and configuration options, please refer to the detailed documentation in :ref:`KDTree_py`.

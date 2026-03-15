@@ -70,4 +70,4 @@ It is also possible to store the mesh data in .node and .face files and pass the
    // optional usage example: prebuild the entire tree
    std::cout << "KDTree: " << tree_from_files << std::endl;
 
-For advanced usage and configuration options, please refer to the detailed documentation in :ref:`KDTree`.
+For advanced usage and configuration options, please refer to the detailed documentation in :ref:`KDTree_cpp`.

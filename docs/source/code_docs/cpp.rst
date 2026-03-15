@@ -1,4 +1,4 @@
-.. _KDTree:
+.. _KDTree_cpp:
 
 C++ Documentation
 ========================
