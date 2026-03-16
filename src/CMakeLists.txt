@@ -9,6 +9,7 @@ if (BUILD_KD_TREE_LIBRARY)
     # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
     target_include_directories(${PROJECT_NAME}_lib PUBLIC
             "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_BINARY_DIR}"
     )
 
     # Link libraries needed in all targets
