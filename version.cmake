@@ -10,6 +10,6 @@ endif ()
 
 # Configure the output header file
 configure_file(
-        "src/KDTree/Info.h.in"
-        "src/KDTree/Info.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/KDTree/Info.h.in"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/KDTree/Info.h"
 )

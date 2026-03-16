@@ -10,7 +10,7 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
   push:
-    branches: [ "debug-pypi" ]
+    branches: [ "main" ]
   pull_request:
 
 jobs:
@@ -113,12 +113,12 @@ jobs:
     needs: [build_wheels, make_sdist]
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/kdtree
+      url: https://test.pypi.org/p/scikdtree
     permissions:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           path: dist
           merge-multiple: true
@@ -126,19 +126,20 @@ jobs:
         with:
           repository-url: https://test.pypi.org/legacy/
 
-  # # 3. Upload the wheels to the actually Python Package Index
-  # #    using trusted publishing
-  # upload_pypi:
-  #   needs: [build_wheels, make_sdist, upload_testpypi]
-  #   environment:
-  #     name: pypi
-  #     url: https://pypi.org/p/KDTree_Python
-  #   permissions:
-  #     id-token: write
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/download-artifact@v4
-  #       with:
-  #         path: dist
-  #         merge-multiple: true
-  #     - uses: pypa/gh-action-pypi-publish@release/v1
+  # 3. Upload the wheels to the actually Python Package Index
+  #    using trusted publishing
+  upload_pypi:
+    needs: [build_wheels, make_sdist, upload_testpypi]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/scikdtree
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
+    steps:
+     - uses: actions/download-artifact@v6
+       with:
+         path: dist
+         merge-multiple: true
+     - uses: pypa/gh-action-pypi-publish@release/v1

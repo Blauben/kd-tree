@@ -2,7 +2,7 @@ name: C/C++ build and test
 
 on:
   push:
-    branches: [ "main", "debug-tests" ]
+    branches: [ "main" ]
   workflow_dispatch:
   pull_request:
 
