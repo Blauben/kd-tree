@@ -1,0 +1,25 @@
+name: debug-testpypi-upload.yml
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Run ID to pull wheels from'
+        required: true
+
+jobs:
+  upload_testpypi:
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/scikdtree
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          path: dist
+          run-id: ${{ inputs.run_id }} # remove this line if you want to use the latest artifacts from the current workflow run instead of a specific run
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
