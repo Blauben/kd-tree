@@ -1,0 +1,145 @@
+name: Build & Publish Python Package
+
+on:
+  release:
+    types: [created]
+    # Only trigger for regular releases, not pre-releases
+    # See https://docs.github.com/en/actions/reference/events-that-trigger-workflows#release
+    # for more information on the release event
+    prerelease: false
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+
+jobs:
+  # 1.a Build the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+        ############################# LINUX WHEELS #############################
+        # In case of Linux we need to install compiler and build tools before building the wheels
+        # We set-up QEMU to enable aarch64 builds in the GitHub Runner (which is x86_64 based)
+        # We build wheels for manylinux and musllinux for aarch64 and x86_64
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: all
+        if: matrix.os == 'ubuntu-latest'
+      - name: Build wheels (Linux)
+        uses: pypa/cibuildwheel@v3.3.1
+        env:
+          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_ENABLE: cpython-freethreading
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+        with:
+          package-dir: .
+          output-dir: dist
+        if: matrix.os == 'ubuntu-latest'
+      ############################# MACOS WHEELS #############################
+      # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
+      # The macOS GitHub Runner is nowadays arm64 based
+      - name: Build wheels (macOS)
+        uses: pypa/cibuildwheel@v3.3.1
+        env:
+          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_ENABLE: cpython-freethreading
+          CIBW_ENVIRONMENT: >
+            MACOSX_DEPLOYMENT_TARGET="12"
+            CC=clang
+            CXX=clang++
+            CXXFLAGS="-stdlib=libc++ -D_VSTD=std"
+            LDFLAGS="-stdlib=libc++"
+            CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
+          CIBW_ARCHS_MACOS: "x86_64 arm64"
+          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+        with:
+          package-dir: .
+          output-dir: dist
+        if: matrix.os == 'macos-latest'
+      ############################# WINDOWS WHEELS #############################
+      # Set up the Visual Studio environment on Windows (required, so that CMake finds the compiler)
+      # We use the Microsoft Visual Studio Compiler to compile the wheel
+      # As of 09.09.2024, it is not yet possible to build free-threaded wheel on Windows
+      - uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.os == 'windows-latest'
+      - name: Enable long paths
+        shell: powershell
+        run: |
+          git config --system core.longpaths true
+          reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
+        if: matrix.os == 'windows-latest'
+      - name: Build wheels (Windows)
+        uses: pypa/cibuildwheel@v3.3.1
+        env:
+          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_ARCHS_WINDOWS: "auto64"
+          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+        with:
+          package-dir: .
+          output-dir: dist
+        if: matrix.os == 'windows-latest'
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.whl
+          name: wheels-${{ matrix.os }}  # Unique name per OS
+
+  # 1.b Build the source distribution by simply running the build command
+  make_sdist:
+    name: Make SDist
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SDist
+        run: pipx run build --sdist
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*.tar.gz
+          name: sdist
+
+   # 2. Upload the wheels and the source distribution to testpypi
+   #    using trusted publishing
+  upload_testpypi:
+    needs: [build_wheels, make_sdist]
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/scikdtree
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v6
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  # 3. Upload the wheels to the actually Python Package Index
+  #    using trusted publishing
+  upload_pypi:
+    needs: [build_wheels, make_sdist, upload_testpypi]
+    environment:
+      name: pypi
+      url: https://pypi.org/p/scikdtree
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
+    steps:
+     - uses: actions/download-artifact@v6
+       with:
+         path: dist
+         merge-multiple: true
+     - uses: pypa/gh-action-pypi-publish@release/v1
