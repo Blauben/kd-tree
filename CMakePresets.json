@@ -1,0 +1,261 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 16, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "KD_TREE_PARALLELIZATION": "CPP",
+        "KD_TREE_LOGGING_LEVEL": "INFO",
+        "BUILD_KD_TREE_DOCS": "OFF",
+        "BUILD_KD_TREE_LIBRARY": "ON",
+        "BUILD_KD_TREE_EXECUTABLE": "ON",
+        "BUILD_KD_TREE_PYTHON_INTERFACE": "OFF",
+        "INSTALL_KD_TREE_PYTHON_INTERFACE": "OFF",
+        "BUILD_KD_TREE_TESTS": "OFF",
+        "BUILD_KD_TREE_TIME_MEASUREMENT": "OFF",
+        "ENABLE_IWYU": "OFF"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "KD_TREE_LOGGING_LEVEL": "DEBUG"
+      }
+    },
+    {
+      "name": "release-omp",
+      "displayName": "Release (OpenMP)",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/release-omp",
+      "cacheVariables": {
+        "KD_TREE_PARALLELIZATION": "OMP"
+      }
+    },
+    {
+      "name": "release-tbb",
+      "displayName": "Release (TBB)",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/release-tbb",
+      "cacheVariables": {
+        "KD_TREE_PARALLELIZATION": "TBB"
+      }
+    },
+    {
+      "name": "test",
+      "displayName": "Test",
+      "inherits": "release-tbb",
+      "binaryDir": "${sourceDir}/build/test",
+      "cacheVariables": {
+        "BUILD_KD_TREE_TESTS": "ON",
+        "KD_TREE_LOGGING_LEVEL": "WARN"
+      }
+    },
+    {
+      "name": "python",
+      "displayName": "Python Interface",
+      "inherits": "release",
+      "binaryDir": "${sourceDir}/build/python",
+      "cacheVariables": {
+        "BUILD_KD_TREE_PYTHON_INTERFACE": "ON",
+        "INSTALL_KD_TREE_PYTHON_INTERFACE": "ON",
+        "BUILD_KD_TREE_EXECUTABLE": "OFF"
+      }
+    },
+    {
+      "name": "python-tbb",
+      "displayName": "Python Interface (TBB)",
+      "inherits": "python",
+      "binaryDir": "${sourceDir}/build/python-tbb",
+      "cacheVariables": {
+        "KD_TREE_PARALLELIZATION": "TBB"
+      }
+    },
+    {
+      "name": "python-omp",
+      "displayName": "Python Interface (OpenMP)",
+      "inherits": "python",
+      "binaryDir": "${sourceDir}/build/python-omp",
+      "cacheVariables": {
+        "KD_TREE_PARALLELIZATION": "OMP"
+      }
+    },
+    {
+      "name": "docs",
+      "displayName": "Documentation",
+      "inherits": "base",
+      "binaryDir": "${sourceDir}/build/docs",
+      "cacheVariables": {
+        "BUILD_KD_TREE_DOCS": "ON",
+        "BUILD_KD_TREE_LIBRARY": "OFF",
+        "BUILD_KD_TREE_EXECUTABLE": "OFF",
+        "BUILD_KD_TREE_PYTHON_INTERFACE": "OFF",
+        "BUILD_KD_TREE_TESTS": "OFF",
+        "BUILD_KD_TREE_TIME_MEASUREMENT": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "displayName": "Release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "release-omp",
+      "displayName": "Release (OpenMP)",
+      "configurePreset": "release-omp"
+    },
+    {
+      "name": "release-tbb",
+      "displayName": "Release (TBB)",
+      "configurePreset": "release-tbb"
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "test",
+      "displayName": "Test",
+      "configurePreset": "test",
+      "configuration": "Release"
+    },
+    {
+      "name": "python-cpp",
+      "displayName": "Python Interface - C++",
+      "configurePreset": "python"
+    },
+    {
+      "name": "python-tbb",
+      "displayName": "Python Interface - TBB",
+      "configurePreset": "python-tbb"
+    },
+    {
+      "name": "python-omp",
+      "displayName": "Python Interface - OpenMP",
+      "configurePreset": "python-omp"
+    },
+    {
+      "name": "docs-build",
+      "displayName": "Documentation",
+      "configurePreset": "docs",
+      "targets": ["Sphinx"]
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test",
+      "displayName": "Run Tests",
+      "configurePreset": "test",
+      "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    }
+  ],
+  "workflowPresets": [
+    {
+        "name": "build-release-default",
+        "displayName": "Build Release - Default",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release"
+            },
+            {
+            "type": "build",
+            "name": "release"
+            }
+        ]
+    },
+    {
+        "name": "build-release-tbb",
+        "displayName": "Build Release - TBB Parallelization Backend",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release-tbb"
+            },
+            {
+            "type": "build",
+            "name": "release-tbb"
+            }
+        ]
+    },
+    {
+        "name": "build-release-omp",
+        "displayName": "Build Release - OMP Parallelization Backend",
+        "steps": [
+            {
+            "type": "configure",
+            "name": "release-omp"
+            },
+            {
+            "type": "build",
+            "name": "release-omp"
+            }
+        ]
+    },
+    {
+      "name": "build-and-test",
+      "displayName": "Build and Test",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "test"
+        },
+        {
+          "type": "build",
+          "name": "test"
+        },
+        {
+          "type": "test",
+          "name": "test"
+        }
+      ]
+    },
+    {
+      "name": "build-python-interface",
+      "displayName": "Build Python Interface",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "python-tbb"
+        },
+        {
+            "type": "build",
+            "name": "python-tbb"
+        }
+      ]
+    },
+    {
+      "name": "build-docs",
+      "displayName": "Build Documentation",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "docs"
+        },
+        {
+          "type": "build",
+          "name": "docs-build"
+        }
+      ]
+    }
+  ]
+}

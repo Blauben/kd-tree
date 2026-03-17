@@ -1,62 +1,62 @@
 #include "KDTree/plane_selection/PlaneEventAlgorithm.h"
 
 namespace kdtree {
-    TriangleCounter::TriangleCounter(const size_t dimensionCount, const std::array<size_t, 3> &initialValues)
-        : dimensionTriangleValues(dimensionCount, initialValues) {
+    ShapeCounter::ShapeCounter(const size_t dimensionCount, const std::array<size_t, 3> &initialValues)
+        : _dimensionShapeValues(dimensionCount, initialValues) {
         if (dimensionCount == 0) {
             throw std::invalid_argument("Dimension count must be greater than zero");
         }
     }
 
-    void TriangleCounter::updateMax(Direction direction, const size_t p_planar, const size_t p_end) {
-        dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(1) -= p_planar +
-                                                                                                             p_end;
+    void ShapeCounter::updateMax(Direction direction, const size_t p_planar, const size_t p_end) {
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(1) -= p_planar +
+                                                                                                       p_end;
     }
 
-    void TriangleCounter::updateMin(Direction direction, const size_t p_planar, const size_t p_start) {
-        dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(0) += p_planar +
-                                                                                                             p_start;
+    void ShapeCounter::updateMin(Direction direction, const size_t p_planar, const size_t p_start) {
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(0) += p_planar +
+                                                                                                       p_start;
     }
 
-    void TriangleCounter::setPlanar(Direction direction, const size_t p_planar) {
-        dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(2) = p_planar;
+    void ShapeCounter::setPlanar(Direction direction, const size_t p_planar) {
+        _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(2) = p_planar;
     }
 
-    size_t TriangleCounter::getMin(Direction direction) const {
-        return dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(0);
+    size_t ShapeCounter::getMin(Direction direction) const {
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(0);
     }
 
-    size_t TriangleCounter::getMax(Direction direction) const {
-        return dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(1);
+    size_t ShapeCounter::getMax(Direction direction) const {
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(1);
     }
 
-    size_t TriangleCounter::getPlanar(Direction direction) const {
-        return dimensionTriangleValues.at(static_cast<size_t>(direction) % dimensionTriangleValues.size()).at(2);
+    size_t ShapeCounter::getPlanar(Direction direction) const {
+        return _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(2);
     }
 
-    PlaneEventVector PlaneEventAlgorithm::generatePlaneEventsFromFaces(const SplitParam &splitParam,
-                                                                       std::vector<Direction> directions) {
-        // each face has min and max point and each proposes a plane in each of the directions
+    PlaneEventVector PlaneEventAlgorithm::generatePlaneEventsFromGeometry(const SplitParam &splitParam,
+                                                                          std::vector<Direction> directions) {
+        // each shape has min and max point and each proposes a plane in each of the directions
         PlaneEventVector events{};
-        events.reserve(countFaces(splitParam.boundObjects) * 2 * directions.size());
+        events.reserve(countGeometryObjects(splitParam.boundObjects) * 2 * directions.size());
         //mutex used for synchronizing insertions through threads
         std::mutex eventsMutex{};
         if (std::holds_alternative<PlaneEventVector>(splitParam.boundObjects)) {
             return std::get<PlaneEventVector>(splitParam.boundObjects);
         }
-        const auto &boundTriangles{std::get<ObjectIndexVector>(splitParam.boundObjects)};
-        //transform the faces into vertices
-        auto [vertex_begin, vertex_end] = transformIterator(boundTriangles.cbegin(), boundTriangles.cend(),
-                                                              splitParam.geometryObjects);
+        const auto &boundShapes{std::get<ObjectIndexVector>(splitParam.boundObjects)};
+        //transform the shapes into vertices
+        auto [vertex_begin, vertex_end] = transformIterator(boundShapes.cbegin(), boundShapes.cend(),
+                                                            splitParam.geometryObjects);
         thrust::for_each(thrust::device, vertex_begin, vertex_end,
                          [&splitParam, &events, &directions, &eventsMutex](const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
-                             //first clip the triangles vertices to the current bounding box and then get the bounding box of the clipped triangle -> use the box edges as split plane candidates
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Array3>>(
+                             //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
+                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(
                                      splitParam.boundingBox.clipToVoxel(vertices));
                              std::lock_guard lock(eventsMutex);
                              for (const auto &direction: directions) {
-                                 // if the triangle is perpendicular to the split direction, generate a planar event with the candidate plane in which the triangle lies
+                                 // if the shape is perpendicular to the split direction, generate a planar event with the candidate plane in which the shape lies
                                  if (minPoint[static_cast<int>(direction)] == maxPoint[static_cast<int>(direction)]) {
                                      events.emplace_back(
                                              PlaneEventType::planar,
@@ -64,7 +64,7 @@ namespace kdtree {
                                              index);
                                      return;
                                  }
-                                 //else create a starting and ending event consisting of the planes defined by the min and max points of the face's bounding box.
+                                 //else create a starting and ending event consisting of the planes defined by the min and max points of the shape's bounding box.
                                  events.emplace_back(
                                          PlaneEventType::starting,
                                          Plane(minPoint, direction),

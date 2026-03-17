@@ -1,4 +1,4 @@
-name: polyhedral-gravity-env
+name: kdtree-env
 channels:
   - conda-forge
 dependencies:

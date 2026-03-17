@@ -24,13 +24,13 @@ namespace kdtree {
         * @param returnFlipped Whether to return the normal pointing in the opposite direction.
         * @return The normal vector.
         */
-        [[nodiscard]] Array3 normal(bool returnFlipped = false) const;
+        [[nodiscard]] Vertex normal(bool returnFlipped = false) const;
 
         /**
          * Returns the origin point of a plane, meaning a point that lies on the plane.
          * @return The origin point.
          */
-        [[nodiscard]] Array3 originPoint() const;
+        [[nodiscard]] Vertex originPoint() const;
 
         /**
         * Intersects a ray with the splitPlane.
@@ -38,7 +38,7 @@ namespace kdtree {
         * @param inverseRay The inverse ray direction vector of the ray to be intersected (used for faster calculations).
         * @return Returns the t parameter for the intersection point, with t being from the equation $intersection_point = orig + t * ray$. t is +-infinity if no intersection point is present.
         */
-        [[nodiscard]] double rayPlaneIntersection(const Array3 &origin, const Array3 &inverseRay) const;
+        [[nodiscard]] double rayPlaneIntersection(const Vertex &origin, const Vertex &inverseRay) const;
 
         /**
         * Equality operator used for testing purposes
@@ -50,10 +50,27 @@ namespace kdtree {
         */
         bool operator!=(const Plane &other) const;
 
+        /**
+         * Used to print to a Plane an ostream.
+         * @param os The stream to print to.
+         * @param plane The plane that is printed.
+         * @return The ostream for chaining calls.
+         */
         friend std::ostream &operator<<(std::ostream &os, const Plane &plane);
 
         Plane() = default;
-        Plane(const Array3 &point, Direction direction);
+        /**
+         * Constructs a Plane from a point (vertex) and orientation
+         * @param point The point that lies on the plane.
+         * @param direction The orientation in which the plane spans.
+         */
+        Plane(const Vertex &point, Direction direction);
+
+        /**
+         * Constructs a plane from a coordinate on the axis that is given by the plane orientation.
+         * @param point The plane anchor point coordinate.
+         * @param direction The orientation in which the plane spans.
+         */
         Plane(double point, Direction direction);
     };
-}
+}// namespace kdtree

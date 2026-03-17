@@ -1,7 +1,7 @@
 #include "KDTree/model/Plane.h"
 
 namespace kdtree {
-    Plane::Plane(const Array3 &point, Direction direction)
+    Plane::Plane(const Vertex &point, Direction direction)
         : axisCoordinate(point[static_cast<int>(direction)]), orientation(direction) {
     }
 
@@ -14,18 +14,18 @@ namespace kdtree {
         return os;
     }
 
-    Array3 Plane::normal(const bool returnFlipped) const {
+    Vertex Plane::normal(const bool returnFlipped) const {
         using namespace util;
         return kdtree::normal(orientation) * (returnFlipped ? -1 : 1);
     }
 
-    Array3 Plane::originPoint() const {
-        Array3 point{0.0, 0.0, 0.0};
+    Vertex Plane::originPoint() const {
+        Vertex point{0.0, 0.0, 0.0};
         point[static_cast<int>(orientation)] = axisCoordinate;
         return point;
     }
 
-    double Plane::rayPlaneIntersection(const Array3 &origin, const Array3 &inverseRay) const {
+    double Plane::rayPlaneIntersection(const Vertex &origin, const Vertex &inverseRay) const {
         const auto &origin_coord = origin[static_cast<int>(orientation)];
         const auto &inverseRay_coord = inverseRay[static_cast<int>(orientation)];
 
@@ -43,4 +43,4 @@ namespace kdtree {
     bool Plane::operator!=(const Plane &other) const {
         return !(*this == other);
     }
-}
+}// namespace kdtree

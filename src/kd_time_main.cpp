@@ -9,40 +9,40 @@
 
 namespace kdtree {
 
-    static Array3 getFaceCentroid(const std::vector<Array3> &vertices, const IndexVector &face) {
+    static Vertex getFaceCentroid(const std::vector<Vertex> &vertices, const IndexVector &face) {
         using namespace kdtree::util;
-        Array3 centroid{0, 0, 0};
-        std::for_each(face.cbegin(), face.cend(), [&](const size_t vertexIndex) {
+        Vertex centroid{0, 0, 0};
+        std::ranges::for_each(face, [&](const size_t vertexIndex) {
             centroid = centroid + vertices[vertexIndex];
         });
         return centroid / 3.0;
     }
 
-    static std::vector<Array3> getPolyhedralFaceCentroids(const std::vector<Array3> &vertices, const std::vector<IndexVector> &faces) {
-        std::vector<Array3> centroids;
+    static std::vector<Vertex> getPolyhedralFaceCentroids(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &faces) {
+        std::vector<Vertex> centroids;
         centroids.reserve(faces.size());
-        std::transform(faces.begin(), faces.end(), std::back_inserter(centroids), [&vertices](const IndexVector &face) {
+        std::ranges::transform(faces, std::back_inserter(centroids), [&vertices](const IndexVector &face) {
             return getFaceCentroid(vertices, face);
         });
         return centroids;
     }
 
     struct Meshes {
-        std::vector<std::vector<Array3>> vertices{};
+        std::vector<std::vector<Vertex>> vertices{};
         std::vector<std::vector<IndexVector>> faces{};
-        std::vector<std::vector<Array3>> centroids{};
+        std::vector<std::vector<Vertex>> centroids{};
 
         explicit Meshes(const std::vector<std::string> &filePaths) {
-            std::for_each(filePaths.cbegin(), filePaths.cend(), [this](const std::string &filePath) {
+            std::ranges::for_each(filePaths, [this](const std::string &filePath) {
                 const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath)}.getPolyhedralSource();
                 centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-                vertices.push_back(std::move(fileVertices));
-                faces.push_back(std::move(fileFaces));
+                vertices.push_back(fileVertices);
+                faces.push_back(fileFaces);
             });
         }
 
-        std::tuple<std::vector<Array3>, std::vector<IndexVector>, std::vector<Array3>> operator[](const size_t index) const {
-            return std::make_tuple(vertices[index], faces[index], centroids[index]);
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
+            return {vertices[index], faces[index], centroids[index]};
         }
 
         static std::vector<std::string> buildCompleteFilePaths(const std::string &filePath) {
@@ -70,14 +70,14 @@ namespace kdtree {
     void BM_Eros_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -86,14 +86,14 @@ namespace kdtree {
     void BM_Sphere_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces, algorithm};
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -102,15 +102,15 @@ namespace kdtree {
     void BM_Eros_Intersection_Tree_Twice(benchmark::State &state) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -119,15 +119,15 @@ namespace kdtree {
     void BM_Sphere_Intersection_Tree_Twice(benchmark::State &state) {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
-        constexpr Array3 origin{0, 0, 0};
-        std::set<Array3> intersections;
+        constexpr Vertex origin{0, 0, 0};
+        std::set<Vertex> intersections;
         for (auto _: state) {
             KDTree tree{vertices, faces};
             tree.prebuildTree();
-            std::for_each(centroids.cbegin(), centroids.cend(), [&](const Array3 &centroid) {
+            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
                 tree.getIntersections(origin, (centroid - origin) / 10., intersections);
             });
-            intersections.erase(intersections.begin(), intersections.end());
+            intersections.clear();
             benchmark::ClobberMemory();
         }
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
@@ -137,7 +137,7 @@ namespace kdtree {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
         for (auto _: state) {
-            KDTree tree{vertices, faces};
+            KDTree tree{vertices, faces, algorithm};
             tree.prebuildTree();
             benchmark::ClobberMemory();
         }
@@ -148,7 +148,7 @@ namespace kdtree {
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = sphereMeshes[state.range(0)];
         for (auto _: state) {
-            KDTree tree{vertices, faces};
+            KDTree tree{vertices, faces, algorithm};
             tree.prebuildTree();
             benchmark::ClobberMemory();
         }
@@ -159,13 +159,13 @@ namespace kdtree {
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronNoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronQuadratic",
                       PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
-            ->DenseRange(0, erosMeshes.size() - 1, 1);
+            ->DenseRange(0, erosMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronLogSquared",
                       PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
             ->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree, "ErosPolyhedronLog", PlaneSelectionAlgorithm::Algorithm::LOG)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK(BM_Eros_Intersection_Tree_Twice)->Name("ErosPolyhedronSecondRun")->DenseRange(0, erosMeshes.size() - 1, 1);
-    BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->DenseRange(0, erosMeshes.size() - 1, 1);
+    BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->DenseRange(0, erosMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeLogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->DenseRange(0, erosMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Eros_Intersection_Tree_Build, "ErosPolyhedronBuildTreeLog", PlaneSelectionAlgorithm::Algorithm::LOG)->DenseRange(0, erosMeshes.size() - 1, 1);
 
@@ -173,7 +173,7 @@ namespace kdtree {
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronNoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE)->DenseRange(0, sphereMeshes.size() - 1, 1);
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronQuadratic",
                       PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
-            ->DenseRange(0, sphereMeshes.size() - 1, 1);
+            ->DenseRange(0, sphereMeshes.size() - 3, 1);
     BENCHMARK_CAPTURE(BM_Sphere_Intersection_Tree, "SpherePolyhedronLogSquared",
                       PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
             ->DenseRange(0, sphereMeshes.size() - 1, 1);

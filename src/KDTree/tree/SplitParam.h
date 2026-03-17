@@ -1,8 +1,8 @@
 #pragma once
 
+#include "KDTree/model/Box.h"
 #include "KDTree/model/GeometryObject.h"
 #include "KDTree/model/PlaneEvent.h"
-#include "KDTree/model/Box.h"
 
 #include "KDTree/tree/KdDefinitions.h"
 
@@ -17,10 +17,10 @@ namespace kdtree {
         /**
          * The vertices that compose the Polyhedron.
          */
-        const std::vector<GeometryObject>& geometryObjects;
+        const std::vector<GeometryObject> &geometryObjects;
 
         /**
-         * Either an index list of faces that are included in the current bounding box of the KDTree or a list of PlaneEvents containing the information about thr bound faces. Important when building deeper levels of a KDTree.
+         * Either an index list of shapes that are included in the current bounding box of the KDTree or a list of PlaneEvents containing the information about thr bound shapes. Important when building deeper levels of a KDTree.
          */
         std::variant<ObjectIndexVector, PlaneEventVector> boundObjects;
         /**
@@ -54,10 +54,10 @@ namespace kdtree {
          * Constructor manually initializing boundObjects, used for testing.
          */
         SplitParam(const std::vector<GeometryObject> &geometryObjects,
-                   const std::variant<ObjectIndexVector, PlaneEventVector> &boundFaces, const Box &boundingBox,
+                   const std::variant<ObjectIndexVector, PlaneEventVector> &boundObjects, const Box &boundingBox,
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy)
-            : geometryObjects{geometryObjects}, boundObjects{boundFaces}, boundingBox{boundingBox},
+            : geometryObjects{geometryObjects}, boundObjects{boundObjects}, boundingBox{boundingBox},
               splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy} {
         }
     };

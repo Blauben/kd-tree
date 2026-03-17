@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree/Logging.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
@@ -8,7 +9,6 @@
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
-#include "KDTree/Logging.h"
 
 #include <algorithm>
 #include <array>
@@ -28,7 +28,7 @@ namespace kdtree {
     struct SplitParam;
 
     /**
-     * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained triangles here.
+     * A TreeNode contained in a KDTree that doesn't split the spatial hierarchy any further. Intersection tests are directly performed on the contained shapes here.
      */
     class LeafNode final : public TreeNode {
     public:
@@ -40,12 +40,12 @@ namespace kdtree {
         explicit LeafNode(const SplitParam &splitParam, size_t nodeId);
 
         /**
-        * Used to calculated intersections of a ray and the polyhedron's faces contained in this node.
+        * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.
         */
-        void getIntersections(const Array3 &origin, const Array3 &ray, std::set<Array3> &intersections);
+        void getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections);
 
         [[nodiscard]] std::string toString() const override;
 
@@ -59,8 +59,8 @@ namespace kdtree {
          * @param object the face to test against, described by the vertices that comprise it (passed by index reference).
          * @return
          */
-        static std::optional<Array3> rayIntersectsObject(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                                  const GeometryObject &object) ;
+        static std::optional<Vertex> rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
+                                                         const GeometryObject &object);
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -69,14 +69,21 @@ namespace kdtree {
          * @param triangleVertices the face to test against, described by the vertices that comprise it (passed by value).
          * @return
          */
-        static std::optional<Array3> rayIntersectsTriangle(const Array3 &rayOrigin, const Array3 &rayVector,
-                                                           const std::vector<Array3> &triangleVertices);
-
-        static std::optional<Array3> rayIntersectsPoint(const Array3 &rayOrigin, const Array3 &rayVector, const Array3 &center);
+        static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
+                                                           const std::vector<Vertex> &triangleVertices);
 
         /**
-         * Flags set when _splitParam boundObjects are converted from PlaneEvents to faces
+         * Ray-Point intersection test. Also counts the intersection if the ray passes the point with distance smaller than a specified epsilon.
+         * @param rayOrigin The point where the ray originates from.
+         * @param rayVector Specifies the ray direction.
+         * @param center the point to test against.
+         * @return The intersection point if an intersection was found.
          */
-        std::once_flag convertedToFace;
+        static std::optional<Vertex> rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center);
+
+        /**
+         * Flags set when _splitParam boundObjects are converted from PlaneEvents to shapes
+         */
+        std::once_flag _convertedToObjects;
     };
 }// namespace kdtree

@@ -2,8 +2,8 @@
 
 namespace kdtree {
 
-    PlaneEvent::PlaneEvent(const PlaneEventType type, const Plane plane, const unsigned faceIndex)
-        : type{type}, plane{plane}, faceIndex{faceIndex} {
+    PlaneEvent::PlaneEvent(const PlaneEventType type, const Plane plane, const unsigned objIndex)
+        : type{type}, plane{plane}, objIndex{objIndex} {
     }
 
     bool PlaneEvent::operator<(const PlaneEvent &other) const {
@@ -17,7 +17,7 @@ namespace kdtree {
     }
 
     bool PlaneEvent::operator==(const PlaneEvent &other) const {
-        return type == other.type && plane == other.plane && faceIndex == other.faceIndex;
+        return type == other.type && plane == other.plane && objIndex == other.objIndex;
     }
 
     ObjectIndexVector convertEventsToGeometry(const std::variant<ObjectIndexVector, PlaneEventVector> &events) {
@@ -25,39 +25,39 @@ namespace kdtree {
             return std::get<ObjectIndexVector>(events);
         }
         const auto &eventList{std::get<PlaneEventVector>(events)};
-        ObjectIndexVector triangles{};
-        triangles.reserve(eventList.size());
+        ObjectIndexVector shapes{};
+        shapes.reserve(eventList.size());
         //used to avoid duplication
-        std::unordered_set<size_t> processedFaces{};
-        auto insertIfAbsent = [&triangles, &processedFaces](const auto &planeEvent) {
-            const auto faceIndex{planeEvent.faceIndex};
-            if (processedFaces.find(faceIndex) == processedFaces.end()) {
-                processedFaces.insert(faceIndex);
-                triangles.push_back(faceIndex);
+        std::unordered_set<size_t> processedGeometry{};
+        auto insertIfAbsent = [&shapes, &processedGeometry](const auto &planeEvent) {
+            const auto geometryIndex{planeEvent.objIndex};
+            if (!processedGeometry.contains(geometryIndex)) {
+                processedGeometry.insert(geometryIndex);
+                shapes.push_back(geometryIndex);
             }
         };
-        std::for_each(eventList.cbegin(), eventList.cend(), insertIfAbsent);
-        triangles.shrink_to_fit();
-        return triangles;
+        std::ranges::for_each(eventList, insertIfAbsent);
+        shapes.shrink_to_fit();
+        return shapes;
     }
 
-    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles) {
+    size_t countGeometryObjects(const std::variant<ObjectIndexVector, PlaneEventVector> &geometry) {
         return std::visit(util::overloaded{
                                   [](const ObjectIndexVector &indexList) {
                                       return indexList.size();
                                   },
                                   [](const PlaneEventVector &eventList) {
                                       size_t count{0};
-                                      std::unordered_set<size_t> processedFaces{};
-                                      std::for_each(eventList.cbegin(), eventList.cend(),
-                                                    [&processedFaces, &count](const auto &planeEvent) {
-                                                        if (processedFaces.find(planeEvent.faceIndex) == processedFaces.end()) {
-                                                            processedFaces.insert(planeEvent.faceIndex);
-                                                            count++;
-                                                        }
-                                                    });
+                                      std::unordered_set<size_t> processedGeometry{};
+                                      std::ranges::for_each(eventList,
+                                                            [&processedGeometry, &count](const auto &planeEvent) {
+                                                                if (!processedGeometry.contains(planeEvent.objIndex)) {
+                                                                    processedGeometry.insert(planeEvent.objIndex);
+                                                                    count++;
+                                                                }
+                                                            });
                                       return count;
                                   }},
-                          triangles);
+                          geometry);
     }
-}
+}// namespace kdtree

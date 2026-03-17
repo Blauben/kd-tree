@@ -1,13 +1,28 @@
+# The CMake config files and structure were adapted from:
+#   https://https://github.com/esa/polyhedral-gravity-model
+#
+# Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
+# License: GPL-3.0
+
 cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+set(KD_TREE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+set(KD_TREE_BINARY_DIR ${PROJECT_BINARY_DIR})
+
 # Appends the the module path to contain additional CMake modules for this project
 # and include everything necessary
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH ${KD_TREE_SOURCE_DIR}/cmake)
 include(CMakeDependentOption)
+
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build (Debug, Release, MinSizeRel, or RelWithDebInfo)" FORCE)
+    set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
+endif()
+message(STATUS "CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")
 
 #####################################
 # PARALLELIZATION OPTIONS AND LOGGING
@@ -39,10 +54,13 @@ option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON)" ON)
 cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" ON
         "NOT BUILD_KD_TREE_EXECUTABLE AND NOT BUILD_KD_TREE_TESTS" ON)
 # Option to build the python interface
-option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: ON)" ON)
+option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be built (Default: OFF)" OFF)
+# Option to install the python interface
+option(INSTALL_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be installed (Default: OFF)" OFF)
 # Option to build tests or not
-option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: ON)" ON)
-option(KD_TREE_forceGtestFetch "Force the the fetching of Google Test (Default: OFF)" OFF)
+option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: OFF)" OFF)
+# Option to force fetching Google Test even if it is already installed locally
+option(KD_TREE_FORCE_GTEST_FETCH "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
 option(BUILD_KD_TREE_TIME_MEASUREMENT "Set to on if the benchmark executable should be built (Default: OFF)" OFF)
 # Option to enable Include-What-You-Use warnings during compilation
@@ -53,10 +71,17 @@ IF (_LIBCPP_DISABLE_AVAILABILITY)
     add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)
 endif ()
 
+# AppleClang options
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))  
+    # Fixes undefined _VSTD when using Apple Clang 17  
+    message(STATUS "Using Apple Clang compiler. Defining _VSTD=std.")  
+    add_definitions(-D_VSTD=std)  
+endif()
+
+
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
-add_compile_definitions($<$<CONFIG:Debug>:DEBUG>)
 
 include(git)
 include(version.cmake)
@@ -106,16 +131,23 @@ endif ()
 thrust_create_target(Thrust HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
 message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}")
 
+# Fallback for non-TBB builds: tbb.cmake defines the real implementation.
+if (NOT COMMAND kd_tree_copy_runtime_dlls)
+    function(kd_tree_copy_runtime_dlls target_name)
+    endfunction()
+endif ()
+
+
 ############################################################
 # KD Tree Library & Executable & Python Interface
 ############################################################
-add_subdirectory(${PROJECT_SOURCE_DIR}/src)
+add_subdirectory(${KD_TREE_SOURCE_DIR}/src)
 
 ##############################
 # Building the Polyhedral Docs
 ##############################
 if (BUILD_KD_TREE_DOCS)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/docs)
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/docs)
 endif ()
 
 ###############################
@@ -127,5 +159,5 @@ if (BUILD_KD_TREE_TESTS)
     enable_testing()
 
     # Subdirectory where the tests are located
-    add_subdirectory(${PROJECT_SOURCE_DIR}/test)
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
 endif ()

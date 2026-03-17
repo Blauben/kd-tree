@@ -15,11 +15,13 @@ jobs:
       id-token: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           path: dist
-          run-id: ${{ inputs.run_id }} # remove this line if you want to use the latest artifacts from the current workflow run instead of a specific run
+          run-id: ${{ inputs.run_id }}
           merge-multiple: true
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          verbose: true
