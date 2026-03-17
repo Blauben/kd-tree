@@ -20,32 +20,36 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 namespace kdtree {
+    //forward declaration
     struct SplitParam;
 
+    /**
+     * A strategy for calculating optimal planes. Part of the Strategy Software pattern.
+     */
     class LogNSquaredPlane final : public PlaneEventAlgorithm {
-        using OptimalPlaneLogNSquared = OptimalPlane<PlaneEventVector, bool>;
+        using OptimalPlaneLogNSquared = OptimalPlane<std::shared_ptr<PlaneEventVector>, const bool>;
 
     public:
-        std::tuple<Plane, double, std::variant<TriangleIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
+        std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
                 const SplitParam &splitParam) override;
 
     private:
         /**
          * Generates the optimal split plane considering a single dimension.
          * @param optPlane
-         * @return the optimal plane, its cost, the events that were generated in the process, and whether to include planar triangles in the minimal bounding box.
+         * @return the optimal plane, its cost, the events that were generated in the process, and whether to include planar shapes in the minimal bounding box.
          */
         static void findPlaneForSingleDimension(OptimalPlaneLogNSquared &optPlane);
 
 
         /**
-        * When an optimal plane has been found extract the index lists of faces for further subdivision through child nodes.
+        * When an optimal plane has been found extract the index lists of shapes for further subdivision through child nodes.
         * @param planeEvents The events that were generated during {@link findPlane}.
-        * @param plane The plane to split the faces by.
-        * @param minSide Whether to include planar faces to the bounding box closer to the origin.
-        * @return The triangleIndexlists for the bounding boxes closer and further away from the origin.
+        * @param plane The plane to split the shapes by.
+        * @param minSide Whether to include planar shapes to the bounding box closer to the origin.
+        * @return The shapeIndexlists for the bounding boxes closer and further away from the origin.
         */
-        static TriangleIndexVectors<2> generateTriangleSubsets(const PlaneEventVector &planeEvents, const Plane &plane,
-                                                               bool minSide);
+        static ObjectIndexVectors<2> generateGeometrySubsets(const std::shared_ptr<PlaneEventVector> &planeEvents, const Plane &plane,
+                                                             bool minSide);
     };
 }// namespace kdtree

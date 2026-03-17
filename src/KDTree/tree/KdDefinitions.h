@@ -25,10 +25,10 @@
 namespace kdtree {
 
     /**
-     * Alias for an array of size 3 (double)
+     * Alias for an array of size 3 (double), representing a vertex
      * @example for x, y, z coordinates.
      */
-    using Array3 = std::array<double, 3>;
+    using Vertex = std::array<double, 3>;
 
     /**
      * Alias for an array of size 3 (size_t)
@@ -40,7 +40,7 @@ namespace kdtree {
      * Alias for a triplet of arrays of size 3
      * @example for the segment of a triangular face
      */
-    using Array3Triplet = std::array<Array3, 3>;
+    using VertexTriplet = std::array<Vertex, 3>;
 
     /**
      * Assigns an integer index to the coordinate axes
@@ -53,8 +53,17 @@ namespace kdtree {
         Z = 2
     };
 
+    /**
+     * A vector containing all directions.
+     */
     static const std::vector ALL_DIRECTIONS{Direction::X, Direction::Y, Direction::Z};
 
+    /**
+     * Overloads the output stream operator for Direction enum class.
+     * @param os The output stream.
+     * @param direction The Direction enum value to be printed.
+     * @return The output stream with the Direction value appended.
+     */
     std::ostream &operator<<(std::ostream &os, const Direction &direction);
 
 
@@ -63,14 +72,14 @@ namespace kdtree {
      * @param direction The direction to return the normal vector for.
      * @return The normal vector.
      */
-    inline Array3 normal(const Direction direction) {
+    inline Vertex normal(const Direction direction) {
         switch (direction) {
             case Direction::X:
-                return Array3{1, 0, 0};
+                return Vertex{1, 0, 0};
             case Direction::Y:
-                return Array3{0, 1, 0};
+                return Vertex{0, 1, 0};
             case Direction::Z:
-                return Array3{0, 0, 1};
+                return Vertex{0, 0, 1};
             default:
                 throw std::invalid_argument{"Unknown Direction enum value used during normal fetching."};
         }
@@ -82,15 +91,15 @@ namespace kdtree {
     constexpr int DIMENSIONS = 3;
 
     /**
-     * A set that stores indices of the faces vector in the KDTree. This effectively corresponds to a set of triangles. For performance purposes a std::vector is used instead of a std::set.
+     * A set that stores indices of the object vector in the KDTree. This effectively corresponds to a set of shapes. For performance purposes a std::vector is used instead of a std::set.
      */
     using ObjectIndexVector = std::vector<size_t>;
 
     /**
-    * Triangle sets contained in an array. Used by the KDTree to divide a bounding boxes included triangles into smaller subsets. For the semantic purpose of the contained sets please refer to the comments in the usage context.
+    * Shape sets contained in an array. Used by the KDTree to divide a bounding boxes included shapes into smaller subsets. For the semantic purpose of the contained sets please refer to the comments in the usage context.
      */
     template<size_t Number>
-    using TriangleIndexVectors = std::array<std::unique_ptr<ObjectIndexVector>, Number>;
+    using ObjectIndexVectors = std::array<std::unique_ptr<ObjectIndexVector>, Number>;
 
     /**
     * The distance to the tree's root from this node. Used to limit the depth and the size of the tree.

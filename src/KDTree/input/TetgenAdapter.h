@@ -1,3 +1,11 @@
+/*
+ * This file is taken from:
+ *   https://https://github.com/esa/polyhedral-gravity-model
+ *
+ * Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
+ * License: GPL-3.0
+ */
+
 #pragma once
 
 #include "KDTree/tree/KdDefinitions.h"
@@ -71,7 +79,7 @@ namespace kdtree {
          * converted to a Polyhedron.
          * @return a Polyhedron
          */
-        std::tuple<std::vector<Array3>, std::vector<IndexVector>> getPolyhedralSource();
+        std::tuple<std::vector<Vertex>, std::vector<IndexVector>> getPolyhedralSource();
 
         /**
          * Reads nodes from a .node file

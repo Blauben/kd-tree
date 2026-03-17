@@ -4,7 +4,7 @@
 
 namespace kdtree {
     /**
-    * Used by {@link PlaneEvent} to position the face that generated the event relative to the generated plane.
+    * Used by {@link PlaneEvent} to position the shape that generated the event relative to the generated plane.
     */
     enum class PlaneEventType {
         ending = 0,
@@ -13,20 +13,20 @@ namespace kdtree {
     };
 
     /**
-     * Generated when traversing the vector of faces and building their candidate planes.
+     * Generated when traversing the vector of shapes and building their candidate planes.
      */
     struct PlaneEvent {
         PlaneEventType type;
         /**
-         * The candidate plane suggested by the face included in this struct.
+         * The candidate plane suggested by the shape included in this struct.
          */
         Plane plane;
         /**
-         * The index of the face that generated this candidate plane.
+         * The index of the shape that generated this candidate plane.
          */
-        unsigned int faceIndex;
+        unsigned int objIndex;
 
-        PlaneEvent(PlaneEventType type, Plane plane, unsigned faceIndex);
+        PlaneEvent(PlaneEventType type, Plane plane, unsigned objIndex);
 
         PlaneEvent() = default;
 
@@ -55,11 +55,16 @@ namespace kdtree {
     using PlaneEventVectors = std::array<std::unique_ptr<PlaneEventVector>, Number>;
 
     /**
-     * Extracts the indices of the triangle faces that are referenced by the given PlaneEvents.
-     * @param events The PlaneEvents containing information about the faces.
-     * @return A list of face indices.
+     * Extracts the indices of the shapes that are referenced by the given PlaneEvents.
+     * @param events The PlaneEvents containing information about the shapes.
+     * @return A list of shape indices.
      */
     ObjectIndexVector convertEventsToGeometry(const std::variant<ObjectIndexVector, PlaneEventVector> &events);
 
-    size_t countFaces(const std::variant<ObjectIndexVector, PlaneEventVector> &triangles);
-}
+    /**
+     * Calculate the number of distinct geometryObjects encoded in the 'geometry' argument.
+     * @param geometry a collection of encoded GeometryObjects (indices or PlaneEvents)
+     * @return the number of distinct geometryObjects
+     */
+    size_t countGeometryObjects(const std::variant<ObjectIndexVector, PlaneEventVector> &geometry);
+}// namespace kdtree

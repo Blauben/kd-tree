@@ -1,16 +1,35 @@
-find_package(Python 3.8 COMPONENTS Interpreter Development.Module REQUIRED)
+nanobind_add_module(scikdtree
+    KDTreePython.cpp
+)
 
-if (NOT PYTHON_FOUND)
-    message(FATAL_ERROR "Python executable not found! Please install Python.")
-else()
-    message(STATUS "Python found at ${Python_EXECUTABLE}")
+target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib)
 
-    nanobind_add_module(KDTree_Python KDTreePython.cpp)
+target_include_directories(scikdtree PUBLIC ${CMAKE_SOURCE_DIR}/src)
+kd_tree_copy_runtime_dlls(scikdtree)
 
-    target_link_libraries(KDTree_Python PRIVATE ${Python_LIBRARIES})
-
-    add_custom_command(TARGET KDTree_Python POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E echo "KDTree_Python built at: $<TARGET_FILE:KDTree_Python>"
+# Install the scikdtree module and __init__.py into the correct Python package directory
+if (INSTALL_KD_TREE_PYTHON_INTERFACE)
+    install(TARGETS scikdtree
+        LIBRARY DESTINATION scikdtree
+        COMPONENT python_interface
     )
+    install(FILES __init__.py
+        DESTINATION scikdtree
+        COMPONENT python_interface
+    )
+    install(FILES $<TARGET_RUNTIME_DLLS:scikdtree>
+        DESTINATION scikdtree
+        COMPONENT python_interface
+    )
+endif()
 
-endif ()
+# Place the executable in the top level directory
+set_target_properties(scikdtree PROPERTIES
+        ARCHIVE_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+        LIBRARY_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
+)
+
+add_custom_command(TARGET scikdtree POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E echo "scikdtree built at: $<TARGET_FILE:scikdtree>"
+)

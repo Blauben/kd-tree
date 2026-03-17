@@ -1,7 +1,14 @@
 # Get the Git information
 get_git_commit_hash(KD_TREE_COMMIT_HASH)
 is_git_working_tree_clean(KD_TREE_WORKING_TREE)
-get_git_version_tag(KD_TREE_VERSION)
+
+# During Python builds, scikit-build-core exposes the wheel version as SKBUILD_PROJECT_VERSION.
+# Fall back to Git tags for standalone CMake builds.
+if (DEFINED SKBUILD_PROJECT_VERSION AND NOT SKBUILD_PROJECT_VERSION STREQUAL "")
+    set(KD_TREE_VERSION "${SKBUILD_PROJECT_VERSION}")
+else ()
+    get_git_version_tag(KD_TREE_VERSION)
+endif ()
 
 # Append "-modified" to the commit hash if the working tree is not clean
 if (NOT ${KD_TREE_WORKING_TREE})
@@ -9,7 +16,10 @@ if (NOT ${KD_TREE_WORKING_TREE})
 endif ()
 
 # Configure the output header file
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree")
 configure_file(
-        "src/KDTree/Info.h.in"
-        "src/KDTree/Info.h"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/KDTree/Info.h.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree/Info.h"
 )
+
+set(KD_TREE_GENERATED_INFO_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree/Info.h")

@@ -23,7 +23,7 @@ namespace kdtree {
 
     /**
      * The commit hash of the currently compiled version.
-     * This is appened with '+modified' in case the working tree is not clean.
+     * This is append with '+modified' in case the working tree is not clean.
      * The value is set by the CMake configuration.
      */
     constexpr std::string_view KD_TREE_COMMIT_HASH = "@KD_TREE_COMMIT_HASH@";

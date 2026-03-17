@@ -1,5 +1,9 @@
 include(FetchContent)
 
+message(STATUS "Finding Python installation.")
+
+find_package(Python REQUIRED COMPONENTS Interpreter Development.Module)
+
 message(STATUS "Setting up Nanobind Library")
 
 set(NANOBIND_VERSION 2.8.0)

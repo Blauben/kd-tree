@@ -1,9 +1,10 @@
 #pragma once
 
 #include <memory>
-#include <spdlog/spdlog.h>
 #include <spdlog/async.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
+#include <sstream>
 
 
 namespace kdtree {
@@ -16,14 +17,12 @@ namespace kdtree {
     class KDTreeLogger {
 
     public:
-
         /**
          * The default logger which is used in the whole implementation for every logging.
          */
         const static KDTreeLogger DEFAULT_LOGGER;
 
     private:
-
         /**
          * The actual spdlog::logger
          */
@@ -35,33 +34,41 @@ namespace kdtree {
          * the name KDTREE_LOGGER.
          */
         KDTreeLogger()
-                : _logger(spdlog::stdout_color_mt<spdlog::synchronous_factory>("KDTREE_LOGGER")) {
-            _logger->set_level(spdlog::level::trace);
+            : _logger(spdlog::stdout_color_mt<spdlog::synchronous_factory>("KDTREE_LOGGER")) {
+            _logger->set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
         }
 
         [[nodiscard]] inline std::shared_ptr<spdlog::logger> getLogger() const {
             return _logger;
         }
-
-
     };
 
-    inline void DEBUG(std::string_view msg) {
-        #ifdef DEBUG
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->debug(msg);
-        #endif
+    template<typename... Args>
+    void LOG_DEBUG(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->debug(msg.str());
     }
 
-    inline void INFO(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->info(msg);
+    template<typename... Args>
+    void LOG_INFO(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->info(msg.str());
     }
 
-    inline void WARN(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->warn(msg);
+    template<typename... Args>
+    void LOG_WARN(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->warn(msg.str());
     }
 
-    inline void ERROR(std::string_view msg) {
-        KDTreeLogger::DEFAULT_LOGGER.getLogger()->error(msg);
+    template<typename... Args>
+    void LOG_ERROR(Args... argument) {
+        std::stringstream msg;
+        (msg << ... << argument);
+        KDTreeLogger::DEFAULT_LOGGER.getLogger()->error(msg.str());
     }
 
-}
+}// namespace kdtree
