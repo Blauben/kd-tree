@@ -19,6 +19,7 @@ if (BUILD_KD_TREE_LIBRARY)
             spdlog
             xsimd
             Thrust
+            matplot
     )
 endif ()
 #####################################
