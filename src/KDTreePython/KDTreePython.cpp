@@ -8,6 +8,7 @@
  */
 
 #include <nanobind/nanobind.h>
+#include <nanobind/make_iterator.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/string.h>
@@ -62,5 +63,13 @@ NB_MODULE(scikdtree, m) {
             std::ostringstream os;
             os << tree;
             return os.str(); 
-        }, R"doc(String representation of the KDTree.)doc");
+        }, R"doc(String representation of the KDTree.)doc")
+        .def("planes",
+             [](KDTree &tree) {
+                auto [begin, end] = tree.planeIterator();
+                return nb::make_iterator(nb::type<PlaneIterator>(),
+                                          "plane_iterator",
+                                          begin,
+                                          end);
+             }, R"doc(Iterate over the planes in the KDTree.)doc");
 }

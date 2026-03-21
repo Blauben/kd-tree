@@ -9,7 +9,7 @@ description = "This project provides a lazily built KD_TREE operating on particl
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "matplotlib >= 3.10.0",
+    "matplotlib >= 3.9.0",
 ]
 authors = [
     { name = "Ben Frauenknecht", email = "ben.Frauenknecht@tum.de" },
