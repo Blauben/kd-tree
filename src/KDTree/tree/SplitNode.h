@@ -62,6 +62,8 @@ namespace kdtree {
          */
         static constexpr double EPSILON_NUMERICAL_TOLERANCE = 1e-9;
 
+        friend class PlaneIterator;
+
     public:
         /**
  * Takes parameters from the parent node and stores them for lazy child node creation.

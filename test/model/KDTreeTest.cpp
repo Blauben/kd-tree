@@ -285,6 +285,19 @@ namespace kdtree {
         }
     }
 
+    TEST_F(KDTreeTest, IteratorTest) {
+        std::string meshPath = "resources/Eros_scaled-1000";
+        KDTree tree{meshPath + ".node", meshPath + ".face"};
+         auto [begin, end] = tree.planeIterator();
+        unsigned long iteration = 0;
+        std::for_each(begin, end, [&](const auto &entry) {
+            const auto &[plane, box] = entry;
+            iteration++;
+            std::cout << "Plane: " << plane << ", Box: " << box << std::endl;
+        });
+        ASSERT_GT(iteration, 0) << "Plane iterator did not iterate over any planes!";
+    };
+
     constexpr size_t numberOfPoints = 10;
     constexpr size_t bigNumberOfPoints = 1000;
 

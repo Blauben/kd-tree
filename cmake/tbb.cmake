@@ -3,7 +3,11 @@ include(FetchContent)
 message(STATUS "Setting up tbb")
 set(TBB_VERSION 2021.12.0)
 
-find_package(TBB QUIET)
+# Skip find_package on MSVC — pip/conda TBB packages ship MinGW-format
+# .dll.a import libs which MSVC's linker cannot use.
+if(NOT MSVC)
+    find_package(TBB QUIET)
+endif()
 
 if(${TBB_FOUND})
     message(STATUS "Found existing TBB library: ${TBB_DIR}")

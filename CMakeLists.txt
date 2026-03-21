@@ -108,7 +108,6 @@ include(spdlog)
 include(tetgen)
 include(xsimd)
 include(clang_format)
-include(matplotpp)
 
 if (${ENABLE_IWYU})
     include(include-what-you-use)
