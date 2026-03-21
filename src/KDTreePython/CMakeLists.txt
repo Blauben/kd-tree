@@ -4,16 +4,21 @@ nanobind_add_module(scikdtree
 
 target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib)
 
-target_include_directories(scikdtree PUBLIC ${CMAKE_SOURCE_DIR}/src)
+target_include_directories(scikdtree PUBLIC ${KD_TREE_SOURCE_DIR}/src)
 kd_tree_copy_runtime_dlls(scikdtree)
 
-# Install the scikdtree module and __init__.py into the correct Python package directory
+set(KD_TREE_PYTHON_SOURCE_DIR "${KD_TREE_SOURCE_DIR}/src/KDTreePython")
+
+file(GLOB_RECURSE PYTHON_FILES
+        "${KD_TREE_PYTHON_SOURCE_DIR}/*.py")
+
+# Install the scikdtree module and python files into the correct Python package directory
 if (INSTALL_KD_TREE_PYTHON_INTERFACE)
     install(TARGETS scikdtree
         LIBRARY DESTINATION scikdtree
         COMPONENT python_interface
     )
-    install(FILES __init__.py
+    install(FILES ${PYTHON_FILES}
         DESTINATION scikdtree
         COMPONENT python_interface
     )

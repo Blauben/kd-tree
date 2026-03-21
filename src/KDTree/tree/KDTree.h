@@ -25,6 +25,8 @@
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/tree/PlaneIterator.h"
+#include "KDTree/Logging.h"
 
 namespace kdtree {
     /**
@@ -115,6 +117,11 @@ namespace kdtree {
          */
         KDTree &prebuildTree();
 
+        [[nodiscard]] std::pair<std::vector<GeometryObject>::iterator, std::vector<GeometryObject>::iterator>
+        geometryIterator();
+
+        std::pair<PlaneIterator, PlaneIterator> planeIterator();
+
         /**
          * Overloads the output stream operator to print a representation of the KDTree.
          * @param os The output stream.
@@ -124,5 +131,7 @@ namespace kdtree {
         friend std::ostream &operator<<(std::ostream &os, const KDTree &kdTree);
 
         friend std::string to_string(const KDTree &kdTree);
+
+        friend class PlaneIterator;
     };
 }// namespace kdtree
