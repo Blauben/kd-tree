@@ -46,9 +46,10 @@ def test_kdtree_instantiation_and_methods():
 
 def test_kdtree_plane_iter():
     import scikdtree as sci
-    mesh_path = "resources/Eros-scaled-1000"
+    mesh_path = "resources/Eros_scaled-1000"
     tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
     plane_count = 0
-    for plane in tree.planes():
+    for plane, box in tree.planes():
         plane_count += 1
         print(plane)
+        print(box)
