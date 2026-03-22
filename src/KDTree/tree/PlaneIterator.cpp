@@ -2,6 +2,7 @@
 
 namespace kdtree {
     PlaneIterator::PlaneIterator(std::shared_ptr<SplitNode> rootNode) {
+        // initialize the queue with the root node if it exists
         if (rootNode != nullptr) {
             _nodeQueue.emplace(rootNode);
         }
@@ -36,6 +37,7 @@ namespace kdtree {
     }
 
     bool PlaneIterator::operator==(const PlaneIterator &rhs) const {
+        // two iterators are equal if they are both at the end (empty queue) or if they point to the same current node (front of the queue)
         if (_nodeQueue.empty() && rhs._nodeQueue.empty()) {
             return true;
         }

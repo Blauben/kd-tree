@@ -285,6 +285,9 @@ namespace kdtree {
         }
     }
 
+    /**
+     * Tests the functionality of the plane iterator of the KDTree. The test builds a KDTree from a specified mesh and then uses the plane iterator to traverse the tree and print out the planes and their corresponding bounding boxes. The test checks if the iterator correctly iterates over all planes in the tree by counting the number of iterations and asserting that it is greater than zero.
+     */
     TEST_F(KDTreeTest, IteratorTest) {
         std::string meshPath = "resources/Eros_scaled-1000";
         KDTree tree{meshPath + ".node", meshPath + ".face"};
