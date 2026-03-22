@@ -49,7 +49,6 @@ def test_kdtree_plane_iter():
     mesh_path = "resources/Eros_scaled-1000"
     tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
     plane_count = 0
-    for plane, box in tree.planes():
+    for _ in tree.planes():
         plane_count += 1
-        print(plane)
-        print(box)
+    assert plane_count > 0, "Expected at least one plane in the KDTree. Iterator returned none."
