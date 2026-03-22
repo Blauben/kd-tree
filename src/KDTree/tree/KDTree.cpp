@@ -120,8 +120,10 @@ namespace kdtree {
 
     std::pair<PlaneIterator, PlaneIterator> KDTree::planeIterator() {
         PlaneIterator begin{};
-        if (getRootNode() != nullptr) {
-            begin = PlaneIterator(std::dynamic_pointer_cast<SplitNode>(getRootNode()));
+        std::shared_ptr<SplitNode> splitNode;
+        // check whether the root node exists and if it's a SplitNode -> only then can there be planes to be iterated over
+        if (getRootNode() != nullptr && (splitNode = std::dynamic_pointer_cast<SplitNode>(getRootNode())) != nullptr) {
+            begin = PlaneIterator(splitNode);
         }
         return {begin, PlaneIterator{}};
     }
