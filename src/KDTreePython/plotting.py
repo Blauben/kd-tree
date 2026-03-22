@@ -1,21 +1,26 @@
 import matplotlib.pyplot as plt
 from .scikdtree import KDTree, Direction
 import numpy as np
+from tqdm import tqdm
 
 
-def plot_kd_tree(kdtree: KDTree, title: str = "KDTree", outpath: str = None, show_gui: bool = False):
-    """Plots an 3d KD-Tree using matplotlib
+def plot_kd_tree(kdtree: KDTree, title: str = "KDTree", outpath: str = None, show_gui: bool = False) -> plt.Figure:
+    """Plots a 3d KD-Tree using matplotlib
 
+    :param show_gui: Shows the resulting plot in a gui. Attention: this blocks the program until the plot window is closed.
+    :param title: Sets the title of the plot
+    :param outpath: Where to save the resulting plot. If None, the plot will not be saved.
     :param kdtree: The KDTree to plot
     :type kdtree: KDTree
-
-    :return The resulting figure for the user to adjust.
-    :rtype Figure
+    :return The resulting matplotlib figure
+    :rtype: plt.Figure
     """
-    fig = plt.figure()
+    fig = plt.figure(dpi=800)
     ax = fig.add_subplot(111, projection='3d')
-    for vertex in kdtree.geometry():
-        ax.scatter(vertex[0], vertex[1], vertex[2], color='b', s=1)
+    for vertex in tqdm([v for geom in kdtree.geometry() for v in geom.vertices()], desc="Plotting vertices"):
+        ax.scatter(*vertex, color=[0, 0, 1, 0.3], s=1, marker='.')
+
+    pbar = tqdm(desc="Building and plotting planes")
     for plane, box in kdtree.planes():
         orientation_index = list(Direction).index(plane.orientation)
         min_corner = np.array(box.minPoint, dtype=float)
@@ -38,7 +43,14 @@ def plot_kd_tree(kdtree: KDTree, title: str = "KDTree", outpath: str = None, sho
             z_grid = np.full_like(x_grid, plane.axisCoordinate, dtype=float)
 
         ax.plot_surface(x_grid, y_grid, z_grid, alpha=0.2)
-        
+        pbar.update(1)
+    pbar.close()
+
+    print("Plot complete\n")
+
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
     fig.suptitle(title)
     if outpath is not None:
         fig.savefig(outpath)
