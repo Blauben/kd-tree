@@ -117,9 +117,17 @@ namespace kdtree {
          */
         KDTree &prebuildTree();
 
+        /**
+         * Generates iterators for the GeometryObjects contained in the kdtree.
+         * @return a pair of iterators to iterate over the geometry objects contained in the KDTree.
+         */
         [[nodiscard]] std::pair<std::vector<GeometryObject>::iterator, std::vector<GeometryObject>::iterator>
         geometryIterator();
 
+        /**
+         * Generates iterators for the planes contained in the kdtree. As the planes are not stored in a container but rather generated on the fly during tree construction, the iterators are implemented as a custom iterator class that traverses the tree and generates the planes lazily.
+         * @return a pair of iterators to iterate over all split planes of the kd-tree.
+         */
         std::pair<PlaneIterator, PlaneIterator> planeIterator();
 
         /**
