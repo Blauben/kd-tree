@@ -38,6 +38,12 @@ namespace kdtree {
          * @param nodeId Unique Id given by the TreeNodeFactory.
          */
         explicit LeafNode(const SplitParam &splitParam, size_t nodeId);
+        LeafNode(const LeafNode&) = delete;
+        LeafNode& operator=(const LeafNode&) = delete;
+        LeafNode(LeafNode&&) noexcept;
+        LeafNode& operator=(LeafNode&&) noexcept;
+        ~LeafNode() override;
+        static std::vector<LeafNode*> leafNodes;
 
         /**
         * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.

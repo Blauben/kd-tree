@@ -15,6 +15,21 @@ namespace kdtree {
         }
     }
 
+    TreeNode::TreeNode(TreeNode && other) noexcept {
+        nodeId = other.nodeId;
+        this->_splitParam = std::move(other._splitParam);
+        other.nodeId = SIZE_MAX; // sentinel: "I am moved-from"
+    }
+
+    TreeNode& TreeNode::operator=(TreeNode&& other) noexcept {
+        if (this != &other) {
+            nodeId = other.nodeId;
+            _splitParam = std::move(other._splitParam);
+            other.nodeId = SIZE_MAX;  // sentinel: "I am moved-from"
+        }
+        return *this;
+    }
+
     std::ostream &operator<<(std::ostream &os, const TreeNode &node) {
         os << node.toString();
         return os;
