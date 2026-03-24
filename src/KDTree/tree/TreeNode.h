@@ -15,12 +15,16 @@ namespace kdtree {
     class TreeNode {
     public:
         virtual ~TreeNode() = default;
+        TreeNode(const TreeNode&) = delete;
+        TreeNode& operator=(const TreeNode&) = delete;
+        TreeNode(TreeNode&&) noexcept;
+        TreeNode& operator=(TreeNode&&) noexcept;
 
         /**
         * The current node's id. Follows the convention that the left child gets the id 2 * <current_id> + 1 and
         * the right child 2 * <currrent_id> + 2. Starts with 0 at the root node.
          */
-        const size_t nodeId;
+        size_t nodeId;
 
         /**
          * Converts the node to a string representation.
