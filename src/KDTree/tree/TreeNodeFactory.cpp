@@ -1,12 +1,14 @@
 #include "KDTree/tree/TreeNodeFactory.h"
 
 namespace kdtree::TreeNodeFactory {
-    std::unique_ptr<TreeNode> createTreeNode(const SplitParam &splitParam, size_t nodeId) {
+    std::shared_ptr<TreeNode> createTreeNode(const SplitParam &splitParam, size_t nodeId) {
         LOG_DEBUG("TreeNodeFactory: createTreeNode called for nodeId ", std::to_string(nodeId));
         //avoid splitting after certain tree depth
         if (recursionDepth(nodeId) >= MAX_RECURSION_DEPTH) {
             LOG_WARN("TreeNodeFactory: Max recursion depth reached, creating LeafNode for nodeId " + std::to_string(nodeId));
-            return std::make_unique<LeafNode>(splitParam, nodeId);
+            auto leafNode = std::make_shared<LeafNode>(splitParam, nodeId);
+            LeafNode::registerLeafNode(leafNode);
+            return leafNode;
         }
         const size_t numberOfObjects{countGeometryObjects(splitParam.boundObjects)};
         //find optimal plane splitting this node's bounding box
@@ -26,10 +28,12 @@ namespace kdtree::TreeNodeFactory {
         //if the cost of splitting this node further is greater than just traversing the bound shapes or splitting does not reduce the amount of work in the resulting sub boxes, then don't split and return a LeafNode
         if (planeCost > costWithoutSplit || splitFailsToReduceSize) {
             LOG_DEBUG("TreeNodeFactory: Creating LeafNode for nodeId " + std::to_string(nodeId) + ", planeCost: " + std::to_string(planeCost) + ", costWithoutSplit: " + std::to_string(costWithoutSplit) + ", splitFailsToReduceSize: " + (splitFailsToReduceSize ? "true" : "false"));
-            return std::make_unique<LeafNode>(splitParam, nodeId);
+            auto leafNode = std::make_shared<LeafNode>(splitParam, nodeId);
+            LeafNode::registerLeafNode(leafNode);
+            return leafNode;
         }
         //if not more costly, perform the split
         LOG_DEBUG("TreeNodeFactory: Creating SplitNode for nodeId " + std::to_string(nodeId));
-        return std::make_unique<SplitNode>(splitParam, plane, shapeLists, nodeId);
+        return std::make_shared<SplitNode>(splitParam, plane, shapeLists, nodeId);
     }
 }// namespace kdtree::TreeNodeFactory
