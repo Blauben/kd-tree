@@ -12,5 +12,7 @@ __pycache__/
 CMakeFiles/
 CMakeUserPresets.json
 
+dependencies/
+
 # test artifacts
 kd_tree_plot_test.png
