@@ -3,42 +3,25 @@
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
         : TreeNode(splitParam, nodeId) {
-        leafNodes.push_back(this);
         LOG_DEBUG("LeafNode: Constructed with nodeId " + std::to_string(nodeId));
     }
 
-    LeafNode::LeafNode(LeafNode && other) noexcept : TreeNode(std::move(other)) {
-        auto it = std::find(leafNodes.begin(), leafNodes.end(), &other);
-        if (it != leafNodes.end())
-            *it = this;  // replace in-place, preserving order
-    }
-
-    LeafNode& LeafNode::operator=(LeafNode && other) noexcept {
-        if (this != &other) {
-            TreeNode::operator=(std::move(other));
-
-            // Remove 'this' from registry (its slot will be replaced by other's)
-            std::erase_if(leafNodes, [this](const LeafNode* leaf) {
-                return leaf == this;
-            });
-
-            // Redirect 'other' slot to 'this'
-            auto it = std::find(leafNodes.begin(), leafNodes.end(), &other);
-            if (it != leafNodes.end())
-                *it = this;
-        }
-        return *this;
-    }
-
     LeafNode::~LeafNode() {
-        // No-op if already removed by move operation
-        std::erase_if(leafNodes, [this](const LeafNode* leaf) {
-            return leaf == this;
+        // Cleanup expired weak_ptr entries from the registry
+        std::erase_if(leafNodes, [](const std::weak_ptr<LeafNode>& ptr) {
+            return ptr.expired();
         });
         LOG_DEBUG("LeafNode: Destroyed with nodeId " + std::to_string(nodeId));
     }
 
-    std::vector<LeafNode*> LeafNode::leafNodes{};
+    std::vector<std::weak_ptr<LeafNode>> LeafNode::leafNodes{};
+
+    void LeafNode::registerLeafNode(const std::shared_ptr<LeafNode>& node) {
+        if (node) {
+            leafNodes.push_back(node);
+        }
+    }
+
 
     void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
                                     std::set<Vertex> &intersections) {

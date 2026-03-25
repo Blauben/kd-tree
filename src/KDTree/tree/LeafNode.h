@@ -40,10 +40,16 @@ namespace kdtree {
         explicit LeafNode(const SplitParam &splitParam, size_t nodeId);
         LeafNode(const LeafNode&) = delete;
         LeafNode& operator=(const LeafNode&) = delete;
-        LeafNode(LeafNode&&) noexcept;
-        LeafNode& operator=(LeafNode&&) noexcept;
+        LeafNode(LeafNode&&) noexcept = delete;
+        LeafNode& operator=(LeafNode&&) noexcept = delete;
         ~LeafNode() override;
-        static std::vector<LeafNode*> leafNodes;
+        static std::vector<std::weak_ptr<LeafNode>> leafNodes;
+
+        /**
+         * Register a weak_ptr to this LeafNode in the global leafNodes registry.
+         * Should be called by TreeNodeFactory after creating a shared_ptr.
+         */
+        static void registerLeafNode(const std::shared_ptr<LeafNode>& node);
 
         /**
         * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
