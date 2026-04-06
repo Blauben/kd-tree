@@ -37,6 +37,7 @@ namespace kdtree {
          * friend declaration for testing purposes.
          */
         friend class KDTreeTest_AlgorithmRegressionTest_Test;
+        friend class KDTreeTest_RebuildTreeTest_Test;
 
         /**
         * The entry node of the KDTree. Only access using getter.
@@ -49,9 +50,14 @@ namespace kdtree {
         std::vector<GeometryObject> _geometryObjects;
 
         /**
-         * Set when the root node has been created.
+         * The algorithm to use during tree construction for finding optimal split planes. The algorithm is stored in the KDTree to ensure that the same algorithm is used for all splits during tree construction and rebuilding.
          */
-        std::once_flag _rootNodeCreated;
+        const PlaneSelectionAlgorithm::Algorithm _algorithm;
+
+        /**
+         * Used to avoid multiple threads building the root node at the same time when getRootNode is called for the first time by multiple threads. After the root node is built, this mutex is not used anymore.
+         */
+        std::mutex _rootNodeCreationMutex;
 
         /**
         * Parameters for lazily building the root node {@link SplitParam}
@@ -95,6 +101,8 @@ namespace kdtree {
         * @return the root tree Node.
         */
         std::shared_ptr<TreeNode> getRootNode();
+
+        void rebuildTree();
 
         /**
         * Used to calculate intersections of a ray and the polyhedron's shapes contained in this node.

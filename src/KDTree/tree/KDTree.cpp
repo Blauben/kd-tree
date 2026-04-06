@@ -4,7 +4,7 @@
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm) {
+                   const PlaneSelectionAlgorithm::Algorithm algorithm) : _algorithm{algorithm} {
         LOG_INFO("KDTree: Constructing from vertices and faces");
         GeometryObject::vertices = vertices;
         _geometryObjects.reserve(shapes.size());
@@ -42,13 +42,24 @@ namespace kdtree {
         LOG_INFO("KDTree: Data fetched from node and face file paths");
     }
 
+    void KDTree::rebuildTree() {
+        this->_rootNode.reset();//reset the root node to allow rebuilding the tree
+        // since splitParam are moved once the previous tree is built, they have to regenerated here
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(GeometryObject::vertices), Direction::X,
+                                                   PlaneSelectionAlgorithmFactory::create(_algorithm));
+    }
+
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         LOG_DEBUG("KDTree: getRootNode called");
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
-        std::call_once(_rootNodeCreated, [this] {
-            LOG_DEBUG("KDTree: Creating root node via TreeNodeFactory");
+        if (this->_rootNode != nullptr) {
+            LOG_DEBUG("KDTree: Root node already exists, returning existing node");
+            return this->_rootNode;
+        }
+        std::lock_guard lock(this->_rootNodeCreationMutex);
+        if (this->_rootNode == nullptr) {
             this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
-        });
+        }
         return this->_rootNode;
     }
 
