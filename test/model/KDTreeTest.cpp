@@ -301,6 +301,14 @@ namespace kdtree {
         ASSERT_GT(iteration, 0) << "Plane iterator did not iterate over any planes!";
     };
 
+    TEST_F(KDTreeTest, LeafNodeRegisterTest) {
+        std::string meshPath{"resources/Eros_scaled-1000"};
+        KDTree tree{meshPath + ".node", meshPath + ".face"};
+        ASSERT_TRUE(LeafNode::leafNodes.empty());
+        tree.prebuildTree();
+        ASSERT_FALSE(LeafNode::leafNodes.empty());
+    }
+
     constexpr size_t numberOfPoints = 10;
     constexpr size_t bigNumberOfPoints = 1000;
 
