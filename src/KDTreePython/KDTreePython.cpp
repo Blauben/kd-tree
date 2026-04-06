@@ -66,31 +66,29 @@ NB_MODULE(scikdtree, m) {
         .def("clipToVoxel", &Box::clipToVoxel, "points"_a, R"doc(Clips vertices to this box.)doc");
     // Expose PlaneSelectionAlgorithm enum to Python
     nb::enum_<PlaneSelectionAlgorithm::Algorithm>(m, "PlaneSelectionAlgorithm")
-        .value("LOG", PlaneSelectionAlgorithm::Algorithm::LOG)
-        .value("LOGSQUARED", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
-        .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
-        .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
+            .value("LOG", PlaneSelectionAlgorithm::Algorithm::LOG)
+            .value("LOGSQUARED", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
+            .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
+            .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
     // Expose KDTree class to Python
     nb::class_<KDTree>(m, "KDTree")
-        .def(nb::init<const std::vector<Vertex> &, const std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-        .def(nb::init<const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-        .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-        .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a, R"doc(Count intersections of a ray with the KDTree.)doc")
-        .def("getIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
+            .def(nb::init<const std::vector<Vertex> &, const std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
+            .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a, R"doc(Count intersections of a ray with the KDTree.)doc")
+            .def("getIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
             std::set<Vertex> intersections{};
             self.getIntersections(origin, ray, intersections);
-            return std::vector(intersections.begin(), intersections.end()); 
-        }, "origin"_a, "ray"_a, R"doc(Get intersection points of a ray with the KDTree.)doc")
-        .def("prebuildTree", &KDTree::prebuildTree, nb::rv_policy::reference_internal, R"doc(Prebuild the KDTree for faster queries.)doc")
-        .def("printTree", [](const KDTree &tree) {
+            return std::vector(intersections.begin(), intersections.end()); }, "origin"_a, "ray"_a, R"doc(Get intersection points of a ray with the KDTree.)doc")
+            .def("prebuildTree", &KDTree::prebuildTree, nb::rv_policy::reference_internal, R"doc(Prebuild the KDTree for faster queries.)doc")
+            .def("printTree", [](const KDTree &tree) {
             std::ostringstream os;
             os << tree;
-            nb::print(os.str().c_str());
-        }, R"doc(Print the KDTree structure.)doc")
-        .def("__str__", [](const KDTree &tree) {
+            nb::print(os.str().c_str()); }, R"doc(Print the KDTree structure.)doc")
+            .def("__str__", [](const KDTree &tree) {
             std::ostringstream os;
             os << tree;
-            return os.str(); 
+            return os.str();
         }, R"doc(String representation of the KDTree.)doc")
         .def("planes",
              [m](KDTree &self) {

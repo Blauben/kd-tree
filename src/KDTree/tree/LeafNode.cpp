@@ -8,7 +8,7 @@ namespace kdtree {
 
     LeafNode::~LeafNode() {
         // Cleanup expired weak_ptr entries from the registry
-        std::erase_if(leafNodes, [](const std::weak_ptr<LeafNode>& ptr) {
+        std::erase_if(leafNodes, [](const std::weak_ptr<LeafNode> &ptr) {
             return ptr.expired();
         });
         LOG_DEBUG("LeafNode: Destroyed with nodeId " + std::to_string(nodeId));
@@ -16,7 +16,7 @@ namespace kdtree {
 
     std::vector<std::weak_ptr<LeafNode>> LeafNode::leafNodes{};
 
-    void LeafNode::registerLeafNode(const std::shared_ptr<LeafNode>& node) {
+    void LeafNode::registerLeafNode(const std::shared_ptr<LeafNode> &node) {
         if (node) {
             leafNodes.push_back(node);
         }
@@ -28,21 +28,21 @@ namespace kdtree {
         LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(_convertedToObjects, [this] {
-                    LOG_DEBUG("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
-                    _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
-                });
+                LOG_DEBUG("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
+                _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
+            });
         }
         std::mutex writeLock{};
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
         thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
                          [this, &ray, &origin, &intersections, &writeLock](const size_t objIndex) {
-                const std::optional<Vertex> intersection = rayIntersectsObject(
-                        origin, ray, _splitParam->geometryObjects[objIndex]);
-                if (intersection.has_value()) {
-                    std::unique_lock lock(writeLock);
-                    intersections.insert(intersection.value());
-                }
+                             const std::optional<Vertex> intersection = rayIntersectsObject(
+                                     origin, ray, _splitParam->geometryObjects[objIndex]);
+                             if (intersection.has_value()) {
+                                 std::unique_lock lock(writeLock);
+                                 intersections.insert(intersection.value());
+                             }
                          });
         LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
     }
