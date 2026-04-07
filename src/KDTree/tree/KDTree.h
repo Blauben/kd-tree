@@ -70,10 +70,11 @@ namespace kdtree {
         * @param vertices The vertex coordinates of the polyhedron
         * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+        * @param copyVertices If true, the vertices are copied and stored internally (static). If false the tree will only store pointers to the vertices, allowing the user to modify vertices and have the changes reflected in the tree, but also requiring the user to ensure that the vertices outlive the tree (dynamic).
         * @return the lazily built KDTree.
         */
         KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-               PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+               PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true);
 
         explicit KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
@@ -92,7 +93,7 @@ namespace kdtree {
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
+        KDTree(std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> polySource,
                PlaneSelectionAlgorithm::Algorithm algorithm);
 
 
