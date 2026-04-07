@@ -12,7 +12,7 @@
 
 namespace kdtree {
 
-    std::tuple<std::vector<Vertex>, std::vector<IndexVector>> TetgenAdapter::getPolyhedralSource() {
+    std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> TetgenAdapter::getPolyhedralSource() {
         //1. Step: Read in from files
         for (const auto &fileName: _fileNames) {
             const size_t pos = fileName.find_last_of('.');

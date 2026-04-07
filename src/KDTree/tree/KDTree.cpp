@@ -1,12 +1,17 @@
-
 #include "KDTree/tree/KDTree.h"
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm) : _algorithm{algorithm} {
+                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices) : _algorithm{algorithm} {
         LOG_INFO("KDTree: Constructing from vertices and faces");
-        GeometryObject::vertices = vertices;
+        std::for_each(vertices.begin(), vertices.end(), [copyVertices](const Vertex& vertex) {
+            if (copyVertices) {
+                GeometryObject::vertices.emplace_back(vertex);
+            } else {
+                GeometryObject::vertices.emplace_back(&vertex);
+            }
+        });
         _geometryObjects.reserve(shapes.size());
         //transform shape indices to GeometryObjects
         std::ranges::for_each(shapes, [this](const IndexVector &vertexIndices) {
@@ -32,7 +37,7 @@ namespace kdtree {
         LOG_INFO("KDTree: Constructed from particles");
     }
 
-    KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
+    KDTree::KDTree(std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
     }

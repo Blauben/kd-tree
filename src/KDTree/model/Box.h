@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree/model/GeometryObject.h"
 #include "KDTree/model/Plane.h"
 #include "KDTree/tree/KdDefinitions.h"
 
@@ -49,6 +50,23 @@ namespace kdtree {
         static Box getBoundingBox(const Container &vertices) {
             using namespace util;
             return Box(findMinMaxCoordinates<Container>(vertices));
+        }
+
+        /**
+         * Finds the minimal bounding box for the KDTree's vertex handle storage.
+         * @param vertices the stored vertex handles
+         * @return the bounding box {@link Box}
+         */
+        static Box getBoundingBox(const std::vector<VertexHandle> &vertices) {
+            std::vector<Vertex> resolvedVertices{};
+            resolvedVertices.reserve(vertices.size());
+            std::ranges::transform(vertices, std::back_inserter(resolvedVertices), [](const auto &handle) {
+                return std::visit(util::overloaded{
+                        [](const Vertex &vertex) { return vertex; },
+                        [](const Vertex *vertex) { return *vertex; }
+                }, handle);
+            });
+            return Box(getBoundingBox(resolvedVertices));
         }
 
         /**

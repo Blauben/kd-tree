@@ -7,6 +7,11 @@
 
 namespace kdtree {
     /**
+     * Allow KDTree data to be dynamic or static to avoid dangling references.
+     */
+    using VertexHandle = std::variant<Vertex, const Vertex*>;
+
+    /**
      * This class contains a collection of vertices, representing the corners of a geometrical shape and provides the abstraction on which the kdtree operates.
      */
     class GeometryObject {
@@ -18,7 +23,7 @@ namespace kdtree {
         /**
          * The global vertices of the scene on which the GeometryObjects are built on.
          */
-        static std::vector<Vertex> vertices;
+        static std::vector<VertexHandle> vertices;
 
         /**
          * This index uniquely identifies a GeometryObject during kdtree construction.

@@ -9,11 +9,16 @@ namespace kdtree {
     //static initialization
     size_t GeometryObject::runningIndex{0};
 
-    std::vector<std::array<double, 3>> GeometryObject::vertices;
+    std::vector<VertexHandle> GeometryObject::vertices;
 
     Vertex GeometryObject::operator[](const size_t index) const {
-        return vertices[objVertices[index]];
+        return std::visit(util::overloaded{
+                [&](const Vertex *vertex) { return *vertex; },
+                [&](const Vertex &vertex) { return vertex; }
+            },
+            vertices[objVertices[index]]);
     }
+
     const IndexVector &GeometryObject::getIndexVector() const {
         return objVertices;
     }
