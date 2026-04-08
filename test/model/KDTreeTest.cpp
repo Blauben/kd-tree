@@ -235,7 +235,18 @@ namespace kdtree {
      * @class KDTreeTest
      * @brief Test suite for the KDTree class functionality.
      */
-    class KDTreeTest : public ::testing::TestWithParam<ParamType> {};
+    class KDTreeTest : public ::testing::TestWithParam<ParamType> {
+    protected:
+        void SetUp() override {
+            GeometryObject::runningIndex = 0;
+            GeometryObject::vertices.clear();
+        }
+
+        void TearDown() override {
+            GeometryObject::runningIndex = 0;
+            GeometryObject::vertices.clear();
+        }
+    };
 
     /**
      * Tests the intersection of rays with points on the surface of a polyhedron using the KDTree. The test generates random points on the surface of the polyhedron and checks if the KDTree correctly identifies the intersection points when rays are cast from a fixed origin towards these points. The test uses a progress bar to track the progress of testing multiple points.
@@ -423,14 +434,15 @@ namespace kdtree {
         constexpr double shift = 1.0;
         std::string meshPath{"resources/Eros_scaled-1000"};
         auto [vertices, faces] = TetgenAdapter{{meshPath + ".node", meshPath + ".face"}}.getPolyhedralSource();
-        KDTree tree{vertices, faces, Algorithm::LOG, false};
+        std::vector<Vertex> vertices_copy{vertices.begin(), vertices.end()};
+        KDTree tree{vertices_copy, faces, Algorithm::LOG, false};
         std::vector<Plane> planesBefore{};
         auto [begin, end] = tree.planeIterator();
         std::for_each(begin, end, [&](const auto &entry) {
             planesBefore.push_back(std::get<0>(entry));
         });
         ASSERT_GT(planesBefore.size(), 0) << "Plane iterator did not iterate over any planes before tree rebuild!";
-        for (auto &vertex: vertices) {
+        for (auto &vertex: vertices_copy) {
             vertex = vertex + std::array{shift, shift, shift};
         }
         tree.rebuildTree();

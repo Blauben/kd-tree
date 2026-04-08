@@ -61,6 +61,8 @@ namespace kdtree {
          */
         [[nodiscard]] bool isVertexInBox(const Vertex &vertex, double tolerance) const;
 
+        bool isVertexInBox(const Vertex &vertex, double tolerance) const;
+
         /**
         * Takes points of a shape of a polyhedron and clips them to this box. If all the points lie in the box no changes are made but if points lie outside of the box they are linearly interpolated onto the box.
         * Uses the Sutherland-Hodgman-Algorithm.

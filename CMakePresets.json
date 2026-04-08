@@ -258,6 +258,24 @@
       "steps": [
         {
           "type": "configure",
+          "name": "test-release"
+        },
+        {
+          "type": "build",
+          "name": "test-release"
+        },
+        {
+          "type": "test",
+          "name": "test-release"
+        }
+      ]
+    },
+    {
+      "name": "test-debug",
+      "displayName": "Build and Test (Debug)",
+      "steps": [
+        {
+          "type": "configure",
           "name": "test-debug"
         },
         {
