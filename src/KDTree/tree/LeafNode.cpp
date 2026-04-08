@@ -22,16 +22,29 @@ namespace kdtree {
         }
     }
 
+    bool LeafNode::needTreeRebuild() {
+        convertPlaneEventsToGeometry();
+        for (const auto &handle : std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
+            const GeometryObject &object = _splitParam->geometryObjects[handle];
+            for (const auto &vertex : object.getVertices()) {
+                // TODO: Efficient box check
+            }
+        }
+        return false;
+    }
 
-    void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
-                                    std::set<Vertex> &intersections) {
-        LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
-        if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
+    void LeafNode::convertPlaneEventsToGeometry() {
+         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(_convertedToObjects, [this] {
                 LOG_DEBUG("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                 _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
             });
         }
+    }
+
+    void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
+                                    std::set<Vertex> &intersections) {
+        LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
         std::mutex writeLock{};
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
