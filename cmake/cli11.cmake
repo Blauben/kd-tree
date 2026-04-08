@@ -7,7 +7,7 @@ find_package(CLI11 ${CLI11_VERSION} QUIET)
 
 if ($CLI11_FOUND})
     message(STATUS "Found existing CLI11: ${CLI11_DIR}")
-else ()
+elseif (NOT TARGET CLI11::CLI11)
     message(STATUS "Using CLI11 from GitHub Release ${CLI11_VERSION}")
 
     # Declare the source for Google Benchmark
@@ -16,4 +16,6 @@ else ()
             GIT_TAG v${CLI11_VERSION}
     )
     FetchContent_MakeAvailable(CLI11)
+else()
+    message(STATUS "Using existing CLI11::CLI11 target present in the project.")
 endif ()
