@@ -37,17 +37,7 @@ namespace kdtree {
     }
 
     bool PlaneIterator::operator==(const PlaneIterator &rhs) const {
-        // two iterators are equal if they are both at the end (empty queue) or if they point to the same current node (front of the queue)
-        if (_nodeQueue.empty() && rhs._nodeQueue.empty()) {
-            return true;
-        }
-        if (_nodeQueue.empty() || rhs._nodeQueue.empty()) {
-            return false;
-        }
-        if (_nodeQueue.front() != rhs._nodeQueue.front()) {
-            return false;
-        }
-        return true;
+        return (_nodeQueue.empty() && rhs._nodeQueue.empty()) || (!_nodeQueue.empty() && !rhs._nodeQueue.empty() && _nodeQueue.front() == rhs._nodeQueue.front());;
     }
 
     bool PlaneIterator::operator!=(const PlaneIterator &rhs) const {
