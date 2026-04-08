@@ -52,6 +52,11 @@ namespace kdtree {
         static void registerLeafNode(const std::shared_ptr<LeafNode> &node);
 
         /**
+         * Only used with dynamic vertices. Checks if the vertices contained in this node have moved outside the node's bounding box since the last tree build, which would require a tree rebuild to maintain correct intersection results.
+         */
+        bool needTreeRebuild();
+
+        /**
         * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
@@ -92,6 +97,11 @@ namespace kdtree {
          * @return The intersection point if an intersection was found.
          */
         static std::optional<Vertex> rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center);
+
+        /**
+         * Converts the PlaneEvents in the _splitParam->boundObjects to GeometryObjects. Should be called before performing intersection tests if the node was created with PlaneEvents instead of GeometryObjects, which is the case for deeper levels of the tree to save memory during construction. The conversion is done lazily to save time during tree construction, since it is only needed for leaf nodes that are actually used for intersection tests.
+         */
+        void convertPlaneEventsToGeometry();
 
         /**
          * Flags set when _splitParam boundObjects are converted from PlaneEvents to shapes
