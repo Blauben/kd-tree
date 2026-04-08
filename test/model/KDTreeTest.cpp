@@ -7,6 +7,7 @@
 #include <array>
 #include <indicators/progress_bar.hpp>
 #include <random>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -36,6 +37,62 @@ namespace kdtree {
          * seed for random number generation to ensure reproducibility in tests
          */
         auto gen = std::mt19937(SEED);
+
+        /**
+         * Computes the squared Euclidean distance between two vertices.
+         *
+         * The squared form is sufficient for nearest-point comparisons and avoids
+         * the extra cost and numeric noise of taking square roots.
+         *
+         * @param lhs First vertex.
+         * @param rhs Second vertex.
+         * @return Squared Euclidean distance between @p lhs and @p rhs.
+         */
+        [[nodiscard]] double squaredDistance(const Vertex &lhs, const Vertex &rhs) {
+            const double dx = lhs[0] - rhs[0];
+            const double dy = lhs[1] - rhs[1];
+            const double dz = lhs[2] - rhs[2];
+            return dx * dx + dy * dy + dz * dz;
+        }
+
+        /**
+         * Formats a vertex as a compact string for test diagnostics.
+         * @param vertex Vertex to format.
+         * @return String in the form [x, y, z].
+         */
+        [[nodiscard]] std::string vertexToString(const Vertex &vertex) {
+            std::ostringstream stream;
+            stream << "[" << vertex[0] << ", " << vertex[1] << ", " << vertex[2] << "]";
+            return stream.str();
+        }
+
+        /**
+         * Builds a human-readable assertion message with nearest-intersection details.
+         *
+         * If no intersections are found, the message explicitly reports that the set is empty.
+         * Otherwise, it reports the expected point, closest returned point, squared distance,
+         * and number of intersections.
+         *
+         * @param intersections Intersections returned by the KDTree query.
+         * @param expectedPoint Target point that should have been intersected.
+         * @return Diagnostic message appended to gtest failure output.
+         */
+        [[nodiscard]] std::string closestIntersectionMessage(const std::set<Vertex> &intersections, const Vertex &expectedPoint) {
+            if (intersections.empty()) {
+                return "Closest intersection: <none> (intersection set is empty)";
+            }
+
+            const auto closest = std::min_element(intersections.begin(), intersections.end(), [&expectedPoint](const Vertex &lhs, const Vertex &rhs) {
+                return squaredDistance(lhs, expectedPoint) < squaredDistance(rhs, expectedPoint);
+            });
+
+            std::ostringstream stream;
+            stream << "Expected point: " << vertexToString(expectedPoint)
+                   << ", closest intersection: " << vertexToString(*closest)
+                   << ", squared distance: " << squaredDistance(*closest, expectedPoint)
+                   << ", total intersections: " << intersections.size();
+            return stream.str();
+        }
 
         /**
          * A simple cube polyhedron for testing purposes: vertices
@@ -178,7 +235,18 @@ namespace kdtree {
      * @class KDTreeTest
      * @brief Test suite for the KDTree class functionality.
      */
-    class KDTreeTest : public ::testing::TestWithParam<ParamType> {};
+    class KDTreeTest : public ::testing::TestWithParam<ParamType> {
+    protected:
+        void SetUp() override {
+            GeometryObject::runningIndex = 0;
+            GeometryObject::vertices.clear();
+        }
+
+        void TearDown() override {
+            GeometryObject::runningIndex = 0;
+            GeometryObject::vertices.clear();
+        }
+    };
 
     /**
      * Tests the intersection of rays with points on the surface of a polyhedron using the KDTree. The test generates random points on the surface of the polyhedron and checks if the KDTree correctly identifies the intersection points when rays are cast from a fixed origin towards these points. The test uses a progress bar to track the progress of testing multiple points.
@@ -199,7 +267,8 @@ namespace kdtree {
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections, Contains(ElementsAre(DoubleNear(point[0], DELTA),
                                                             DoubleNear(point[1], DELTA),
-                                                            DoubleNear(point[2], DELTA))));
+                                                            DoubleNear(point[2], DELTA))))
+                    << closestIntersectionMessage(intersections, point);
         };
         for (const auto &p: points) {
             pointTest(p);
@@ -309,7 +378,7 @@ namespace kdtree {
             iteration++;
             std::cout << "Plane: " << plane << ", Box: " << box << std::endl;
         });
-        ASSERT_GT(iteration, 0) << "Plane iterator did not iterate over any planes!";
+        ASSERT_EQ(iteration, 30) << "Plane iterator did not iterate over all planes!";
     };
 
     /**
@@ -333,14 +402,15 @@ namespace kdtree {
         constexpr double shift = 1.0;
         std::string meshPath{"resources/Eros_scaled-1000"};
         auto [vertices, faces] = TetgenAdapter{{meshPath + ".node", meshPath + ".face"}}.getPolyhedralSource();
-        KDTree tree{vertices, faces, Algorithm::LOG, false};
+        std::vector<Vertex> vertices_copy{vertices.begin(), vertices.end()};
+        KDTree tree{vertices_copy, faces, Algorithm::LOG, false};
         std::vector<Plane> planesBefore{};
         auto [begin, end] = tree.planeIterator();
         std::for_each(begin, end, [&](const auto &entry) {
             planesBefore.push_back(std::get<0>(entry));
         });
         ASSERT_GT(planesBefore.size(), 0) << "Plane iterator did not iterate over any planes before tree rebuild!";
-        for (auto &vertex: vertices) {
+        for (auto &vertex: vertices_copy) {
             vertex = vertex + std::array{shift, shift, shift};
         }
         tree.rebuildTree();

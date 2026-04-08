@@ -57,14 +57,24 @@
       }
     },
     {
-      "name": "test",
-      "displayName": "Test",
+      "name": "test-release",
+      "displayName": "Test (Release)",
       "inherits": "release-tbb",
-      "binaryDir": "${sourceDir}/build/test",
+      "binaryDir": "${sourceDir}/build/test-release",
       "cacheVariables": {
         "BUILD_KD_TREE_TESTS": "ON",
         "KD_TREE_LOGGING_LEVEL": "WARN"
       }
+    },
+    {
+        "name": "test-debug",
+        "displayName": "Test (Debug)",
+        "inherits": "debug",
+        "binaryDir": "${sourceDir}/build/test-debug",
+        "cacheVariables": {
+            "BUILD_KD_TREE_TESTS": "ON",
+            "KD_TREE_LOGGING_LEVEL": "WARN"
+        }
     },
     {
       "name": "python",
@@ -132,10 +142,16 @@
       "configurePreset": "debug"
     },
     {
-      "name": "test",
-      "displayName": "Test",
-      "configurePreset": "test",
+      "name": "test-release",
+      "displayName": "Test (Release)",
+      "configurePreset": "test-release",
       "configuration": "Release"
+    },
+    {
+      "name": "test-debug",
+      "displayName": "Test (Debug)",
+      "configurePreset": "test-debug",
+      "configuration": "Debug"
     },
     {
       "name": "python-cpp",
@@ -161,10 +177,17 @@
   ],
   "testPresets": [
     {
-      "name": "test",
+      "name": "test-release",
       "displayName": "Run Tests",
-      "configurePreset": "test",
+      "configurePreset": "test-release",
       "configuration": "Release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "test-debug",
+      "displayName": "Run Tests (Debug)",
+      "configurePreset": "test-debug",
+      "configuration": "Debug",
       "output": { "outputOnFailure": true }
     }
   ],
@@ -217,15 +240,33 @@
       "steps": [
         {
           "type": "configure",
-          "name": "test"
+          "name": "test-release"
         },
         {
           "type": "build",
-          "name": "test"
+          "name": "test-release"
         },
         {
           "type": "test",
-          "name": "test"
+          "name": "test-release"
+        }
+      ]
+    },
+    {
+      "name": "test-debug",
+      "displayName": "Build and Test (Debug)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "test-debug"
+        },
+        {
+          "type": "build",
+          "name": "test-debug"
+        },
+        {
+          "type": "test",
+          "name": "test-debug"
         }
       ]
     },

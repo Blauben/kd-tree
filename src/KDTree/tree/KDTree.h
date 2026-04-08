@@ -140,6 +140,11 @@ namespace kdtree {
         std::pair<PlaneIterator, PlaneIterator> planeIterator();
 
         /**
+         * Checks if any of the leaf nodes in the tree require a rebuild due to vertices having moved outside their bounding boxes since the last tree build. If a rebuild is needed, the tree is rebuilt to maintain correct intersection results.
+         */
+        void rebuildTreeIfNeeded();
+
+        /**
          * Overloads the output stream operator to print a representation of the KDTree.
          * @param os The output stream.
          * @param kdTree The KDTree to be printed.
