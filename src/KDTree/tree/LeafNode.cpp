@@ -27,7 +27,10 @@ namespace kdtree {
         for (const auto &handle : std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
             const GeometryObject &object = _splitParam->geometryObjects[handle];
             for (const auto &vertex : object.getVertices()) {
-                // TODO: Efficient box check
+                // TODO: set tolerance in relation to whole tree
+                if (!_splitParam->boundingBox.isVertexInBox(vertex, 0.5)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -45,6 +48,7 @@ namespace kdtree {
     void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
                                     std::set<Vertex> &intersections) {
         LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
+        convertPlaneEventsToGeometry();
         std::mutex writeLock{};
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments

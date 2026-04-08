@@ -53,6 +53,16 @@ namespace kdtree {
         return std::make_pair(box1, box2);
     }
 
+    bool Box::isVertexInBox(const Vertex &vertex, double tolerance) const {
+        for (const auto &direction: ALL_DIRECTIONS) {
+            const int index{static_cast<int>(direction)};
+            if (vertex[index] <= minPoint[index] - tolerance || vertex[index] >= maxPoint[index] + tolerance) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     std::vector<Vertex> Box::clipToVoxel(const std::vector<Vertex> &points) const {
         using namespace util;
         //use clipped as the input vector because the inner for loop swaps input and clipped each iteration,
