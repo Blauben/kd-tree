@@ -143,6 +143,19 @@ namespace kdtree {
         return {begin, PlaneIterator{}};
     }
 
+    void KDTree::rebuildTreeIfNeeded() {
+        std::ranges::any_of(LeafNode::leafNodes.cbegin(), LeafNode::leafNodes.cend(), [this](const auto &leafNodePtr) {
+            if (const auto leafNode = leafNodePtr.lock()) {
+                if (leafNode->needTreeRebuild()) {
+                    LOG_INFO("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
+                    this->rebuildTree();
+                    return true;
+                }
+            }
+            return false;
+        });
+    }
+
     std::ostream &operator<<(std::ostream &os, const KDTree &kdTree) {
         os << to_string(kdTree);
         return os;
