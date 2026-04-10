@@ -51,4 +51,4 @@ def test_kdtree_plane_iter():
     plane_count = 0
     for _ in tree.planes():
         plane_count += 1
-    assert plane_count == 30, "Expected at least one plane in the KDTree. Iterator returned none."
+    assert plane_count == 30, "Expected 30 planes in the KDTree. Iterator returned none."
