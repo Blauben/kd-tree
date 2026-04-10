@@ -308,6 +308,9 @@ namespace kdtree {
         std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();
+        if (algorithm == Algorithm::QUADRATIC || algorithm == Algorithm::NOTREE) {
+            GTEST_SKIP() << "Skipping regression test for notree and quadratic algorithm as it is used as the reference algorithm.";
+        }
         KDTree tree{vertices, faces, algorithm};
         auto squaredAlgorithm = PlaneSelectionAlgorithmFactory::create(Algorithm::QUADRATIC);
         auto variantAlgorithm = PlaneSelectionAlgorithmFactory::create(algorithm);
