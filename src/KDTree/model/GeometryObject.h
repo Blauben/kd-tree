@@ -17,24 +17,15 @@ namespace kdtree {
     class GeometryObject {
     public:
         /**
-         * This field stores the index of the next GeometryObject and is increased whenever a new Object is increased.
-         */
-        static size_t runningIndex;
-        /**
-         * The global vertices of the scene on which the GeometryObjects are built on.
-         */
-        static std::vector<VertexHandle> vertices;
-
-        /**
          * This index uniquely identifies a GeometryObject during kdtree construction.
          */
         const size_t objIndex;
 
         /**
-         * Stores information on the corner vertices of this GeometryObject by storing their respective indices referencing the static vertices.
+         * Stores indices of this object's corner vertices in the owning KDTree vertex storage.
          */
         const IndexVector objVertices;
-        explicit GeometryObject(IndexVector objVertices);
+        GeometryObject(IndexVector objVertices, size_t objIndex, const std::shared_ptr<std::vector<VertexHandle>> &vertices);
 
         /**
          * Returns the index-th vertex of the shape represented by this GeometryObject.
@@ -55,6 +46,10 @@ namespace kdtree {
          * @return a std::vector of Vertex objects
          */
         [[nodiscard]] std::vector<Vertex> getVertices() const;
+
+    private:
+        // Vertex storage owned by the KDTree instance that created this object.
+        const std::shared_ptr<std::vector<VertexHandle>> _vertices;
     };
 
     /**

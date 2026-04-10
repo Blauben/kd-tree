@@ -5,19 +5,21 @@ namespace kdtree {
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
                    const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices) : _algorithm{algorithm} {
         LOG_INFO("KDTree: Constructing from vertices and faces");
-        std::for_each(vertices.begin(), vertices.end(), [copyVertices](const Vertex& vertex) {
-            if (copyVertices) {
-                GeometryObject::vertices.emplace_back(vertex);
-            } else {
-                GeometryObject::vertices.emplace_back(&vertex);
-            }
-        });
+        if (copyVertices) {
+            _vertices = std::make_shared<std::vector<VertexHandle>>(vertices.begin(), vertices.end());
+        } else {
+            _vertices = std::make_shared<std::vector<VertexHandle>>();
+            _vertices->reserve(vertices.size());
+            std::for_each(vertices.begin(), vertices.end(), [this, copyVertices](const Vertex &vertex) {
+                _vertices->emplace_back(&vertex);
+            });
+        }
         _geometryObjects.reserve(shapes.size());
         //transform shape indices to GeometryObjects
-        std::ranges::for_each(shapes, [this](const IndexVector &vertexIndices) {
-            _geometryObjects.emplace_back(vertexIndices);
+        std::ranges::for_each(shapes, [this, objectIndex = size_t{0}](const IndexVector &vertexIndices) mutable {
+            _geometryObjects.emplace_back(vertexIndices, objectIndex++, _vertices);
         });
-        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
                                                    PlaneSelectionAlgorithmFactory::create(algorithm));
         LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
     }
@@ -50,7 +52,7 @@ namespace kdtree {
     void KDTree::rebuildTree() {
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree
         // since splitParam are moved once the previous tree is built, they have to regenerated here
-        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(GeometryObject::vertices), Direction::X,
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
                                                    PlaneSelectionAlgorithmFactory::create(_algorithm));
     }
 

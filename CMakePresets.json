@@ -235,8 +235,8 @@
         ]
     },
     {
-      "name": "build-and-test",
-      "displayName": "Build and Test",
+      "name": "build-and-test-release",
+      "displayName": "Build and Test (Release)",
       "steps": [
         {
           "type": "configure",
@@ -253,7 +253,7 @@
       ]
     },
     {
-      "name": "test-debug",
+      "name": "build-and-test-debug",
       "displayName": "Build and Test (Debug)",
       "steps": [
         {
