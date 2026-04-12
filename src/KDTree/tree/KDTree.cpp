@@ -145,16 +145,19 @@ namespace kdtree {
     }
 
     void KDTree::rebuildTreeIfNeeded() {
-        std::ranges::any_of(LeafNode::leafNodes.cbegin(), LeafNode::leafNodes.cend(), [this](const auto &leafNodePtr) {
+        const bool rebuildTree = std::ranges::any_of(LeafNode::leafNodes.cbegin(), LeafNode::leafNodes.cend(), [this](const auto &leafNodePtr) {
             if (const auto leafNode = leafNodePtr.lock()) {
                 if (leafNode->needTreeRebuild()) {
-                    LOG_INFO("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
-                    this->rebuildTree();
                     return true;
                 }
             }
             return false;
         });
+        if (!rebuildTree) {
+            return;
+        }
+        LOG_INFO("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
+        this->rebuildTree();
     }
 
     std::ostream &operator<<(std::ostream &os, const KDTree &kdTree) {
