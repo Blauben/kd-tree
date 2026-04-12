@@ -7,6 +7,7 @@
  */
 
 #include "TetgenAdapter.h"
+#include "KDTree/util/Constants.h"
 
 #include <filesystem>
 
@@ -34,7 +35,7 @@ namespace kdtree {
             _tetgenio.load_node(const_cast<char *>(filename.c_str()));
             this->addVertices();
         } catch (...) {
-            throw std::runtime_error(DEFAULT_EXCEPTION_MSG);
+            throw std::runtime_error(constants::TETGEN_DEFAULT_EXCEPTION_MSG);
         }
     }
 
@@ -44,7 +45,7 @@ namespace kdtree {
             _tetgenio.load_face(const_cast<char *>(filename.c_str()));
             this->addFacesByTrifaces();
         } catch (...) {
-            std::string message{DEFAULT_EXCEPTION_MSG};
+            std::string message{constants::TETGEN_DEFAULT_EXCEPTION_MSG};
             message.append(" A second possible issue could be a wrong file order, e.g. the .face file was read before "
                            "the .node file. In this case just reverse the parameters in the input file list.");
             throw std::runtime_error(message);
@@ -57,7 +58,7 @@ namespace kdtree {
             _tetgenio.load_off(const_cast<char *>(filename.c_str()));
             this->addVerticesAndFacesByTriangulation();
         } catch (...) {
-            throw std::runtime_error(DEFAULT_EXCEPTION_MSG);
+            throw std::runtime_error(constants::TETGEN_DEFAULT_EXCEPTION_MSG);
         }
     }
 
@@ -67,7 +68,7 @@ namespace kdtree {
             _tetgenio.load_ply(const_cast<char *>(filename.c_str()));
             this->addVerticesAndFacesByTriangulation();
         } catch (...) {
-            throw std::runtime_error(DEFAULT_EXCEPTION_MSG);
+            throw std::runtime_error(constants::TETGEN_DEFAULT_EXCEPTION_MSG);
         }
     }
 
@@ -77,7 +78,7 @@ namespace kdtree {
             _tetgenio.load_stl(const_cast<char *>(filename.c_str()));
             this->addVerticesAndFacesByTriangulation();
         } catch (...) {
-            throw std::runtime_error(DEFAULT_EXCEPTION_MSG);
+            throw std::runtime_error(constants::TETGEN_DEFAULT_EXCEPTION_MSG);
         }
     }
 
@@ -87,7 +88,7 @@ namespace kdtree {
             _tetgenio.load_medit(const_cast<char *>(filename.c_str()), 0);
             this->addVerticesAndFacesByTriangulation();
         } catch (...) {
-            throw std::runtime_error(DEFAULT_EXCEPTION_MSG);
+            throw std::runtime_error(constants::TETGEN_DEFAULT_EXCEPTION_MSG);
         }
     }
 

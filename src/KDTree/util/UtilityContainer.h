@@ -13,6 +13,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include "Constants.h"
 #include <numeric>
 #include <set>
 #include <string>
@@ -343,11 +344,10 @@ namespace kdtree::util {
     template<typename T>
     bool isCriticalDifference(const T &first, const T &second) {
         // 50 is the (log2) exponent of the floating point (1 / 1e-15)
-        constexpr int maxExponentDifference = 50;
         int x, y;
         std::frexp(first, &x);
         std::frexp(second, &y);
-        return std::abs(x - y) > maxExponentDifference;
+        return std::abs(x - y) > constants::MAX_EXPONENT_DIFFERENCE;
     }
 
     /**

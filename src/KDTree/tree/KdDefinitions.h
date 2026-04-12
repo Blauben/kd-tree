@@ -1,6 +1,7 @@
 #pragma once
 
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/Constants.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
@@ -84,11 +85,6 @@ namespace kdtree {
                 throw std::invalid_argument{"Unknown Direction enum value used during normal fetching."};
         }
     }
-
-    /**
-     * Number of dimensions for the polyhedron. Also corresponds to the number of elements of the {@link Direction} enum.
-     */
-    constexpr int DIMENSIONS = 3;
 
     /**
      * A set that stores indices of the object vector in the KDTree. This effectively corresponds to a set of shapes. For performance purposes a std::vector is used instead of a std::set.
