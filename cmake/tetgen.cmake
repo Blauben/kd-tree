@@ -32,6 +32,8 @@ else()
     message(STATUS "A modified tetgen.cxx already exists! It is assumed that it is the correct one disabling output")
 endif()
 
+mark_as_advanced(FORCE BUILD_EXECUTABLE BUILD_LIBRARY)
+
 # Add the modified version of the tetgen library
 add_library(tetgen_lib STATIC
         ${tetgen_SOURCE_DIR}/tetgen_mod.cxx
