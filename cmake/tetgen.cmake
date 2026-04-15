@@ -46,3 +46,5 @@ target_include_directories(tetgen_lib INTERFACE "${tetgen_SOURCE_DIR}")
 
 # Disable warnings from the library target
 target_compile_options(tetgen_lib PRIVATE -w)
+
+add_library(tetgen::tetgen ALIAS tetgen_lib)

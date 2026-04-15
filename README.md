@@ -26,7 +26,6 @@ A high-performance, lazily-built KD-Tree implementation for spatial partitioning
 - Dependencies (automatically fetched):
   - spdlog (logging)
   - Thrust (parallel algorithms)
-  - xsimd (SIMD operations)
   - TBB/OpenMP (optional, for parallelization)
   - Google Test (for testing)
 
