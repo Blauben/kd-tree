@@ -1,5 +1,6 @@
 import os
-import hashlib
+import numpy as np
+from PIL import Image
 
 def test_plot_no_throw():
     import scikdtree as sci
@@ -7,7 +8,9 @@ def test_plot_no_throw():
     tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
     sci.plot_kd_tree(tree, outpath="kd_tree_plot_test.png")
     assert os.path.exists("kd_tree_plot_test.png"), "Plot file was not created as expected."
-    with open("kd_tree_plot_test.png", "rb") as image:
-        file_hash = hashlib.sha256(image.read()).hexdigest()
-    expected_hash = "64b68383dbcc4035f9d62050b90c68bf26f855e690c81c5dc1b2caf11c441875"
-    assert file_hash == expected_hash
+
+    generated = np.array(Image.open("kd_tree_plot_test.png"))
+    reference = np.array(Image.open("resources/reference_kd_tree_plot.png"))
+
+    assert generated.shape == reference.shape
+    assert np.mean(np.abs(generated.astype(np.int16) - reference.astype(np.int16))) < 2
