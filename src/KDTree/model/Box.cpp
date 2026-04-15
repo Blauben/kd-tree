@@ -1,5 +1,11 @@
 #include "KDTree/model/Box.h"
 
+std::ostream & kdtree::operator<<(std::ostream &os, const Box &box) {
+    os << "[(" << box.minPoint[0] << "," << box.minPoint[1] << "," << box.minPoint[2] << ") - ("
+       << box.maxPoint[0] << "," << box.maxPoint[1] << "," << box.maxPoint[2] << ")]";
+    return os;
+}
+
 namespace kdtree {
     Box::Box(const std::pair<Vertex, Vertex> &pair)
         : minPoint{pair.first}, maxPoint{pair.second} {

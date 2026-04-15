@@ -11,3 +11,6 @@ src/KDTree/Info.h
 __pycache__/
 CMakeFiles/
 CMakeUserPresets.json
+
+# test artifacts
+kd_tree_plot_test.png

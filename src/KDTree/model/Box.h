@@ -62,6 +62,8 @@ namespace kdtree {
         explicit Box(const std::pair<Vertex, Vertex> &pair);
         Box();
 
+        friend std::ostream &operator<<(std::ostream &os, const Box &box);
+
     private:
         /**
          * Takes a plane and a set of vertices and clips them accordingly.

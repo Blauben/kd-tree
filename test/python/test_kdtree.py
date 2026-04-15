@@ -42,3 +42,13 @@ def test_kdtree_instantiation_and_methods():
     assert isinstance(intersections, list)
     # Test printTree (should not raise)
     tree.printTree()
+
+
+def test_kdtree_plane_iter():
+    import scikdtree as sci
+    mesh_path = "resources/Eros_scaled-1000"
+    tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
+    plane_count = 0
+    for _ in tree.planes():
+        plane_count += 1
+    assert plane_count == 30, "Expected at least one plane in the KDTree. Iterator returned none."
