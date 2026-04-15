@@ -2,6 +2,7 @@ import os
 
 try:
     from .scikdtree import *
+    from .plotting import *
     del scikdtree
 except Exception as e:
     pkg_dir = os.path.dirname(__file__)

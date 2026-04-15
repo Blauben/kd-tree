@@ -8,12 +8,15 @@
  */
 
 #include <nanobind/nanobind.h>
+#include <nanobind/make_iterator.h>
 #include <nanobind/stl/array.h>
 #include <nanobind/stl/set.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
 #include "KDTree/tree/KDTree.h"
+#include "KDTree/model/Plane.h"
+#include "KDTree/model/Box.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -35,6 +38,32 @@ void printTree(const kdtree::KDTree &tree) {
  */
 NB_MODULE(scikdtree, m) {
     using namespace kdtree;
+    nb::class_<GeometryObject>(m, "GeometryObject")
+        .def("vertices", &GeometryObject::getVertices, R"doc(Get the corner vertices of the geometry object.)doc")
+        .def("vertex_indices", &GeometryObject::getIndexVector, R"doc(Get the indices of the corner vertices.)doc");
+    // Expose Direction enum to Python
+    nb::enum_<Direction>(m, "Direction")
+        .value("X", Direction::X)
+        .value("Y", Direction::Y)
+        .value("Z", Direction::Z);
+    // Expose Plane struct to Python
+    nb::class_<Plane>(m, "Plane")
+        .def(nb::init<>())
+        .def_rw("axisCoordinate", &Plane::axisCoordinate)
+        .def_rw("orientation", &Plane::orientation)
+        .def("normal", &Plane::normal, "returnFlipped"_a = false, R"doc(Returns the normal vector for this plane.)doc")
+        .def("originPoint", &Plane::originPoint, R"doc(Returns the origin point of the plane.)doc")
+        .def("rayPlaneIntersection", &Plane::rayPlaneIntersection, "origin"_a, "inverseRay"_a, R"doc(Intersects a ray with the plane.)doc")
+        .def("__eq__", &Plane::operator==);
+    // Expose Box struct to Python
+    nb::class_<Box>(m, "Box")
+        .def(nb::init<>())
+        .def_rw("minPoint", &Box::minPoint)
+        .def_rw("maxPoint", &Box::maxPoint)
+        .def("rayBoxIntersection", &Box::rayBoxIntersection, "origin"_a, "inverseRay"_a, R"doc(Calculates the intersection points of a ray and a box.)doc")
+        .def("surfaceArea", &Box::surfaceArea, R"doc(Calculates the surface area of a box.)doc")
+        .def("splitBox", &Box::splitBox, "plane"_a, R"doc(Splits this box into two new boxes.)doc")
+        .def("clipToVoxel", &Box::clipToVoxel, "points"_a, R"doc(Clips vertices to this box.)doc");
     // Expose PlaneSelectionAlgorithm enum to Python
     nb::enum_<PlaneSelectionAlgorithm::Algorithm>(m, "PlaneSelectionAlgorithm")
         .value("LOG", PlaneSelectionAlgorithm::Algorithm::LOG)
@@ -62,5 +91,14 @@ NB_MODULE(scikdtree, m) {
             std::ostringstream os;
             os << tree;
             return os.str(); 
-        }, R"doc(String representation of the KDTree.)doc");
+        }, R"doc(String representation of the KDTree.)doc")
+        .def("planes",
+             [m](KDTree &self) {
+                auto [begin, end] = self.planeIterator();
+                return nb::make_iterator(m, "plane_iterator", begin, end);
+             }, R"doc(Iterate over the planes in the KDTree.)doc")
+        .def("geometry", [m](KDTree &self) {
+            auto [begin, end] = self.geometryIterator();
+            return nb::make_iterator(m, "geometry_iterator", begin, end);
+        }, R"doc(Get the geometry objects of the KDTree.)doc");
 }

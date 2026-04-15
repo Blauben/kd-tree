@@ -1,6 +1,5 @@
 
 #include "KDTree/tree/KDTree.h"
-#include "KDTree/Logging.h"
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
@@ -112,6 +111,21 @@ namespace kdtree {
         }
         LOG_INFO("KDTree: prebuildTree finished");
         return *this;
+    }
+
+    std::pair<std::vector<GeometryObject>::iterator, std::vector<GeometryObject>::iterator>
+    KDTree::geometryIterator() {
+        return {_geometryObjects.begin(), _geometryObjects.end()};
+    }
+
+    std::pair<PlaneIterator, PlaneIterator> KDTree::planeIterator() {
+        PlaneIterator begin{};
+        std::shared_ptr<SplitNode> splitNode;
+        // check whether the root node exists and if it's a SplitNode -> only then can there be planes to be iterated over
+        if (getRootNode() != nullptr && (splitNode = std::dynamic_pointer_cast<SplitNode>(getRootNode())) != nullptr) {
+            begin = PlaneIterator(splitNode);
+        }
+        return {begin, PlaneIterator{}};
     }
 
     std::ostream &operator<<(std::ostream &os, const KDTree &kdTree) {
