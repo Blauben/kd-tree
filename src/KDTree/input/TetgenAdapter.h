@@ -12,6 +12,7 @@
 #include "tetgen.h"
 
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/Constants.h"
 #include <array>
 #include <exception>
 #include <functional>
@@ -32,18 +33,10 @@ namespace kdtree {
  */
     class TetgenAdapter {
 
-        /**
-         * The default exception message
-         */
-        static constexpr char DEFAULT_EXCEPTION_MSG[] =
-                "The mesh was not read because of an error in Tetgen! This could indicate several "
-                "issues, e. g. issues with the node assignment like they appear if either no nodes were "
-                "read in at all or if no assignment was possible.";
-
-        /**
-         * Delegates the call to the library tetgen
-         */
-        tetgenio _tetgenio;
+         /**
+          * Delegates the call to the library tetgen
+          */
+         tetgenio _tetgenio;
 
         /**
          * The file names from which to read in the polyhedron
