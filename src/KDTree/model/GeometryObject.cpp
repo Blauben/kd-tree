@@ -8,6 +8,7 @@ namespace kdtree {
     }
 
     Vertex GeometryObject::operator[](const size_t index) const {
+        const auto &vertices = *_vertices;
         return std::visit(util::overloaded{
                 [&](const Vertex *vertex) { return *vertex; },
                 [&](const Vertex &vertex) { return vertex; }

@@ -271,7 +271,7 @@
       ]
     },
     {
-      "name": "test-debug",
+      "name": "build-and-test-debug",
       "displayName": "Build and Test (Debug)",
       "steps": [
         {

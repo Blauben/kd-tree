@@ -1,4 +1,5 @@
 #include "KDTree/tree/LeafNode.h"
+#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
