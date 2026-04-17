@@ -14,35 +14,9 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "KDTree/util/Constants.h"
+
 namespace kdtree::util {
-
-    /**
-     * The EPSILON used in the polyhedral gravity model to determine a radius around zero/ to use as slight offset.
-     * @related Used to determine if a floating point number is equal to zero as threshold for rounding errors
-     * @related Used for the sgn() function to determine the sign of a double value. Different compilers
-     * produce different results if no EPSILON is applied for the comparison!
-     */
-    constexpr double EPSILON_ZERO_OFFSET = 1e-14;
-
-    /**
-     * This relative EPSILON is utilized ONLY for testing purposes to compare intermediate values to
-     * Tsoulis' reference implementation Fortran.
-     * It is used in the {@link kdtree::util::almostEqualRelative} function.
-     *
-     * @note While in theory no difference at all is observed when compiling this program on Linux using GCC on x86_64,
-     *  the intermediate values change when the program is compiled in different environments.
-     *  Hence, this solves the flakiness of the tests when on different plattforms
-     */
-    constexpr double EPSILON_ALMOST_EQUAL = 1e-10;
-
-    /**
-     * The maximal allowed ULP distance utilized for FloatingPoint comparisons using the
-     * {@link kdtree::util::almostEqualUlps} function.
-     *
-     * @see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
-     */
-    constexpr int MAX_ULP_DISTANCE = 4;
-
 
     /**
      * Function for comparing closeness of two floating point numbers using ULP (Units in the Last Place) method.
@@ -60,7 +34,7 @@ namespace kdtree::util {
      * @see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
      */
     template<typename FloatType>
-    bool almostEqualUlps(FloatType lhs, FloatType rhs, int ulpDistance = MAX_ULP_DISTANCE);
+    bool almostEqualUlps(FloatType lhs, FloatType rhs, int ulpDistance = constants::MAX_ULP_DISTANCE);
 
     /**
      * Function to check if two floating point numbers are relatively equal to each other within a given error range or tolerance.
@@ -76,7 +50,7 @@ namespace kdtree::util {
      * @see https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
      */
     template<typename FloatType>
-    bool almostEqualRelative(FloatType lhs, FloatType rhs, double epsilon = EPSILON_ALMOST_EQUAL);
+    bool almostEqualRelative(FloatType lhs, FloatType rhs, double epsilon = constants::EPSILON_ALMOST_EQUAL);
 
 
 }// namespace kdtree::util

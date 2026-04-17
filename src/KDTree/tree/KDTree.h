@@ -47,6 +47,11 @@ namespace kdtree {
         /**
          * The polyhedron's vertices.
          */
+        std::shared_ptr<std::vector<VertexHandle>> _vertices;
+
+        /**
+         * The polyhedron's geometry objects.
+         */
         std::vector<GeometryObject> _geometryObjects;
 
         /**

@@ -235,18 +235,7 @@ namespace kdtree {
      * @class KDTreeTest
      * @brief Test suite for the KDTree class functionality.
      */
-    class KDTreeTest : public ::testing::TestWithParam<ParamType> {
-    protected:
-        void SetUp() override {
-            GeometryObject::runningIndex = 0;
-            GeometryObject::vertices.clear();
-        }
-
-        void TearDown() override {
-            GeometryObject::runningIndex = 0;
-            GeometryObject::vertices.clear();
-        }
-    };
+    class KDTreeTest : public ::testing::TestWithParam<ParamType> {};
 
     /**
      * Tests the intersection of rays with points on the surface of a polyhedron using the KDTree. The test generates random points on the surface of the polyhedron and checks if the KDTree correctly identifies the intersection points when rays are cast from a fixed origin towards these points. The test uses a progress bar to track the progress of testing multiple points.
@@ -319,6 +308,9 @@ namespace kdtree {
         std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();
+        if (algorithm == Algorithm::QUADRATIC || algorithm == Algorithm::NOTREE) {
+            GTEST_SKIP() << "Skipping regression test for notree and quadratic algorithm as it is used as the reference algorithm.";
+        }
         KDTree tree{vertices, faces, algorithm};
         auto squaredAlgorithm = PlaneSelectionAlgorithmFactory::create(Algorithm::QUADRATIC);
         auto variantAlgorithm = PlaneSelectionAlgorithmFactory::create(algorithm);

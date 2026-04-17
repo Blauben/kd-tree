@@ -11,6 +11,7 @@
 
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
+#include "KDTree/util/Constants.h"
 
 namespace kdtree {
 
@@ -139,18 +140,6 @@ namespace kdtree {
                         std::move(_callbackArgs));
             }
         };
-
-
-        /**
-        * Constant that describes the cost of traversing the KDTree by one step.
-        */
-        constexpr static double traverseStepCost{1.0};
-
-        /**
-        * Constant that describes the cost of intersecting a ray and a single object.
-        */
-        constexpr static double shapeIntersectionCost{1.0};
-
     protected:
         /**
        * Evaluates the cost function should the specified bounding box and it's shapes be divided by the specified plane. Used to evaluate possible split planes.

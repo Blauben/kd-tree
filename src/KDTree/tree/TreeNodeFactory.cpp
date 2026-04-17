@@ -4,7 +4,7 @@ namespace kdtree::TreeNodeFactory {
     std::shared_ptr<TreeNode> createTreeNode(const SplitParam &splitParam, size_t nodeId) {
         LOG_DEBUG("TreeNodeFactory: createTreeNode called for nodeId ", std::to_string(nodeId));
         //avoid splitting after certain tree depth
-        if (recursionDepth(nodeId) >= MAX_RECURSION_DEPTH) {
+        if (recursionDepth(nodeId) >= constants::MAX_RECURSION_DEPTH) {
             LOG_WARN("TreeNodeFactory: Max recursion depth reached, creating LeafNode for nodeId " + std::to_string(nodeId));
             auto leafNode = std::make_shared<LeafNode>(splitParam, nodeId);
             LeafNode::registerLeafNode(leafNode);
@@ -13,7 +13,7 @@ namespace kdtree::TreeNodeFactory {
         const size_t numberOfObjects{countGeometryObjects(splitParam.boundObjects)};
         //find optimal plane splitting this node's bounding box
         auto [plane, planeCost, shapeLists] = splitParam.planeSelectionStrategy->findPlane(splitParam);
-        const double costWithoutSplit = static_cast<double>(numberOfObjects) * PlaneSelectionAlgorithm::shapeIntersectionCost;
+        const double costWithoutSplit = static_cast<double>(numberOfObjects) * constants::SHAPE_INTERSECTION_COST;
 
         // Check if the boxes are divided into smaller regions
         const bool splitFailsToReduceSize = std::isinf(planeCost) || std::visit([numberOfObjects](auto &typeLists) {

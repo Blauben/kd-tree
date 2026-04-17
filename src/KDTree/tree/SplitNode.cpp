@@ -28,7 +28,7 @@ namespace kdtree {
             },
                        _shapeLists);
             childParam.splitDirection = static_cast<Direction>(
-                    (static_cast<int>(_splitParam->splitDirection) + 1) % DIMENSIONS);
+                    (static_cast<int>(_splitParam->splitDirection) + 1) % constants::DIMENSIONS);
             //increase the recursion depth of the direct child by 1
             node = TreeNodeFactory::createTreeNode(childParam, 2 * nodeId + 1 + index);
             if (_lesser != nullptr && _greater != nullptr) {
@@ -57,7 +57,7 @@ namespace kdtree {
         const double t_split{_plane.rayPlaneIntersection(origin, inverseRay)};
         //the split plane is hit inside of the bounding box -> both child boxes need to be checked
         const bool isParallel = std::isinf(t_split);
-        bool planeIsHitInsideBox = 0 <= t_split && t_enter - EPSILON_NUMERICAL_TOLERANCE <= t_split && t_split <= t_exit + EPSILON_NUMERICAL_TOLERANCE;
+        bool planeIsHitInsideBox = 0 <= t_split && t_enter - constants::EPSILON_NUMERICAL_TOLERANCE <= t_split && t_split <= t_exit + constants::EPSILON_NUMERICAL_TOLERANCE;
         if (!isParallel && planeIsHitInsideBox) {
             LOG_DEBUG("SplitNode: Plane hit inside bounding box for nodeId ", std::to_string(this->nodeId));
             delegates.push_back(getChildNode(0));
