@@ -15,8 +15,8 @@ namespace kdtree {
         const double surfaceArea1 = box1.surfaceArea();
         const double surfaceArea2 = box2.surfaceArea();
         //evaluate SAH: Include equalT once in each box and record option with minimum cost
-        const double costLesser = traverseStepCost + shapeIntersectionCost * (surfaceArea1 / surfaceAreaBounding * static_cast<double>(shapesMin + shapesPlanar) + surfaceArea2 / surfaceAreaBounding * static_cast<double>(shapesMax));
-        const double costGreater = traverseStepCost + shapeIntersectionCost * (surfaceArea1 / surfaceAreaBounding * static_cast<double>(shapesMin) + surfaceArea2 / surfaceAreaBounding * static_cast<double>(shapesMax + shapesPlanar));
+        const double costLesser = constants::TRAVERSE_STEP_COST + constants::SHAPE_INTERSECTION_COST * (surfaceArea1 / surfaceAreaBounding * static_cast<double>(shapesMin + shapesPlanar) + surfaceArea2 / surfaceAreaBounding * static_cast<double>(shapesMax));
+        const double costGreater = constants::TRAVERSE_STEP_COST + constants::SHAPE_INTERSECTION_COST * (surfaceArea1 / surfaceAreaBounding * static_cast<double>(shapesMin) + surfaceArea2 / surfaceAreaBounding * static_cast<double>(shapesMax + shapesPlanar));
         //if empty space is cut off, reduce cost by 20%
         const double factor = shapesMin == 0 || shapesMax == 0 ? 0.8 : 1;
         if (costLesser <= costGreater) {

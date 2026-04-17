@@ -12,12 +12,12 @@
 #include "KDTree/tree/SplitNode.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
+#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     struct SplitParam;
 }// namespace kdtree
 
-constexpr uint8_t MAX_RECURSION_DEPTH{64};
 
 /**
      * Factory class for building TreeNodes. {@link TreeNode}

@@ -9,7 +9,11 @@ Preset-Based Workflow (Recommended)
 
 .. code-block:: bash
 
-   cmake --workflow --preset build-and-test
+   # Release test workflow
+   cmake --workflow --preset build-and-test-release
+
+   # Debug test workflow
+   cmake --workflow --preset build-and-test-debug
 
 Manual Workflow
 ---------------
@@ -26,3 +30,4 @@ Run a Specific CTest Case
 .. code-block:: bash
 
    ctest --test-dir build/test -R KDTree --output-on-failure
+

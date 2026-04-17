@@ -135,8 +135,8 @@ print(f"Intersection points: {intersections}")
 tree.printTree()
 ```
 
-## CMake 
-For advanced CMake configuration, refer to the [documentation](docs).
+## CMake
+For advanced CMake configuration and the full preset reference, refer to the [documentation](docs/source/cmake/cmake.rst).
 
 ## Algorithm Comparison
 
@@ -199,4 +199,3 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 ## Citation
 
 If you use this library in your research, please cite it appropriately.
-

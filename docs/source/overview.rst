@@ -58,19 +58,18 @@ Building the C++ Library
    git clone <repository-url>
    cd kd-tree
 
-   # Create build directory
-   mkdir build && cd build
+   # Recommended: workflow presets
+   cmake --workflow --preset build-release-default
 
-   # Configure with CMake
-   cmake .. -DCMAKE_BUILD_TYPE=Release \
-            -DKD_TREE_PARALLELIZATION=TBB \
-            -DKD_TREE_LOGGING_LEVEL=INFO
+   # Optional variants
+   cmake --workflow --preset build-release-tbb
+   cmake --workflow --preset build-release-omp
+   cmake --workflow --preset build-and-test-release
+   cmake --workflow --preset build-and-test-debug
 
-   # Build
-   cmake --build . --config Release
-
-   # Run tests (optional)
-   ctest --output-on-failure
+   # Optional manual preset path
+   cmake --preset release-tbb
+   cmake --build --preset release-tbb
 
 Installing the Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
