@@ -1,57 +1,58 @@
 include(FetchContent)
 
-if(TARGET tetgen_lib) 
-    message(STATUS "tetgen library already exists in the project. Using existing target. CAUTION: library modifications may not be applied.")
-    return()
-endif()
+if(NOT TARGET tetgen_lib) 
+        message(STATUS "Setting up tetgen")
 
-message(STATUS "Setting up tetgen")
+        set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
 
-set(CMAKE_POLICY_VERSION_MINIMUM 3.10)
+        # IMPORTANT NOTE
+        # We do not use find_package here, as we modify the one source file slightly to suppress output via stdout!!!
 
-# IMPORTANT NOTE
-# We do not use find_package here, as we modify the one source file slightly to suppress output via stdout!!!
+        # Fetches the version 1.6 for tetgen
+        FetchContent_Declare(tetgen
+                GIT_REPOSITORY https://github.com/libigl/tetgen.git
+                GIT_TAG 4f3bfba3997f20aa1f96cfaff604313a8c2c85b6 # release 1.6
+        )
 
-# Fetches the version 1.6 for tetgen
-FetchContent_Declare(tetgen
-        GIT_REPOSITORY https://github.com/libigl/tetgen.git
-        GIT_TAG 4f3bfba3997f20aa1f96cfaff604313a8c2c85b6 # release 1.6
-)
+        FetchContent_MakeAvailable(tetgen)
 
-FetchContent_MakeAvailable(tetgen)
+        # Modify the tetgen library to suppress console output from the printf function
+        if(NOT EXISTS ${tetgen_SOURCE_DIR}/tetgen_mod.cxx)
+        message(STATUS "Creating modified tetgen.cxx in order to prevent console output from library")
+        file(READ ${tetgen_SOURCE_DIR}/tetgen.cxx TETGEN_CXX)
 
-# Modify the tetgen library to suppress console output from the printf function
-if(NOT EXISTS ${tetgen_SOURCE_DIR}/tetgen_mod.cxx)
-    message(STATUS "Creating modified tetgen.cxx in order to prevent console output from library")
-    file(READ ${tetgen_SOURCE_DIR}/tetgen.cxx TETGEN_CXX)
+        string(REPLACE
+                "#include \"tetgen.h\""
+                "#include \"tetgen.h\"\n#define printf(fmt, ...) (0)\n"
+                TETGEN_CXX "${TETGEN_CXX}")
 
-    string(REPLACE
-            "#include \"tetgen.h\""
-            "#include \"tetgen.h\"\n#define printf(fmt, ...) (0)\n"
-            TETGEN_CXX "${TETGEN_CXX}")
+        file(WRITE ${tetgen_SOURCE_DIR}/tetgen_mod.cxx
+                "${TETGEN_CXX}"
+        )
+        else()
+        message(STATUS "A modified tetgen.cxx already exists! It is assumed that it is the correct one disabling output")
+        endif()
 
-    file(WRITE ${tetgen_SOURCE_DIR}/tetgen_mod.cxx
-            "${TETGEN_CXX}"
-    )
+        mark_as_advanced(FORCE BUILD_EXECUTABLE BUILD_LIBRARY)
+
+        # Add the modified version of the tetgen library
+        add_library(tetgen_lib STATIC
+                ${tetgen_SOURCE_DIR}/tetgen_mod.cxx
+                ${tetgen_SOURCE_DIR}/predicates.cxx
+        )
+
+        # Define the TETLIBRARY macro for usage
+        target_compile_definitions(tetgen_lib PRIVATE -DTETLIBRARY)
+
+        # Include the tetgen source directory for the library
+        target_include_directories(tetgen_lib INTERFACE "${tetgen_SOURCE_DIR}")
+
+        # Disable warnings from the library target
+        target_compile_options(tetgen_lib PRIVATE -w)
+
+        add_library(tetgen::tetgen ALIAS tetgen_lib)
+
 else()
-    message(STATUS "A modified tetgen.cxx already exists! It is assumed that it is the correct one disabling output")
+        message(STATUS "tetgen library already exists in the project. Using existing target. CAUTION: library modifications may not be applied.")
 endif()
 
-mark_as_advanced(FORCE BUILD_EXECUTABLE BUILD_LIBRARY)
-
-# Add the modified version of the tetgen library
-add_library(tetgen_lib STATIC
-        ${tetgen_SOURCE_DIR}/tetgen_mod.cxx
-        ${tetgen_SOURCE_DIR}/predicates.cxx
-)
-
-# Define the TETLIBRARY macro for usage
-target_compile_definitions(tetgen_lib PRIVATE -DTETLIBRARY)
-
-# Include the tetgen source directory for the library
-target_include_directories(tetgen_lib INTERFACE "${tetgen_SOURCE_DIR}")
-
-# Disable warnings from the library target
-target_compile_options(tetgen_lib PRIVATE -w)
-
-add_library(tetgen::tetgen ALIAS tetgen_lib)
