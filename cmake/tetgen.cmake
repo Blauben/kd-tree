@@ -50,9 +50,12 @@ if(NOT TARGET tetgen_lib)
         # Disable warnings from the library target
         target_compile_options(tetgen_lib PRIVATE -w)
 
-        add_library(tetgen::tetgen ALIAS tetgen_lib)
-
 else()
         message(STATUS "tetgen library already exists in the project. Using existing target. CAUTION: library modifications may not be applied.")
 endif()
 
+if(NOT TARGET tetgen::tetgen)
+        add_library(tetgen::tetgen ALIAS tetgen_lib)
+else()
+        message(STATUS "tetgen::tetgen target already exists. Using existing target.")
+endif()
