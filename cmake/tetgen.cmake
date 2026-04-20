@@ -1,5 +1,10 @@
 include(FetchContent)
 
+if(TARGET tetgen_lib) 
+    message(STATUS "tetgen library already exists in the project. Using existing target. CAUTION: library modifications may not be applied.")
+    return()
+endif()
+
 message(STATUS "Setting up tetgen")
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.10)

@@ -1,7 +1,7 @@
 ###############################
 # Building the KDTree Libray
 ################################
-if (BUILD_KD_TREE_LIBRARY)
+if (BUILD_KD_TREE_LIBRARY AND NOT TARGET ${PROJECT_NAME}_lib)
     message(STATUS "Building the KD Tree Library")
 
     add_subdirectory(KDTree)
@@ -23,7 +23,7 @@ endif ()
 #####################################
 # Building the KDTree Executable
 #####################################
-if (BUILD_KD_TREE_EXECUTABLE)
+if (BUILD_KD_TREE_EXECUTABLE AND NOT TARGET ${PROJECT_NAME})
     message(STATUS "Building the KD Tree Executable")
 
     include(cli11)
@@ -47,7 +47,7 @@ endif ()
 ##########################################
 # Building the KDTree Python Interface
 ##########################################
-if (BUILD_KD_TREE_PYTHON_INTERFACE)
+if (BUILD_KD_TREE_PYTHON_INTERFACE AND NOT TARGET scikdtree)
     message(STATUS "Building the KD Tree Python Interface")
 
     # Include nanobind
@@ -61,7 +61,7 @@ endif ()
 #####################################################
 # Building the KDTree Time Measurement Executable
 #####################################################
-if (BUILD_KD_TREE_TIME_MEASUREMENT)
+if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
     message(STATUS "Building the KD Tree Benchmark Executable")
 
     include(benchmark)
