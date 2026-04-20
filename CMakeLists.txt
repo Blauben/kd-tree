@@ -83,9 +83,9 @@ endif()
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
 
-include(git)
-include(version.cmake)
-include(cmake-pkg-config)
+include(${KD_TREE_SOURCE_DIR}/cmake/git.cmake)
+include(${KD_TREE_SOURCE_DIR}/version.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
@@ -104,13 +104,13 @@ message(STATUS "################################################################
 # Including dependencies needed across multiple targets
 #######################################################
 
-include(thrust)
-include(spdlog)
-include(tetgen)
-include(clang_format)
+include(${KD_TREE_SOURCE_DIR}/cmake/thrust.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/spdlog.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/tetgen.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/clang_format.cmake)
 
 if (${ENABLE_IWYU})
-    include(include-what-you-use)
+    include(${KD_TREE_SOURCE_DIR}/cmake/include-what-you-use.cmake)
 endif ()
 
 ###############################
@@ -120,7 +120,7 @@ endif ()
 # preinstalled but rather gets automatically set up via CMake
 # Nevertheless, there is still the option to enforce to use a local installation if one exists
 if (${KD_TREE_PARALLELIZATION} STREQUAL "TBB")
-    include(tbb)
+    include(${KD_TREE_SOURCE_DIR}/cmake/tbb.cmake)
     thrust_set_TBB_target(TBB::tbb)
     add_compile_definitions(KD_TREE_TBB)
 elseif (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
