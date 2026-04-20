@@ -10,8 +10,8 @@ project(KDTree)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(KD_TREE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
-set(KD_TREE_BINARY_DIR ${PROJECT_BINARY_DIR})
+set(KD_TREE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(KD_TREE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Appends the the module path to contain additional CMake modules for this project
 # and include everything necessary

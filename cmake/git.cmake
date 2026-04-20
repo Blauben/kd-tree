@@ -4,7 +4,7 @@ function(get_git_commit_hash OUTPUT_VAR)
     # Run a Git command to get the first 8 characters of the current commit hash
     execute_process(
             COMMAND ${GIT_EXECUTABLE} rev-parse --short=8 HEAD
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${KD_TREE_SOURCE_DIR}
             OUTPUT_VARIABLE GIT_COMMIT_HASH
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_VARIABLE GIT_ERROR
@@ -25,7 +25,7 @@ function(is_git_working_tree_clean OUTPUT_VAR)
     # Run a Git command to check if the working tree is clean
     execute_process(
             COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
-            WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+            WORKING_DIRECTORY ${KD_TREE_SOURCE_DIR}
             RESULT_VARIABLE GIT_STATUS_RESULT
             ERROR_VARIABLE GIT_ERROR
             ERROR_STRIP_TRAILING_WHITESPACE
