@@ -6,25 +6,28 @@ set(TBB_VERSION 2021.12.0)
 # Skip find_package on MSVC — pip/conda TBB packages ship MinGW-format
 # .dll.a import libs which MSVC's linker cannot use.
 if(NOT MSVC)
-    find_package(TBB QUIET)
-endif()
-
-if(${TBB_FOUND})
-    message(STATUS "Found existing TBB library: ${TBB_DIR}")
+    FetchContent_Declare(tbb
+            FIND_PACKAGE_ARGS QUIET NAMES TBB
+            GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
+            GIT_TAG v${TBB_VERSION}
+    )
 else()
-    message(STATUS "Using TBB from GitHub Release ${TBB_VERSION}")
-
-    #Fetches the version v2021.12.0 from the official github of tbb
     FetchContent_Declare(tbb
             GIT_REPOSITORY https://github.com/oneapi-src/oneTBB.git
             GIT_TAG v${TBB_VERSION}
     )
+endif()
+
+FetchContent_MakeAvailable(tbb)
+
+if (TBB_FOUND)
+    message(STATUS "Found existing TBB library: ${TBB_DIR}")
+else()
+    message(STATUS "Using TBB from GitHub Release ${TBB_VERSION}")
 
     # Disable tests & and do not treat tbb-compile errors as warnings
     set(TBB_TEST OFF CACHE BOOL "" FORCE)
     set(TBB_STRICT OFF CACHE STRING "" FORCE)
-
-    FetchContent_MakeAvailable(tbb)
 endif()
 
 # Copies runtime DLLs (primarily libtbb12.dll) next to a target on Windows
