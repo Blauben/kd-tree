@@ -48,6 +48,7 @@ endfunction()
 function(get_git_version_tag OUTPUT_VAR)
     execute_process(
             COMMAND git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*"
+            WORKING_DIRECTORY ${KD_TREE_SOURCE_DIR}
             OUTPUT_VARIABLE GIT_TAG
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_VARIABLE GIT_ERROR
