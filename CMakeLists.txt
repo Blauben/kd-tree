@@ -85,6 +85,7 @@ add_compile_definitions(FMT_HEADER_ONLY)
 
 include(git)
 include(version.cmake)
+include(cmake-pkg-config)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
