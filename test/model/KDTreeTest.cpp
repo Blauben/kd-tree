@@ -285,6 +285,14 @@ namespace kdtree {
         }
     }
 
+    TEST_F(KDTreeTest, RebuildTreeTest) {
+        KDTree tree{cube_vertices, cube_faces, Algorithm::NOTREE};
+        ASSERT_THAT(tree.getRootNode(), testing::NotNull());
+        tree.rebuildTree();
+        ASSERT_THAT(tree._rootNode, testing::IsNull());
+        ASSERT_THAT(tree.getRootNode(), testing::NotNull());
+    }
+
     /**
      * Tests the functionality of the plane iterator of the KDTree. The test builds a KDTree from a specified mesh and then uses the plane iterator to traverse the tree and print out the planes and their corresponding bounding boxes. The test checks if the iterator correctly iterates over all planes in the tree by counting the number of iterations and asserting that it is greater than zero.
      */
@@ -307,6 +315,8 @@ namespace kdtree {
         ASSERT_TRUE(LeafNode::leafNodes.empty());
         tree.prebuildTree();
         ASSERT_FALSE(LeafNode::leafNodes.empty());
+        tree.rebuildTree();
+        ASSERT_TRUE(LeafNode::leafNodes.empty());
     }
 
     constexpr size_t numberOfPoints = 10;

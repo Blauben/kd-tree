@@ -10,12 +10,12 @@ namespace kdtree {
 
     void ShapeCounter::updateMax(Direction direction, const size_t p_planar, const size_t p_end) {
         _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(1) -= p_planar +
-                                                                                                       p_end;
+                                                                                                         p_end;
     }
 
     void ShapeCounter::updateMin(Direction direction, const size_t p_planar, const size_t p_start) {
         _dimensionShapeValues.at(static_cast<size_t>(direction) % _dimensionShapeValues.size()).at(0) += p_planar +
-                                                                                                       p_start;
+                                                                                                         p_start;
     }
 
     void ShapeCounter::setPlanar(Direction direction, const size_t p_planar) {
