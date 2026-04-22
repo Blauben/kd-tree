@@ -444,6 +444,16 @@ namespace kdtree::util {
         return os;
     }
 
+    template<typename T>
+    constexpr const T& asRef(const T& value) noexcept {
+        return value;
+    }
+
+    template<typename T>
+    constexpr const T& asRef(const T* ptr) {
+        return *ptr;
+    }
+
     /**
     * Calculates the min and max coordinate values for each dimension of the elements supplied.
     * @param elements the container of whose elements to search for min and max ccordinates
@@ -459,12 +469,13 @@ namespace kdtree::util {
         //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
         ValueType min = elements[0];
         ValueType max = elements[0];
+
         //test each vertex for proximity to the origin and find minima and maxima
         for (const auto &vertex: elements) {
             // test each dimension separately
             for (size_t i = 0; i < vertex.size(); ++i) {
-                min[i] = std::min(min[i], vertex[i]);
-                max[i] = std::max(max[i], vertex[i]);
+                asRef(min)[i] = std::min(asRef(min)[i], asRef(vertex)[i]);
+                asRef(max)[i] = std::max(asRef(max)[i], asRef(vertex)[i]);
             }
         }
         return {min, max};

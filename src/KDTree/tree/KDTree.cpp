@@ -16,7 +16,7 @@ namespace kdtree {
         }
         _geometryObjects.reserve(shapes.size());
         //transform shape indices to GeometryObjects
-        std::ranges::for_each(shapes, [this, objectIndex = size_t{0}](const IndexVector &vertexIndices) mutable {
+        std::ranges::for_each(shapes.cbegin(), shapes.cend(), [this, objectIndex = size_t{0}](const IndexVector &vertexIndices) mutable {
             _geometryObjects.emplace_back(vertexIndices, objectIndex++, _vertices);
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
@@ -50,6 +50,7 @@ namespace kdtree {
     }
 
     void KDTree::rebuildTree() {
+        std::lock_guard lock(this->_rootNodeCreationMutex);
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree
         // since splitParam are moved once the previous tree is built, they have to regenerated here
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,

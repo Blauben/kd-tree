@@ -54,23 +54,6 @@ namespace kdtree {
         }
 
         /**
-         * Finds the minimal bounding box for the KDTree's vertex handle storage.
-         * @param vertices the stored vertex handles
-         * @return the bounding box {@link Box}
-         */
-        static Box getBoundingBox(const std::vector<VertexHandle> &vertices) {
-            std::vector<Vertex> resolvedVertices{};
-            resolvedVertices.reserve(vertices.size());
-            std::ranges::transform(vertices, std::back_inserter(resolvedVertices), [](const auto &handle) {
-                return std::visit(util::overloaded{
-                        [](const Vertex &vertex) { return vertex; },
-                        [](const Vertex *vertex) { return *vertex; }
-                }, handle);
-            });
-            return Box(getBoundingBox(resolvedVertices));
-        }
-
-        /**
          * Checks if a vertex lies in this box. Used for testing purposes. Useful for moving vertices to determine whether they are still contained in the same box after movement.
          * @param vertex The vertex to be checked.
          * @param tolerance A tolerance value interpreted as a 1D distance. As some vertices might lie exactly on the box boundary (some even by construction!), this tolerance is used to still consider vertices that are close enough to the box as contained in the box. This is necessary to avoid unnecessary tree rebuilds when vertices move slightly outside of their original bounding boxes.
