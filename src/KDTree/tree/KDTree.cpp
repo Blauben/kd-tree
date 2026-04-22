@@ -51,13 +51,12 @@ namespace kdtree {
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         LOG_DEBUG("KDTree: getRootNode called");
+        std::lock_guard lock(this->_rootNodeCreationMutex);
+
         //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
         if (this->_rootNode != nullptr) {
             LOG_DEBUG("KDTree: Root node already exists, returning existing node");
-            return this->_rootNode;
-        }
-        std::lock_guard lock(this->_rootNodeCreationMutex);
-        if (this->_rootNode == nullptr) {
+        } else {
             this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
         }
         return this->_rootNode;
