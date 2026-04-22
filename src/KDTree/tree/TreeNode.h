@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <memory>
 
+#include "KDTree/Logging.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
-#include "KDTree/Logging.h"
 
 namespace kdtree {
 
@@ -15,10 +15,10 @@ namespace kdtree {
     class TreeNode {
     public:
         virtual ~TreeNode() = default;
-        TreeNode(const TreeNode&) = delete;
-        TreeNode& operator=(const TreeNode&) = delete;
-        TreeNode(TreeNode&&) noexcept;
-        TreeNode& operator=(TreeNode&&) noexcept;
+        TreeNode(const TreeNode &) = delete;
+        TreeNode &operator=(const TreeNode &) = delete;
+        TreeNode(TreeNode &&) noexcept;
+        TreeNode &operator=(TreeNode &&) noexcept;
 
         /**
         * The current node's id. Follows the convention that the left child gets the id 2 * <current_id> + 1 and
