@@ -54,13 +54,10 @@ namespace kdtree {
     }
 
     bool Box::isVertexInBox(const Vertex &vertex, double tolerance) const {
-        for (const auto &direction: ALL_DIRECTIONS) {
+        return std::ranges::all_of(ALL_DIRECTIONS.begin(), ALL_DIRECTIONS.end(), [&](const Direction direction) {
             const int index{static_cast<int>(direction)};
-            if (vertex[index] <= minPoint[index] - tolerance || vertex[index] >= maxPoint[index] + tolerance) {
-                return false;
-            }
-        }
-        return true;
+            return !(vertex[index] <= minPoint[index] - tolerance || vertex[index] >= maxPoint[index] + tolerance);
+        });
     }
 
     std::vector<Vertex> Box::clipToVoxel(const std::vector<Vertex> &points) const {
