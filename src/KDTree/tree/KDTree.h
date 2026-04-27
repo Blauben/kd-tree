@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "NodeRegister.h"
 #include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/model/GeometryObject.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
@@ -98,9 +99,11 @@ namespace kdtree {
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> polySource,
+        KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
                PlaneSelectionAlgorithm::Algorithm algorithm);
 
+
+        NodeRegister nodeRegister{};
 
         /**
         * Creates the root tree node if not initialized and returns it.

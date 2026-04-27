@@ -39,7 +39,7 @@ namespace kdtree {
         LOG_INFO("KDTree: Constructed from particles");
     }
 
-    KDTree::KDTree(std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> polySource,
+    KDTree::KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
     }
@@ -147,7 +147,8 @@ namespace kdtree {
     }
 
     void KDTree::rebuildTreeIfNeeded() {
-        const bool rebuildTree = std::ranges::any_of(LeafNode::leafNodes.cbegin(), LeafNode::leafNodes.cend(), [this](const auto &leafNodePtr) {
+        std::shared_lock lock(nodeRegister.leafNodeMutex);
+        const bool rebuildTree = std::ranges::any_of(nodeRegister.leafNodes.cbegin(), nodeRegister.leafNodes.cend(), [](const auto &leafNodePtr) {
             if (const auto leafNode = leafNodePtr.lock()) {
                 if (leafNode->needTreeRebuild()) {
                     return true;
@@ -155,6 +156,7 @@ namespace kdtree {
             }
             return false;
         });
+        lock.unlock();
         if (!rebuildTree) {
             return;
         }

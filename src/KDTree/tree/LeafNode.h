@@ -1,5 +1,6 @@
 #pragma once
 
+#include "KDTree/util/Constants.h"
 #include "KDTree/Logging.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
@@ -43,13 +44,7 @@ namespace kdtree {
         LeafNode(LeafNode &&) noexcept = delete;
         LeafNode &operator=(LeafNode &&) noexcept = delete;
         ~LeafNode() override;
-        static std::vector<std::weak_ptr<LeafNode>> leafNodes;
 
-        /**
-         * Register a weak_ptr to this LeafNode in the global leafNodes registry.
-         * Should be called by TreeNodeFactory after creating a shared_ptr.
-         */
-        static void registerLeafNode(const std::shared_ptr<LeafNode> &node);
 
         /**
          * Only used with dynamic vertices. Checks if the vertices contained in this node have moved outside the node's bounding box since the last tree build, which would require a tree rebuild to maintain correct intersection results.

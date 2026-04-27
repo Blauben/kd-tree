@@ -104,16 +104,40 @@ jobs:
           path: dist/*.tar.gz
           name: sdist
 
+  # 1.c Test the built wheels with pytest
+  test_wheels:
+    name: Test wheels with pytest
+    needs: [build_wheels, make_sdist]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v6
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+          python -m pip install dist/scikdtree-*.whl
+      - name: Run pytest
+        run: pytest test/python -v
+
    # 2. Upload the wheels and the source distribution to testpypi
    #    using trusted publishing
   upload_testpypi:
-    needs: [build_wheels, make_sdist]
+    needs: [build_wheels, make_sdist, test_wheels]
     environment:
       name: testpypi
       url: https://test.pypi.org/p/scikdtree
     permissions:
       id-token: write
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
     steps:
       - uses: actions/download-artifact@v6
         with:

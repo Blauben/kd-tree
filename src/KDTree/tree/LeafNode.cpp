@@ -1,5 +1,4 @@
 #include "KDTree/tree/LeafNode.h"
-#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
@@ -8,19 +7,8 @@ namespace kdtree {
     }
 
     LeafNode::~LeafNode() {
-        // Cleanup expired weak_ptr entries from the registry
-        std::erase_if(leafNodes, [](const std::weak_ptr<LeafNode> &ptr) {
-            return ptr.expired();
-        });
         LOG_DEBUG("LeafNode: Destroyed with nodeId " + std::to_string(nodeId));
-    }
-
-    std::vector<std::weak_ptr<LeafNode>> LeafNode::leafNodes{};
-
-    void LeafNode::registerLeafNode(const std::shared_ptr<LeafNode> &node) {
-        if (node) {
-            leafNodes.push_back(node);
-        }
+        _splitParam->nodeRegister.removeExpired();
     }
 
     bool LeafNode::needTreeRebuild() {

@@ -1,4 +1,5 @@
 #include "KDTree/tree/TreeNodeFactory.h"
+#include "KDTree/tree/NodeRegister.h"
 
 namespace kdtree::TreeNodeFactory {
     std::shared_ptr<TreeNode> createTreeNode(const SplitParam &splitParam, size_t nodeId) {
@@ -7,7 +8,7 @@ namespace kdtree::TreeNodeFactory {
         if (recursionDepth(nodeId) >= constants::MAX_RECURSION_DEPTH) {
             LOG_WARN("TreeNodeFactory: Max recursion depth reached, creating LeafNode for nodeId " + std::to_string(nodeId));
             auto leafNode = std::make_shared<LeafNode>(splitParam, nodeId);
-            LeafNode::registerLeafNode(leafNode);
+            splitParam.nodeRegister.registerLeafNode(leafNode);
             return leafNode;
         }
         const size_t numberOfObjects{countGeometryObjects(splitParam.boundObjects)};
@@ -29,7 +30,7 @@ namespace kdtree::TreeNodeFactory {
         if (planeCost > costWithoutSplit || splitFailsToReduceSize) {
             LOG_DEBUG("TreeNodeFactory: Creating LeafNode for nodeId " + std::to_string(nodeId) + ", planeCost: " + std::to_string(planeCost) + ", costWithoutSplit: " + std::to_string(costWithoutSplit) + ", splitFailsToReduceSize: " + (splitFailsToReduceSize ? "true" : "false"));
             auto leafNode = std::make_shared<LeafNode>(splitParam, nodeId);
-            LeafNode::registerLeafNode(leafNode);
+            splitParam.nodeRegister.registerLeafNode(leafNode);
             return leafNode;
         }
         //if not more costly, perform the split

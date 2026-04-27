@@ -13,7 +13,3 @@ CMakeFiles/
 CMakeUserPresets.json
 
 dependencies/
-
-# test artifacts
-resources/reference_kd_tree_plot.png
-kd_tree_plot_test.png
