@@ -1,0 +1,8 @@
+//
+// Created by Karl on 27.04.2026.
+//
+
+#ifndef KDTREE_NODEREGISTER_H
+#define KDTREE_NODEREGISTER_H
+
+#endif //KDTREE_NODEREGISTER_H
