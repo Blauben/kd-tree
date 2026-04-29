@@ -52,6 +52,7 @@ namespace kdtree {
     void KDTree::rebuildTree() {
         std::lock_guard lock(this->_rootNodeCreationMutex);
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree
+        nodeRegister.leafNodes.clear();
         // since splitParam are moved once the previous tree is built, they have to regenerated here
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
                                                    PlaneSelectionAlgorithmFactory::create(_algorithm), nodeRegister);
