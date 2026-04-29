@@ -129,7 +129,7 @@ namespace kdtree {
          * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
          * @return A tuple containing the vertices and faces of the big polyhedron.
          */
-        const std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> &getBigPolyhedron() {
+        const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &getBigPolyhedron() {
             static const std::vector<std::string> polyhedronNodeFilePath = {
                     std::format("resources/Eros_scaled-{}.node", 27000),
                     std::format("resources/Eros_scaled-{}.face", 27000)};
@@ -379,11 +379,11 @@ namespace kdtree {
     TEST_F(KDTreeTest, LeafNodeRegisterTest) {
         const std::string meshPath{"resources/Eros_scaled-1000"};
         KDTree tree{meshPath + ".node", meshPath + ".face"};
-        ASSERT_TRUE(LeafNode::leafNodes.empty());
+        ASSERT_TRUE(tree.nodeRegister.leafNodes.empty());
         tree.prebuildTree();
-        ASSERT_FALSE(LeafNode::leafNodes.empty());
+        ASSERT_FALSE(tree.nodeRegister.leafNodes.empty());
         tree.rebuildTree();
-        ASSERT_TRUE(LeafNode::leafNodes.empty());
+        ASSERT_TRUE(tree.nodeRegister.leafNodes.empty());
     }
 
     /**

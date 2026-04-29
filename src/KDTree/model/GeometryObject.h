@@ -1,16 +1,15 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
+#include <utility>
 #include <vector>
+
+#include <thrust/iterator/transform_iterator.h>
 
 #include "KDTree/tree/KdDefinitions.h"
 
 namespace kdtree {
-    /**
-     * Allow KDTree data to be dynamic or static to avoid dangling references.
-     */
-    using VertexHandle = std::variant<Vertex, const Vertex*>;
-
     /**
      * This class contains a collection of vertices, representing the corners of a geometrical shape and provides the abstraction on which the kdtree operates.
      */

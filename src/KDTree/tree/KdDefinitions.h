@@ -32,6 +32,11 @@ namespace kdtree {
     using Vertex = std::array<double, 3>;
 
     /**
+     * Allow KDTree data to be dynamic or static to avoid dangling references.
+     */
+    using VertexHandle = std::variant<Vertex, const Vertex*>;
+
+    /**
      * Alias for an array of size 3 (size_t)
      * @example for the vertex indices in a triangular face.
      */
@@ -103,4 +108,48 @@ namespace kdtree {
     */
     size_t recursionDepth(size_t nodeId);
 
+    template<typename T>
+    const Vertex& asVertex(const T &object) {
+        if constexpr (std::is_same_v<T, VertexHandle>) {
+            // Handle variant: extract either Vertex or const Vertex*
+            if (const auto* ptr = std::get_if<const Vertex*>(&object)) {
+                return **ptr;
+            }
+            return std::get<Vertex>(object);
+        } else if constexpr (std::is_pointer_v<T>) {
+            // Handle raw pointers
+            return *object;
+        } else {
+            // Direct value
+            return object;
+        }
+    }
+
+    /**
+    * Calculates the min and max coordinate values for each dimension of the elements supplied.
+    * @param elements the container of whose elements to search for min and max ccordinates
+    * @return the findings formatted in a pair of new elements. E.g <(0,0,0) , (1,1,1)> if the container {(0,0,1), (1,1,0)} is passed.
+    */
+    template<util::Container C>
+    std::pair<Vertex, Vertex> findMinMaxCoordinates(C elements)
+        requires std::is_same_v<typename C::value_type, Vertex> || std::is_same_v<typename C::value_type, VertexHandle> {
+        //return empty box centered at the origin if no vertices provided
+        if (elements.empty()) {
+            return {{0, 0, 0}, {0, 0, 0}};
+        }
+        //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
+        Vertex min = asVertex(elements[0]);
+        Vertex max = asVertex(elements[0]);
+
+        //test each vertex for proximity to the origin and find minima and maxima
+        for (const auto &vertex: elements) {
+            const Vertex &coords = asVertex(vertex);
+            // test each dimension separately
+            for (size_t i = 0; i < coords.size(); ++i) {
+                min[i] = std::min(min[i], coords[i]);
+                max[i] = std::max(max[i], coords[i]);
+            }
+        }
+        return {min, max};
+    }
 }// namespace kdtree

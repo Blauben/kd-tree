@@ -20,7 +20,7 @@ namespace kdtree {
             _geometryObjects.emplace_back(vertexIndices, objectIndex++, _vertices);
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(algorithm));
+                                                   PlaneSelectionAlgorithmFactory::create(algorithm), nodeRegister);
         LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
     }
 
@@ -54,7 +54,7 @@ namespace kdtree {
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree
         // since splitParam are moved once the previous tree is built, they have to regenerated here
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(_algorithm));
+                                                   PlaneSelectionAlgorithmFactory::create(_algorithm), nodeRegister);
     }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
