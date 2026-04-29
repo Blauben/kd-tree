@@ -32,5 +32,12 @@ namespace kdtree {
          */
         void removeExpired();
 
+        /**
+         * Explicitly unregisters a specific LeafNode from the leafNodes registry.
+         * Should be called during LeafNode destruction to safely remove itself without
+         * accessing invalid weak_ptr control blocks.
+         */
+        void unregisterLeafNode(const std::shared_ptr<LeafNode> &node);
+
     };
 }

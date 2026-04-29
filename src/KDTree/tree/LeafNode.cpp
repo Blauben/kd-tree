@@ -8,7 +8,9 @@ namespace kdtree {
 
     LeafNode::~LeafNode() {
         LOG_DEBUG("LeafNode: Destroyed with nodeId " + std::to_string(nodeId));
-        _splitParam->nodeRegister.removeExpired();
+        // Do NOT call removeExpired() here - it attempts to call expired() on weak_ptrs
+        // while the control block of the dying node may be invalid, causing segfaults.
+        // Periodic cleanup should be done elsewhere (e.g., in tree destruction or separate cleanup calls).
     }
 
     bool LeafNode::needTreeRebuild() {
