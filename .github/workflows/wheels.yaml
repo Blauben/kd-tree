@@ -1,6 +1,7 @@
 name: Build & Publish Python Package
 
 on:
+  pull_request:
   release:
     types: [created]
     # Only trigger for regular releases, not pre-releases
