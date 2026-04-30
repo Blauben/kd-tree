@@ -40,6 +40,12 @@ jobs:
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair
+            --exclude libtbb.so.12
+            --exclude libtbbmalloc.so.2
+            --exclude libtbbmalloc_proxy.so.2
+            -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
@@ -61,6 +67,12 @@ jobs:
             CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
+            auditwheel repair
+            --exclude libtbb.so.12
+            --exclude libtbbmalloc.so.2
+            --exclude libtbbmalloc_proxy.so.2
+            -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
