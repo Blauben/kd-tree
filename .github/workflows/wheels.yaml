@@ -68,11 +68,11 @@ jobs:
             CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             BUILD_PATH=$(find $(pwd) -type f -name "libtbb*" -exec dirname {} \; | head -n 1)
-            export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
-            echo "Running auditwheel repair for macOS wheel with additional paths: $BUILD_PATH"
-            auditwheel repair -w {dest_dir} {wheel}
+            export DYLD_LIBRARY_PATH="$BUILD_PATH:$DYLD_LIBRARY_PATH"
+            echo "Running delocate repair for macOS wheel with additional paths: $BUILD_PATH"
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
