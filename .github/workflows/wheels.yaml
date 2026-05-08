@@ -36,18 +36,15 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
-            yum install -y git gcc-c++
-            git clone --branch v2021.12.0 --depth 1 https://github.com/oneapi-src/oneTBB.git
-            cd oneTBB
-            cmake -DCMAKE_INSTALL_PREFIX=/usr/local .
-            make -j$(nproc)
-            make install
-            cd ..
           CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            BUILD_PATH=$(find ${{github.workspace}} -type f -name "libtbb*.so*" -exec dirname {} \; | head -n 1)
+            export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            auditwheel repair -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
@@ -61,12 +58,6 @@ jobs:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
             yum install -y git gcc-c++
-            git clone --branch v2021.12.0 --depth 1 https://github.com/oneapi-src/oneTBB.git
-            cd oneTBB
-            cmake -DCMAKE_INSTALL_PREFIX=/usr/local .
-            make -j$(nproc)
-            make install
-            cd ..
           CIBW_ENABLE: cpython-freethreading
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
