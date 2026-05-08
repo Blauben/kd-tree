@@ -42,7 +42,7 @@ jobs:
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            BUILD_PATH=$(find ${{github.workspace}} -type f -name "libtbb*.so*" -exec dirname {} \; | head -n 1)
+            BUILD_PATH=$(find $(pwd) -type f -name "libtbb*.so*" -exec dirname {} \; | head -n 1)
             export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
             auditwheel repair -w {dest_dir} {wheel}
         with:
