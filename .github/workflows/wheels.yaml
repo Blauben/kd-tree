@@ -44,6 +44,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             BUILD_PATH=$(find $(pwd) -type f -name "libtbb*" -exec dirname {} \; | head -n 1)
             export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            echo "Running auditwheel repair for macOS wheel with additional paths: $BUILD_PATH"
             auditwheel repair -w {dest_dir} {wheel}
         with:
           package-dir: .
@@ -70,6 +71,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             BUILD_PATH=$(find $(pwd) -type f -name "libtbb*" -exec dirname {} \; | head -n 1)
             export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            echo "Running auditwheel repair for macOS wheel with additional paths: $BUILD_PATH"
             auditwheel repair -w {dest_dir} {wheel}
         with:
           package-dir: .
