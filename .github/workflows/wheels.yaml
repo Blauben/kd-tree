@@ -69,9 +69,10 @@ jobs:
           CIBW_ARCHS_MACOS: "x86_64 arm64"
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
-            BUILD_PATH=$(find $(pwd)/build -type f -name "libtbb*" | \
-              grep "{python}-{abi}" | \
-              xargs -I{} dirname {} | \
+            WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
+            BUILD_PATH=$(find $(pwd)/build -type f -name "libtbb*.dylib" | \
+              grep "$WHEEL_ID" | \
+              xargs -I% dirname % | \
               head -n 1)
             export DYLD_LIBRARY_PATH="$BUILD_PATH:$DYLD_LIBRARY_PATH"
             echo "Running delocate repair for macOS wheel with additional paths: $BUILD_PATH"
