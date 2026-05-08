@@ -31,19 +31,12 @@ jobs:
         with:
           platforms: all
         if: matrix.os == 'ubuntu-latest'
-      - name: Install build dependencies (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libtbb-dev
-        if: matrix.os == 'ubuntu-latest'
-      - name: Install build dependencies (macOS)
-        run: |
-          brew install tbb
-        if: matrix.os == 'macos-latest'
       - name: Build wheels (Linux)
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+            yum install -y libtbb libtbb-devel
           CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -59,7 +52,9 @@ jobs:
       - name: Build wheels (macOS)
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+            yum install -y libtbb libtbb-devel
           CIBW_ENABLE: cpython-freethreading
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
