@@ -31,6 +31,10 @@ jobs:
         with:
           platforms: all
         if: matrix.os == 'ubuntu-latest'
+      - name: Install build dependencies (Linux / macOS)
+        run: |
+          yum install tbb tbb-devel
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'macos-latest'
       - name: Build wheels (Linux)
         uses: pypa/cibuildwheel@v3.3.1
         env:
