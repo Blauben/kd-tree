@@ -36,7 +36,7 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
-            yum install -y libtbb libtbb-devel
+            yum install -y tbb
           CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -54,7 +54,7 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
-            yum install -y libtbb libtbb-devel
+            yum install -y tbb
           CIBW_ENABLE: cpython-freethreading
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
