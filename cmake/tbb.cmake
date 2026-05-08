@@ -13,8 +13,6 @@ if(${TBB_FOUND})
     message(STATUS "Found existing TBB library: ${TBB_DIR}")
 else()
     message(STATUS "Using TBB from GitHub Release ${TBB_VERSION}")
-    # TODO: remove this message during merge to main
-    message(STATUS "Cmake install directory for TBB: ${CMAKE_INSTALL_PREFIX}")
 
     #Fetches the version v2021.12.0 from the official github of tbb
     FetchContent_Declare(tbb
