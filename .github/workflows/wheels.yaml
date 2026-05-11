@@ -41,7 +41,6 @@ jobs:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
             pip install -e ".[test]"
-          CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'pytest {project}'
@@ -62,7 +61,6 @@ jobs:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
             pip install -e ".[test]"
-          CIBW_ENABLE: ${{ github.event_name == 'release' && 'cpython-freethreading' || '' }}
           CIBW_ARCHS_LINUX: aarch64
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'pytest {project}'
@@ -84,7 +82,6 @@ jobs:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
             pip install -e ".[test]"
-          CIBW_ENABLE: cpython-freethreading
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
             CC=clang
