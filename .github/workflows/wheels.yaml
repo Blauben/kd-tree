@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build wheels (Linux x86_64)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
@@ -48,7 +48,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
-            export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            export LD_LIBRARY_PATH="$BUILD_PATH"
             echo "Running auditwheel repair for linux wheel with additional paths: $BUILD_PATH"
             auditwheel repair -w {dest_dir} {wheel}
         with:
@@ -57,7 +57,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
 
       - name: Build wheels (Linux aarch64 — native ARM)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
@@ -69,7 +69,7 @@ jobs:
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
-            export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            export LD_LIBRARY_PATH="$BUILD_PATH"
             auditwheel repair -w {dest_dir} {wheel}
         with:
           package-dir: .
@@ -79,7 +79,7 @@ jobs:
       # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
       # The macOS GitHub Runner is nowadays arm64 based
       - name: Build wheels (macOS)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
@@ -121,7 +121,7 @@ jobs:
           reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
         if: matrix.os == 'windows-latest'
       - name: Build wheels (Windows)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
