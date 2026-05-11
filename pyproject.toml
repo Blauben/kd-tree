@@ -32,6 +32,12 @@ classifiers = [
     "Programming Language :: Python :: 3.14",
 ]
 
+[project.optional-dependencies]
+test = [
+    "numpy",
+    "pytest >= 6.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/Blauben/kd-tree"
 
