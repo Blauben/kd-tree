@@ -39,7 +39,8 @@ jobs:
         uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: |
-            pipx install ninja cmake pytest
+            pipx install ninja cmake
+            pipx install -e ".[test]"
           CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
@@ -58,7 +59,9 @@ jobs:
       - name: Build wheels (Linux aarch64 — native ARM)
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake pytest
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+            pipx install -e ".[test]"
           CIBW_ENABLE: ${{ github.event_name == 'release' && 'cpython-freethreading' || '' }}
           CIBW_ARCHS_LINUX: aarch64
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
@@ -79,7 +82,8 @@ jobs:
         uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: |
-            pipx install ninja cmake pytest
+            pipx install ninja cmake
+            pipx install -e ".[test]"
           CIBW_ENABLE: cpython-freethreading
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
@@ -119,7 +123,9 @@ jobs:
       - name: Build wheels (Windows)
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake pytest
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+            pipx install -e ".[test]"
           CIBW_ARCHS_WINDOWS: "auto64"
           CIBW_TEST_COMMAND: 'pytest {project}'
         with:
