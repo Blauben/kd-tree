@@ -14,35 +14,39 @@ on:
 jobs:
   # 1.a Build the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            arch: x86_64
+          # Linux aarch64 — native ARM runner, no QEMU needed
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          # macOS (arm64 runner, builds both arm64 and x86_64 via cross-compile)
+          - os: macos-latest
+            arch: universal
+          # Windows x86_64
+          - os: windows-latest
+            arch: x86_64
     steps:
       - uses: actions/checkout@v4
-        ############################# LINUX WHEELS #############################
-        # In case of Linux we need to install compiler and build tools before building the wheels
-        # We set-up QEMU to enable aarch64 builds in the GitHub Runner (which is x86_64 based)
-        # We build wheels for manylinux and musllinux for aarch64 and x86_64
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-        if: matrix.os == 'ubuntu-latest'
-      - name: Build wheels (Linux)
+
+      - name: Build wheels (Linux x86_64)
         uses: pypa/cibuildwheel@v3.3.1
         env:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ENABLE: cpython-freethreading
-          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
-            BUILD_PATH=$(find $(pwd) -type f -name "libtbb*" -exec dirname {} \; | head -n 1)
+            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
             export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
             echo "Running auditwheel repair for linux wheel with additional paths: $BUILD_PATH"
             auditwheel repair -w {dest_dir} {wheel}
@@ -50,6 +54,24 @@ jobs:
           package-dir: .
           output-dir: dist
         if: matrix.os == 'ubuntu-latest'
+
+      - name: Build wheels (Linux aarch64 — native ARM)
+        uses: pypa/cibuildwheel@v3.3.1
+        env:
+          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_ENABLE: ${{ github.event_name == 'release' && 'cpython-freethreading' || '' }}
+          CIBW_ARCHS_LINUX: aarch64
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
+            export LD_LIBRARY_PATH="$BUILD_PATH:$LD_LIBRARY_PATH"
+            auditwheel repair -w {dest_dir} {wheel}
+        with:
+          package-dir: .
+          output-dir: dist
+        if: matrix.os == 'ubuntu-24.04-arm'
       ############################# MACOS WHEELS #############################
       # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
       # The macOS GitHub Runner is nowadays arm64 based
@@ -70,11 +92,8 @@ jobs:
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
-            BUILD_PATH=$(find $(pwd)/build -type f -name "libtbb*.dylib" | \
-              grep "$WHEEL_ID" | \
-              grep {delocate_archs} | \
-              xargs -I{} dirname {} | \
-              head -n 1):
+            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.dylib" | grep "$WHEEL_ID" | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
             export DYLD_LIBRARY_PATH="$BUILD_PATH:$DYLD_LIBRARY_PATH"
             echo "Running delocate repair for macOS wheel with additional paths: $BUILD_PATH"
             delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
@@ -107,7 +126,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: dist/*.whl
-          name: wheels-${{ matrix.os }}  # Unique name per OS
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}  # Unique name per OS
 
   # 1.b Build the source distribution by simply running the build command
   make_sdist:
