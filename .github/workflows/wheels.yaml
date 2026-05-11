@@ -92,7 +92,10 @@ jobs:
           CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
-            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.dylib" | grep "$WHEEL_ID" | head -n 1)
+            TBB_LIB=$(find $(pwd)/build -type f -name "libtbb*.dylib" \
+              | grep "$WHEEL_ID" \
+              | grep "{delocate_archs}" \
+              | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
             export DYLD_LIBRARY_PATH="$BUILD_PATH:$DYLD_LIBRARY_PATH"
             echo "Running delocate repair for macOS wheel with additional paths: $BUILD_PATH"
