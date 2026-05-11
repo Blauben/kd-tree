@@ -43,7 +43,7 @@ jobs:
           CIBW_ENABLE: cpython-freethreading
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_TEST_COMMAND: 'pytest'
+          CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
@@ -62,7 +62,7 @@ jobs:
           CIBW_ENABLE: ${{ github.event_name == 'release' && 'cpython-freethreading' || '' }}
           CIBW_ARCHS_LINUX: aarch64
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_TEST_COMMAND: 'pytest'
+          CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
@@ -89,7 +89,7 @@ jobs:
             LDFLAGS="-stdlib=libc++"
             CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
-          CIBW_TEST_COMMAND: 'pytest'
+          CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
             TBB_LIB=$(find $(pwd)/build -type f -name "libtbb*.dylib" \
@@ -121,7 +121,7 @@ jobs:
         env:
           CIBW_BEFORE_BUILD: pipx install ninja cmake pytest
           CIBW_ARCHS_WINDOWS: "auto64"
-          CIBW_TEST_COMMAND: 'pytest'
+          CIBW_TEST_COMMAND: 'pytest {project}'
         with:
           package-dir: .
           output-dir: dist
