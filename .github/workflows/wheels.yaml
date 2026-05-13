@@ -45,7 +45,7 @@ jobs:
           CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_TEST_REQUIRES: |
             numpy
-            pytest >= 6.0
+            pytest>=6.0
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
@@ -67,7 +67,7 @@ jobs:
           CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_TEST_REQUIRES: |
             numpy
-            pytest >= 6.0
+            pytest>=6.0
           CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
             TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
             BUILD_PATH=$(dirname "$TBB_LIB")
@@ -96,7 +96,7 @@ jobs:
           CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_TEST_REQUIRES: |
             numpy
-            pytest >= 6.0
+            pytest>=6.0
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
             WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
             TBB_LIB=$(find $(pwd)/build -type f -name "libtbb*.dylib" \
@@ -132,7 +132,7 @@ jobs:
           CIBW_TEST_COMMAND: 'pytest {project}'
           CIBW_TEST_REQUIRES: |
             numpy
-            pytest >= 6.0
+            pytest>=6.0
         with:
           package-dir: .
           output-dir: dist
