@@ -7,7 +7,7 @@ def test_plot_no_throw(tmp_path):
     mesh_path = "resources/Eros_scaled-1000"
     tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
     outpath = os.path.join(tmp_path, "kd_tree_plot_test.png")
-    sci.plot_kd_tree(tree, outpath=outpath, show_gui=False)
+    sci.plot_kd_tree(tree, outpath=outpath)
     assert os.path.exists(outpath), "Plot file was not created as expected."
 
     generated = np.array(Image.open(outpath))
