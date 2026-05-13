@@ -38,6 +38,7 @@ jobs:
       - name: Build wheels (Linux x86_64)
         uses: pypa/cibuildwheel@v3.4.1
         env:
+          MPLBACKEND: Agg # Use a backend that is able to run in headless environments (like GitHub Actions) to avoid build failures due to missing display
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ARCHS_LINUX: "x86_64"
@@ -62,6 +63,7 @@ jobs:
       - name: Build wheels (Linux aarch64 — native ARM)
         uses: pypa/cibuildwheel@v3.4.1
         env:
+          MPLBACKEND: Agg # Use a backend that is able to run in headless environments (like GitHub Actions) to avoid build failures due to missing display
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ARCHS_LINUX: aarch64
@@ -87,6 +89,7 @@ jobs:
       - name: Build wheels (macOS)
         uses: pypa/cibuildwheel@v3.4.1
         env:
+          MPLBACKEND: Agg # Use a backend that is able to run in headless environments (like GitHub Actions) to avoid build failures due to missing display
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ENVIRONMENT: >
@@ -132,6 +135,7 @@ jobs:
       - name: Build wheels (Windows)
         uses: pypa/cibuildwheel@v3.4.1
         env:
+          MPLBACKEND: Agg # Use a backend that is able to run in headless environments (like GitHub Actions) to avoid build failures due to missing display
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ARCHS_WINDOWS: "auto64"
