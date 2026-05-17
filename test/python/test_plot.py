@@ -13,7 +13,7 @@ def test_plot_no_throw(tmp_path):
     sci.plot_kd_tree(tree, outpath=outpath)
     assert os.path.exists(outpath), "Plot file was not created as expected."
 
-    reference_path = "resources/reference_kd_tree_plot.PNG"
+    reference_path = "resources/reference_kd_tree_plot.png"
     generated = np.array(Image.open(outpath))
     print(f"test_plot_no_throw: Test plot written to {outpath}")
     print(f"Reading reference image from {reference_path}")
