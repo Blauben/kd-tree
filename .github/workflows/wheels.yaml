@@ -43,7 +43,7 @@ jobs:
           CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
           CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_COMMAND: 'cd {project} && pytest'
           CIBW_TEST_REQUIRES: |
             numpy
             pytest>=6.0
@@ -68,7 +68,7 @@ jobs:
           CIBW_ARCHS_LINUX: aarch64
           CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
           CIBW_SKIP: "*-musllinux_*"
-          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_COMMAND: 'cd {project} && pytest'
           CIBW_TEST_REQUIRES: |
             numpy
             pytest>=6.0
@@ -99,7 +99,7 @@ jobs:
             LDFLAGS="-stdlib=libc++"
             CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
-          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_COMMAND: 'cd {project} && pytest'
           CIBW_TEST_REQUIRES: |
             numpy
             pytest>=6.0
@@ -137,7 +137,7 @@ jobs:
           CIBW_BEFORE_BUILD: |
             pipx install ninja cmake
           CIBW_ARCHS_WINDOWS: "auto64"
-          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_COMMAND: 'cd {project} && pytest'
           CIBW_TEST_REQUIRES: |
             numpy
             pytest>=6.0
