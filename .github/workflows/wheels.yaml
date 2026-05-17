@@ -2,6 +2,9 @@ name: Build & Publish Python Package
 
 on:
   pull_request:
+  push:
+    tags:
+      - 'v*'
   release:
     types: [created]
   # Allows you to run this workflow manually from the Actions tab
@@ -174,7 +177,9 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'  # Only upload on release creations, not on pushes or pull requests
+    if: >
+      (github.event_name == 'release') ||
+      (github.event_name == 'push' && startsWith(github.ref_name, 'v'))
     steps:
       - uses: actions/download-artifact@v6
         with:
@@ -195,7 +200,9 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.release.prerelease == false  # Only upload on regular release creations, not on pushes, pull requests, or pre-releases
+    if: >
+      (github.event_name == 'release' && github.event.release.prerelease == false) ||
+      (github.event_name == 'push' && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '.dev'))
     steps:
      - uses: actions/download-artifact@v6
        with:
