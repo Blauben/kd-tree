@@ -15,7 +15,9 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
-    if: github.event_name != 'release' || github.event.release.prerelease == false
+    if: >
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'run-pypi')
     strategy:
       fail-fast: false
       matrix:
@@ -157,7 +159,9 @@ jobs:
   make_sdist:
     name: Make SDist
     runs-on: ubuntu-latest
-    if: github.event_name != 'release' || github.event.release.prerelease == false
+    if: >
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'run-pypi')
     steps:
       - uses: actions/checkout@v6
       - name: Build SDist
