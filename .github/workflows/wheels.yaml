@@ -4,10 +4,6 @@ on:
   pull_request:
   release:
     types: [created]
-    # Only trigger for regular releases, not pre-releases
-    # See https://docs.github.com/en/actions/reference/events-that-trigger-workflows#release
-    # for more information on the release event
-    prerelease: false
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
@@ -16,6 +12,7 @@ jobs:
   build_wheels:
     name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
+    if: github.event_name != 'release' || github.event.release.prerelease == false
     strategy:
       fail-fast: false
       matrix:
@@ -157,6 +154,7 @@ jobs:
   make_sdist:
     name: Make SDist
     runs-on: ubuntu-latest
+    if: github.event_name != 'release' || github.event.release.prerelease == false
     steps:
       - uses: actions/checkout@v6
       - name: Build SDist
@@ -176,7 +174,7 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
+    if: github.event_name == 'release'  # Only upload on release creations, not on pushes or pull requests
     steps:
       - uses: actions/download-artifact@v6
         with:
@@ -197,7 +195,7 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
+    if: github.event_name == 'release' && github.event.release.prerelease == false  # Only upload on regular release creations, not on pushes, pull requests, or pre-releases
     steps:
      - uses: actions/download-artifact@v6
        with:
