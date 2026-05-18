@@ -9,7 +9,7 @@ if (BUILD_KD_TREE_LIBRARY AND NOT TARGET ${PROJECT_NAME}_lib)
     # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
     target_include_directories(${PROJECT_NAME}_lib PUBLIC
             "${KD_TREE_SOURCE_DIR}/src"
-            "${KD_TREE_BINARY_DIR}"
+            "${KD_TREE_BINARY_DIR}/src"
     )
 
     # Link libraries needed in all targets

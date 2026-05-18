@@ -14,12 +14,6 @@ namespace kdtree {
                 [&](const Vertex &vertex) { return vertex; }
             },
             vertices[objVertices[index]]);
-        const auto &vertices = *_vertices;
-        return std::visit(util::overloaded{
-                [&](const Vertex *vertex) { return *vertex; },
-                [&](const Vertex &vertex) { return vertex; }
-            },
-            vertices[objVertices[index]]);
     }
 
     const IndexVector &GeometryObject::getIndexVector() const {

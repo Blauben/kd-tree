@@ -51,10 +51,6 @@ namespace kdtree {
          */
         bool needTreeRebuild();
 
-        /**
-         * Only used with dynamic vertices. Checks if the vertices contained in this node have moved outside the node's bounding box since the last tree build, which would require a tree rebuild to maintain correct intersection results.
-         */
-        bool needTreeRebuild();
 
         /**
         * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
