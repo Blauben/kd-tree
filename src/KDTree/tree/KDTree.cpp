@@ -1,19 +1,26 @@
-
 #include "KDTree/tree/KDTree.h"
 
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm) : _algorithm{algorithm} {
+                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices) : _algorithm{algorithm} {
         LOG_INFO("KDTree: Constructing from vertices and faces");
-        GeometryObject::vertices = vertices;
+        if (copyVertices) {
+            _vertices = std::make_shared<std::vector<VertexHandle>>(vertices.begin(), vertices.end());
+        } else {
+            _vertices = std::make_shared<std::vector<VertexHandle>>();
+            _vertices->reserve(vertices.size());
+            std::for_each(vertices.begin(), vertices.end(), [this, copyVertices](const Vertex &vertex) {
+                _vertices->emplace_back(&vertex);
+            });
+        }
         _geometryObjects.reserve(shapes.size());
         //transform shape indices to GeometryObjects
-        std::ranges::for_each(shapes, [this](const IndexVector &vertexIndices) {
-            _geometryObjects.emplace_back(vertexIndices);
+        std::ranges::for_each(shapes.cbegin(), shapes.cend(), [this, objectIndex = size_t{0}](const IndexVector &vertexIndices) mutable {
+            _geometryObjects.emplace_back(vertexIndices, objectIndex++, _vertices);
         });
-        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(algorithm));
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
+                                                   PlaneSelectionAlgorithmFactory::create(algorithm), nodeRegister);
         LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
     }
 
@@ -32,7 +39,7 @@ namespace kdtree {
         LOG_INFO("KDTree: Constructed from particles");
     }
 
-    KDTree::KDTree(const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &polySource,
+    KDTree::KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
                    const PlaneSelectionAlgorithm::Algorithm algorithm)
         : KDTree(std::get<0>(polySource), std::get<1>(polySource), algorithm) {
     }
@@ -43,10 +50,12 @@ namespace kdtree {
     }
 
     void KDTree::rebuildTree() {
+        std::lock_guard lock(this->_rootNodeCreationMutex);
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree
+        nodeRegister.leafNodes.clear();
         // since splitParam are moved once the previous tree is built, they have to regenerated here
-        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(GeometryObject::vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(_algorithm));
+        _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
+                                                   PlaneSelectionAlgorithmFactory::create(_algorithm), nodeRegister);
     }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
@@ -136,6 +145,24 @@ namespace kdtree {
             begin = PlaneIterator(splitNode);
         }
         return {begin, PlaneIterator{}};
+    }
+
+    void KDTree::rebuildTreeIfNeeded() {
+        std::shared_lock lock(nodeRegister.leafNodeMutex);
+        const bool rebuildTree = std::ranges::any_of(nodeRegister.leafNodes.cbegin(), nodeRegister.leafNodes.cend(), [](const auto &leafNodePtr) {
+            if (const auto leafNode = leafNodePtr.lock()) {
+                if (leafNode->needTreeRebuild()) {
+                    return true;
+                }
+            }
+            return false;
+        });
+        lock.unlock();
+        if (!rebuildTree) {
+            return;
+        }
+        LOG_INFO("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
+        this->rebuildTree();
     }
 
     std::ostream &operator<<(std::ostream &os, const KDTree &kdTree) {

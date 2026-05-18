@@ -3,17 +3,19 @@
 #include <utility>
 
 namespace kdtree {
-    GeometryObject::GeometryObject(IndexVector objVertices) : objIndex{runningIndex++}, objVertices{std::move(objVertices)} {
+    GeometryObject::GeometryObject(IndexVector objVertices, const size_t objIndex, const std::shared_ptr<std::vector<VertexHandle>>& vertices)
+        : objIndex{objIndex}, objVertices{std::move(objVertices)}, _vertices{vertices} {
     }
-
-    //static initialization
-    size_t GeometryObject::runningIndex{0};
-
-    std::vector<std::array<double, 3>> GeometryObject::vertices;
 
     Vertex GeometryObject::operator[](const size_t index) const {
-        return vertices[objVertices[index]];
+        const auto &vertices = *_vertices;
+        return std::visit(util::overloaded{
+                [&](const Vertex *vertex) { return *vertex; },
+                [&](const Vertex &vertex) { return vertex; }
+            },
+            vertices[objVertices[index]]);
     }
+
     const IndexVector &GeometryObject::getIndexVector() const {
         return objVertices;
     }

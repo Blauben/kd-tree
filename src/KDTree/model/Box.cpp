@@ -1,20 +1,6 @@
 #include "KDTree/model/Box.h"
 
-std::ostream & kdtree::operator<<(std::ostream &os, const Box &box) {
-    os << "[(" << box.minPoint[0] << "," << box.minPoint[1] << "," << box.minPoint[2] << ") - ("
-       << box.maxPoint[0] << "," << box.maxPoint[1] << "," << box.maxPoint[2] << ")]";
-    return os;
-}
-
 namespace kdtree {
-    Box::Box(const std::pair<Vertex, Vertex> &pair)
-        : minPoint{pair.first}, maxPoint{pair.second} {
-    }
-
-    Box::Box()
-        : minPoint{0.0, 0.0, 0.0}, maxPoint{0.0, 0.0, 0.0} {
-    }
-
     std::pair<double, double> Box::rayBoxIntersection(const Vertex &origin, const Vertex &inverseRay) const {
         //calculate the parameter t in $ origin + t * ray = point $
         const auto lambdaIntersectSlabPoint = [&origin, &inverseRay](const Vertex &point) {
@@ -67,6 +53,13 @@ namespace kdtree {
         return std::make_pair(box1, box2);
     }
 
+    bool Box::isVertexInBox(const Vertex &vertex, double tolerance) const {
+        return std::ranges::all_of(ALL_DIRECTIONS.begin(), ALL_DIRECTIONS.end(), [&](const Direction direction) {
+            const int index{static_cast<int>(direction)};
+            return !(vertex[index] <= minPoint[index] - tolerance || vertex[index] >= maxPoint[index] + tolerance);
+        });
+    }
+
     std::vector<Vertex> Box::clipToVoxel(const std::vector<Vertex> &points) const {
         using namespace util;
         //use clipped as the input vector because the inner for loop swaps input and clipped each iteration,
@@ -86,6 +79,20 @@ namespace kdtree {
             }
         }
         return clipped;
+    }
+
+    Box::Box(const std::pair<Vertex, Vertex> &pair)
+        : minPoint{pair.first}, maxPoint{pair.second} {
+    }
+
+    Box::Box()
+        : minPoint{0.0, 0.0, 0.0}, maxPoint{0.0, 0.0, 0.0} {
+    }
+
+    std::ostream &operator<<(std::ostream &os, const Box &box) {
+        os << "[(" << box.minPoint[0] << "," << box.minPoint[1] << "," << box.minPoint[2] << ") - ("
+           << box.maxPoint[0] << "," << box.maxPoint[1] << "," << box.maxPoint[2] << ")]";
+        return os;
     }
 
     void Box::clipToVoxelPlane(const Plane &plane, const bool flipPlaneNormal, const std::vector<Vertex> &source,

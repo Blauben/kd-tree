@@ -1,8 +1,10 @@
 #pragma once
 
+#include "KDTree/model/GeometryObject.h"
 #include "KDTree/model/Plane.h"
 #include "KDTree/tree/KdDefinitions.h"
 
+#include <ranges>
 #include <stdexcept>
 
 namespace kdtree {
@@ -50,6 +52,14 @@ namespace kdtree {
             using namespace util;
             return Box(findMinMaxCoordinates<Container>(vertices));
         }
+
+        /**
+         * Checks if a vertex lies in this box. Used for testing purposes. Useful for moving vertices to determine whether they are still contained in the same box after movement.
+         * @param vertex The vertex to be checked.
+         * @param tolerance A tolerance value interpreted as a 1D distance. As some vertices might lie exactly on the box boundary (some even by construction!), this tolerance is used to still consider vertices that are close enough to the box as contained in the box. This is necessary to avoid unnecessary tree rebuilds when vertices move slightly outside of their original bounding boxes.
+         * @return whether the vertex is contained in the box within the given tolerance.
+         */
+        [[nodiscard]] bool isVertexInBox(const Vertex &vertex, double tolerance) const;
 
         /**
         * Takes points of a shape of a polyhedron and clips them to this box. If all the points lie in the box no changes are made but if points lie outside of the box they are linearly interpolated onto the box.

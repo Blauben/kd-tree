@@ -13,6 +13,7 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include "Constants.h"
 #include <numeric>
 #include <set>
 #include <string>
@@ -343,11 +344,10 @@ namespace kdtree::util {
     template<typename T>
     bool isCriticalDifference(const T &first, const T &second) {
         // 50 is the (log2) exponent of the floating point (1 / 1e-15)
-        constexpr int maxExponentDifference = 50;
         int x, y;
         std::frexp(first, &x);
         std::frexp(second, &y);
-        return std::abs(x - y) > maxExponentDifference;
+        return std::abs(x - y) > constants::MAX_EXPONENT_DIFFERENCE;
     }
 
     /**
@@ -444,29 +444,14 @@ namespace kdtree::util {
         return os;
     }
 
-    /**
-    * Calculates the min and max coordinate values for each dimension of the elements supplied.
-    * @param elements the container of whose elements to search for min and max ccordinates
-    * @return the findings formatted in a pair of new elements. E.g <(0,0,0) , (1,1,1)> if the container {(0,0,1), (1,1,0)} is passed.
-    */
-    template<Container C>
-    std::pair<typename C::value_type, typename C::value_type> findMinMaxCoordinates(C elements) {
-        using ValueType = typename C::value_type;
-        //return empty box centered at the origin if no vertices provided
-        if (elements.empty()) {
-            return {{0, 0, 0}, {0, 0, 0}};
-        }
-        //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
-        ValueType min = elements[0];
-        ValueType max = elements[0];
-        //test each vertex for proximity to the origin and find minima and maxima
-        for (const auto &vertex: elements) {
-            // test each dimension separately
-            for (size_t i = 0; i < vertex.size(); ++i) {
-                min[i] = std::min(min[i], vertex[i]);
-                max[i] = std::max(max[i], vertex[i]);
-            }
-        }
-        return {min, max};
+    template<typename T>
+    constexpr const T& asRef(const T& value) noexcept {
+        return value;
     }
+
+    template<typename T>
+    constexpr const T& asRef(const T* ptr) {
+        return *ptr;
+    }
+
 }// namespace kdtree::util

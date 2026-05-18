@@ -19,6 +19,7 @@
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     struct SplitParam;
@@ -56,11 +57,6 @@ namespace kdtree {
          * Contains the shape lists for the lesser and greater bounding boxes. {@link ObjectIndexVectors}
         */
         std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>> _shapeLists;
-
-        /**
-         * Numerical tolerance for ray box intersections. Necessary to handle cases where the intersection ray is almost parallel to the split plane.
-         */
-        static constexpr double EPSILON_NUMERICAL_TOLERANCE = 1e-9;
 
         friend class PlaneIterator;
 

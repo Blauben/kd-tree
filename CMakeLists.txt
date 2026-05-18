@@ -106,7 +106,6 @@ message(STATUS "################################################################
 include(thrust)
 include(spdlog)
 include(tetgen)
-include(xsimd)
 include(clang_format)
 
 if (${ENABLE_IWYU})
@@ -128,7 +127,7 @@ elseif (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
 endif ()
 
 # Thrust set-up i.e. the parallelization library, create targets according to the users specification
-thrust_create_target(Thrust HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
+thrust_create_target(thrust::thrust_kdtree HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
 message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}")
 
 # Fallback for non-TBB builds: tbb.cmake defines the real implementation.
