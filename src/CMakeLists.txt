@@ -6,11 +6,13 @@ if (BUILD_KD_TREE_LIBRARY AND NOT TARGET ${PROJECT_NAME}_lib)
 
     add_subdirectory(KDTree)
 
-    # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
-    target_include_directories(${PROJECT_NAME}_lib PUBLIC
-            "${KD_TREE_SOURCE_DIR}/src"
-            "${KD_TREE_BINARY_DIR}/src"
-    )
+        # Adds the include paths for build and install. Use generator expressions
+        # so exported/installed targets do not contain absolute source/build dirs.
+        target_include_directories(${PROJECT_NAME}_lib PUBLIC
+            $<BUILD_INTERFACE:${KD_TREE_SOURCE_DIR}/src>
+            $<BUILD_INTERFACE:${KD_TREE_BINARY_DIR}/src>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/KDTree>
+        )
 
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib

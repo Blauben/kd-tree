@@ -5,7 +5,7 @@
 # License: GPL-3.0
 
 cmake_minimum_required(VERSION 3.16)
-# This project exports the target KDTree::KDTree_lib with the alias KDTree::KDTree for usage with FetchContent and find_package
+# This project can be included with FetchContent or find_package(KDTree) and linked via the KDTree::KDTree_lib target.
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -93,7 +93,6 @@ add_compile_definitions(FMT_HEADER_ONLY)
 
 include(${KD_TREE_SOURCE_DIR}/cmake/git.cmake)
 include(${KD_TREE_SOURCE_DIR}/version.cmake)
-include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
@@ -169,3 +168,5 @@ if (BUILD_KD_TREE_TESTS)
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
 endif ()
+
+include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)

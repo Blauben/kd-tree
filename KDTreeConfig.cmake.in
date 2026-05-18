@@ -2,7 +2,31 @@ set(KD_TREE_VERSION "@KD_TREE_VERSION@")
 
 @PACKAGE_INIT@
 
+include(CMakeFindDependencyMacro)
+
+# Load transitive dependencies before importing KDTree targets.
+@KD_TREE_FIND_DEPENDENCY_BLOCK@
+
+# The exported target links against thrust::thrust_kdtree. When consumers only
+# get thrust::thrust from find_dependency(Thrust), provide a compatible alias.
+if(NOT TARGET thrust::thrust_kdtree AND TARGET thrust::thrust)
+	add_library(thrust::thrust_kdtree INTERFACE IMPORTED)
+	set_target_properties(thrust::thrust_kdtree PROPERTIES
+		INTERFACE_LINK_LIBRARIES thrust::thrust)
+endif()
+
 set_and_check(KD_TREE_INCLUDE_DIR "@PACKAGE_INCLUDE_INSTALL_DIR@")
-set_and_check(KD_TREE_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+
+# The sysconfig directory is optional for consumers; only set and check it
+# if the directory actually exists in the install prefix to avoid hard
+# failures when the package is installed without sysconfig files.
+if(EXISTS "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+	set_and_check(KD_TREE_SYSCONFIG_DIR "@PACKAGE_SYSCONFIG_INSTALL_DIR@")
+else()
+	set(KD_TREE_SYSCONFIG_DIR "" CACHE PATH "Location of configuration files (optional)" FORCE)
+endif()
+
+# Include the exported targets
+include("${CMAKE_CURRENT_LIST_DIR}/KDTreeTargets.cmake")
 
 check_required_components(KDTree)

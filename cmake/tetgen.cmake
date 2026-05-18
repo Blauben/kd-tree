@@ -44,8 +44,12 @@ if(NOT TARGET tetgen_lib)
         # Define the TETLIBRARY macro for usage
         target_compile_definitions(tetgen_lib PRIVATE -DTETLIBRARY)
 
-        # Include the tetgen source directory for the library
-        target_include_directories(tetgen_lib INTERFACE "${tetgen_SOURCE_DIR}")
+                # Include the tetgen source directory for the library. Use BUILD/INSTALL
+                # interface generator expressions to avoid exporting absolute paths.
+                target_include_directories(tetgen_lib INTERFACE
+                        $<BUILD_INTERFACE:${tetgen_SOURCE_DIR}>
+                        $<INSTALL_INTERFACE:include/tetgen>
+                )
 
         # Disable warnings from the library target
         target_compile_options(tetgen_lib PRIVATE -w)
