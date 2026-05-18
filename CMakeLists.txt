@@ -5,6 +5,7 @@
 # License: GPL-3.0
 
 cmake_minimum_required(VERSION 3.16)
+# This project exports the target KDTree::KDTree_lib with the alias KDTree::KDTree for usage with FetchContent and find_package
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -49,7 +50,14 @@ add_compile_definitions(SPDLOG_ACTIVE_LEVEL=${LOGGING_LEVEL_INDEX})
 # Build docs
 option(BUILD_KD_TREE_DOCS "Builds the documentation (Default: OFF)" OFF)
 # Build C++ executable
-option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON)" ON)
+# Default to ON when this is the top-level project, otherwise OFF when
+# included via add_subdirectory / FetchContent.
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(_KD_TREE_DEFAULT_BUILD_EXECUTABLE ON)
+else()
+    set(_KD_TREE_DEFAULT_BUILD_EXECUTABLE OFF)
+endif()
+option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON when top-level; OFF when added via add_subdirectory or FetchContent)" ${_KD_TREE_DEFAULT_BUILD_EXECUTABLE})
 # Build library (default ON), if the executable or tests are built this forced to ON
 cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" ON
         "NOT BUILD_KD_TREE_EXECUTABLE AND NOT BUILD_KD_TREE_TESTS" ON)
