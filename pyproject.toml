@@ -16,6 +16,27 @@ authors = [
     { name = "Ben Frauenknecht", email = "ben.Frauenknecht@tum.de" },
 ]
 license = "BSD-3-Clause"
+classifiers = [
+  # How mature is this project? Common values are
+  #   3 - Alpha
+  #   4 - Beta
+  #   5 - Production/Stable
+  "Development Status :: 4 - Beta",
+
+  # Specify the Python versions you support here.
+  "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+
+[project.optional-dependencies]
+test = [
+    "numpy",
+    "pytest >= 6.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/Blauben/kd-tree"

@@ -7,6 +7,7 @@
 #include <array>
 #include <indicators/progress_bar.hpp>
 #include <random>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -36,6 +37,62 @@ namespace kdtree {
          * seed for random number generation to ensure reproducibility in tests
          */
         auto gen = std::mt19937(SEED);
+
+        /**
+         * Computes the squared Euclidean distance between two vertices.
+         *
+         * The squared form is sufficient for nearest-point comparisons and avoids
+         * the extra cost and numeric noise of taking square roots.
+         *
+         * @param lhs First vertex.
+         * @param rhs Second vertex.
+         * @return Squared Euclidean distance between @p lhs and @p rhs.
+         */
+        [[nodiscard]] double squaredDistance(const Vertex &lhs, const Vertex &rhs) {
+            const double dx = lhs[0] - rhs[0];
+            const double dy = lhs[1] - rhs[1];
+            const double dz = lhs[2] - rhs[2];
+            return dx * dx + dy * dy + dz * dz;
+        }
+
+        /**
+         * Formats a vertex as a compact string for test diagnostics.
+         * @param vertex Vertex to format.
+         * @return String in the form [x, y, z].
+         */
+        [[nodiscard]] std::string vertexToString(const Vertex &vertex) {
+            std::ostringstream stream;
+            stream << "[" << vertex[0] << ", " << vertex[1] << ", " << vertex[2] << "]";
+            return stream.str();
+        }
+
+        /**
+         * Builds a human-readable assertion message with nearest-intersection details.
+         *
+         * If no intersections are found, the message explicitly reports that the set is empty.
+         * Otherwise, it reports the expected point, closest returned point, squared distance,
+         * and number of intersections.
+         *
+         * @param intersections Intersections returned by the KDTree query.
+         * @param expectedPoint Target point that should have been intersected.
+         * @return Diagnostic message appended to gtest failure output.
+         */
+        [[nodiscard]] std::string closestIntersectionMessage(const std::set<Vertex> &intersections, const Vertex &expectedPoint) {
+            if (intersections.empty()) {
+                return "Closest intersection: <none> (intersection set is empty)";
+            }
+
+            const auto closest = std::min_element(intersections.begin(), intersections.end(), [&expectedPoint](const Vertex &lhs, const Vertex &rhs) {
+                return squaredDistance(lhs, expectedPoint) < squaredDistance(rhs, expectedPoint);
+            });
+
+            std::ostringstream stream;
+            stream << "Expected point: " << vertexToString(expectedPoint)
+                   << ", closest intersection: " << vertexToString(*closest)
+                   << ", squared distance: " << squaredDistance(*closest, expectedPoint)
+                   << ", total intersections: " << intersections.size();
+            return stream.str();
+        }
 
         /**
          * A simple cube polyhedron for testing purposes: vertices
@@ -185,7 +242,7 @@ namespace kdtree {
      */
     TEST_P(KDTreeTest, PointsTest) {
         using namespace util;
-        const auto [vertices, faces, algorithm, points] = GetParam();
+        auto [vertices, faces, algorithm, points] = GetParam();
         indicators::ProgressBar bar{
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
@@ -199,7 +256,8 @@ namespace kdtree {
             tree.getIntersections(origin, ray, intersections);
             ASSERT_THAT(intersections, Contains(ElementsAre(DoubleNear(point[0], DELTA),
                                                             DoubleNear(point[1], DELTA),
-                                                            DoubleNear(point[2], DELTA))));
+                                                            DoubleNear(point[2], DELTA))))
+                    << closestIntersectionMessage(intersections, point);
         };
         for (const auto &p: points) {
             pointTest(p);
@@ -213,7 +271,7 @@ namespace kdtree {
     TEST_P(KDTreeTest, ParticleTree) {
         using namespace util;
         constexpr double SPHERE_INTERSECTION_DELTA = 1e-2;
-        const auto [vertices, _, algorithm, points] = GetParam();// faces unused here
+        auto [vertices, _, algorithm, points] = GetParam();// faces unused here
         indicators::ProgressBar bar{
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
@@ -250,6 +308,9 @@ namespace kdtree {
         std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();
+        if (algorithm == Algorithm::QUADRATIC || algorithm == Algorithm::NOTREE) {
+            GTEST_SKIP() << "Skipping regression test for notree and quadratic algorithm as it is used as the reference algorithm.";
+        }
         KDTree tree{vertices, faces, algorithm};
         auto squaredAlgorithm = PlaneSelectionAlgorithmFactory::create(Algorithm::QUADRATIC);
         auto variantAlgorithm = PlaneSelectionAlgorithmFactory::create(algorithm);
@@ -285,6 +346,9 @@ namespace kdtree {
         }
     }
 
+    /**
+     * Tests that triggering a rebuild actually resets the KDTree.
+     */
     TEST_F(KDTreeTest, RebuildTreeTest) {
         KDTree tree{cube_vertices, cube_faces, Algorithm::NOTREE};
         ASSERT_THAT(tree.getRootNode(), testing::NotNull());
@@ -297,7 +361,7 @@ namespace kdtree {
      * Tests the functionality of the plane iterator of the KDTree. The test builds a KDTree from a specified mesh and then uses the plane iterator to traverse the tree and print out the planes and their corresponding bounding boxes. The test checks if the iterator correctly iterates over all planes in the tree by counting the number of iterations and asserting that it is greater than zero.
      */
     TEST_F(KDTreeTest, IteratorTest) {
-        std::string meshPath = "resources/Eros_scaled-1000";
+        const std::string meshPath = "resources/Eros_scaled-1000";
         KDTree tree{meshPath + ".node", meshPath + ".face"};
          auto [begin, end] = tree.planeIterator();
         unsigned long iteration = 0;
@@ -306,17 +370,49 @@ namespace kdtree {
             iteration++;
             std::cout << "Plane: " << plane << ", Box: " << box << std::endl;
         });
-        ASSERT_GT(iteration, 0) << "Plane iterator did not iterate over any planes!";
+        ASSERT_EQ(iteration, 30) << "Plane iterator did not iterate over all planes!";
     };
 
+    /**
+     * Tests that the LeafNode class correctly registers and deregisters leaf nodes in the static leafNodes vector. The test builds a KDTree from a specified mesh and checks that the leafNodes vector is populated after prebuilding the tree and is empty after rebuilding the tree, which should reset the KDTree and clear all registered leaf nodes.
+     */
     TEST_F(KDTreeTest, LeafNodeRegisterTest) {
-        std::string meshPath{"resources/Eros_scaled-1000"};
+        const std::string meshPath{"resources/Eros_scaled-1000"};
         KDTree tree{meshPath + ".node", meshPath + ".face"};
-        ASSERT_TRUE(LeafNode::leafNodes.empty());
+        ASSERT_TRUE(tree.nodeRegister.leafNodes.empty());
         tree.prebuildTree();
-        ASSERT_FALSE(LeafNode::leafNodes.empty());
+        ASSERT_FALSE(tree.nodeRegister.leafNodes.empty());
         tree.rebuildTree();
-        ASSERT_TRUE(LeafNode::leafNodes.empty());
+        ASSERT_TRUE(tree.nodeRegister.leafNodes.empty());
+    }
+
+    /**
+     * Tests that modifying vertices of an existing KDTree and triggering a rebuild correctly updates the planes in the tree. The test builds a KDTree from a specified mesh, stores the planes generated by the plane iterator, modifies the vertices by applying a shift, triggers a rebuild of the tree, and then uses the plane iterator again to check if the planes have been updated according to the applied shift. The test asserts that the planes' axis coordinates have been shifted by the expected amount and that the number of planes remains the same after the rebuild.
+     */
+    TEST_F(KDTreeTest, DynamicVerticesTreeRebuildTest) {
+        using namespace util;
+        constexpr double shift = 1.0;
+        std::string meshPath{"resources/Eros_scaled-1000"};
+        auto [vertices, faces] = TetgenAdapter{{meshPath + ".node", meshPath + ".face"}}.getPolyhedralSource();
+        std::vector<Vertex> vertices_copy{vertices.begin(), vertices.end()};
+        KDTree tree{vertices_copy, faces, Algorithm::LOG, false};
+        std::vector<Plane> planesBefore{};
+        auto [begin, end] = tree.planeIterator();
+        std::for_each(begin, end, [&](const auto &entry) {
+            planesBefore.push_back(std::get<0>(entry));
+        });
+        ASSERT_GT(planesBefore.size(), 0) << "Plane iterator did not iterate over any planes before tree rebuild!";
+        for (auto &vertex: vertices_copy) {
+            vertex = vertex + std::array{shift, shift, shift};
+        }
+        tree.rebuildTree();
+        auto [beginAfter, endAfter] = tree.planeIterator();
+        size_t i = 0;
+        for (; beginAfter != endAfter; ++beginAfter) {
+            ASSERT_THAT(std::get<0>(*beginAfter).axisCoordinate, DoubleNear(planesBefore[i].axisCoordinate + shift, DELTA)) << "Plane origin point check failed for plane " << i << " after tree rebuild!";
+            i++;
+        }
+        ASSERT_EQ(i, planesBefore.size()) << "Plane iterator did not iterate over the same number of planes after tree rebuild!";
     }
 
     constexpr size_t numberOfPoints = 10;

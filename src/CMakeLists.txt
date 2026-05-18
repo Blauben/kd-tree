@@ -15,10 +15,9 @@ if (BUILD_KD_TREE_LIBRARY)
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
             PUBLIC
-            tetgen_lib
-            spdlog
-            xsimd
-            Thrust
+            tetgen::tetgen
+            spdlog::$<IF:$<AND:$<PLATFORM_ID:Darwin>,$<CXX_COMPILER_ID:GNU>>,spdlog_header_only,spdlog>
+            thrust::thrust_kdtree
     )
 endif ()
 #####################################

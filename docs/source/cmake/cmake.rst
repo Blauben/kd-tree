@@ -20,7 +20,8 @@ configure/build/test sequence and reduce manual flag drift.
    cmake --workflow --preset build-release-omp
 
    # Test, Python interface, and docs
-   cmake --workflow --preset build-and-test
+   cmake --workflow --preset build-and-test-release
+   cmake --workflow --preset build-and-test-debug
    cmake --workflow --preset build-python-interface
    cmake --workflow --preset build-docs
 
@@ -85,7 +86,9 @@ Configure presets (from ``CMakePresets.json``):
 +----------------+-------------------------------+----------------------------------------------+
 | ``release-tbb``| ``release``                   | Release build with TBB backend.              |
 +----------------+-------------------------------+----------------------------------------------+
-| ``test``       | ``release-tbb``               | Enables tests and sets logging to ``WARN``.  |
+| ``test-release``| ``release-tbb``              | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``. |
++----------------+-------------------------------+----------------------------------------------+
+| ``test-debug`` | ``debug``                     | Test build in Debug with ``BUILD_KD_TREE_TESTS=ON``. |
 +----------------+-------------------------------+----------------------------------------------+
 | ``python``     | ``release``                   | Python interface (CPP backend), CLI off.     |
 +----------------+-------------------------------+----------------------------------------------+
@@ -99,20 +102,22 @@ Configure presets (from ``CMakePresets.json``):
 Build presets:
 
 - ``release``, ``debug``, ``release-omp``, ``release-tbb``
-- ``test``
+- ``test-release``, ``test-debug``
 - ``python-cpp``, ``python-omp``, ``python-tbb``
 - ``docs-build`` (build target: ``Sphinx``)
 
 Test presets:
 
-- ``test``
+- ``test-release``
+- ``test-debug``
 
 Workflow presets:
 
 - ``build-release-default``
 - ``build-release-omp``
 - ``build-release-tbb``
-- ``build-and-test``
+- ``build-and-test-release``
+- ``build-and-test-debug``
 - ``build-python-interface``
 - ``build-docs``
 
@@ -127,7 +132,8 @@ Preferred: run workflows directly:
    cmake --workflow --preset build-release-default
    cmake --workflow --preset build-release-tbb
    cmake --workflow --preset build-release-omp
-   cmake --workflow --preset build-and-test
+   cmake --workflow --preset build-and-test-release
+   cmake --workflow --preset build-and-test-debug
    cmake --workflow --preset build-python-interface
    cmake --workflow --preset build-docs
 
@@ -135,11 +141,5 @@ Alternative: manual configure/build (only when custom flags are needed):
 
 .. code-block:: bash
 
-   cmake -S . -B build/custom \
-     -DCMAKE_BUILD_TYPE=Release \
-     -DKD_TREE_PARALLELIZATION=OMP \
-     -DKD_TREE_LOGGING_LEVEL=INFO \
-     -DBUILD_KD_TREE_EXECUTABLE=ON \
-     -DBUILD_KD_TREE_TESTS=OFF
-
+   cmake -S . -B build/custom -DCMAKE_BUILD_TYPE=Release -DKD_TREE_PARALLELIZATION=OMP -DKD_TREE_LOGGING_LEVEL=INFO -DBUILD_KD_TREE_EXECUTABLE=ON -DBUILD_KD_TREE_TESTS=OFF
    cmake --build build/custom

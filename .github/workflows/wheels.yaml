@@ -1,56 +1,99 @@
 name: Build & Publish Python Package
 
 on:
+  pull_request:
+  push:
+    tags:
+      - 'v*'
   release:
     types: [created]
-    # Only trigger for regular releases, not pre-releases
-    # See https://docs.github.com/en/actions/reference/events-that-trigger-workflows#release
-    # for more information on the release event
-    prerelease: false
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   # 1.a Build the wheels on a matrix of Windows, MacOS, and Linux platforms using cibuildwheel
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels on ${{ matrix.os }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
+    if: >
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'run-pypi')
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          # Linux x86_64
+          - os: ubuntu-latest
+            arch: x86_64
+          # Linux aarch64 — native ARM runner, no QEMU needed
+          - os: ubuntu-24.04-arm
+            arch: aarch64
+          # macOS (arm64 runner, builds both arm64 and x86_64 via cross-compile)
+          - os: macos-latest
+            arch: universal
+          # Windows x86_64
+          - os: windows-latest
+            arch: x86_64
     steps:
-      - uses: actions/checkout@v4
-        ############################# LINUX WHEELS #############################
-        # In case of Linux we need to install compiler and build tools before building the wheels
-        # We set-up QEMU to enable aarch64 builds in the GitHub Runner (which is x86_64 based)
-        # We build wheels for manylinux and musllinux for aarch64 and x86_64
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - uses: actions/checkout@v6
         with:
-          platforms: all
-        if: matrix.os == 'ubuntu-latest'
-      - name: Build wheels (Linux)
-        uses: pypa/cibuildwheel@v3.3.1
+          lfs: true  # Ensure that Git LFS files are checked out (e.g. the testing resources)
+      - name: Build wheels (Linux x86_64)
+        uses: pypa/cibuildwheel@v3.4.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake
-          CIBW_ENABLE: cpython-freethreading
-          CIBW_ARCHS_LINUX: "x86_64 aarch64"
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+          CIBW_ARCHS_LINUX: "x86_64"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
-          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
-          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_REQUIRES: |
+            numpy
+            pytest>=6.0
+          CIBW_TEST_SOURCES: |
+            resources
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
+            export LD_LIBRARY_PATH="$BUILD_PATH"
+            echo "Running auditwheel repair for linux wheel with additional paths: $BUILD_PATH"
+            auditwheel repair -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
         if: matrix.os == 'ubuntu-latest'
+
+      - name: Build wheels (Linux aarch64 — native ARM)
+        uses: pypa/cibuildwheel@v3.4.1
+        env:
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
+          CIBW_ARCHS_LINUX: aarch64
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_SKIP: "*-musllinux_*"
+          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_REQUIRES: |
+            numpy
+            pytest>=6.0
+          CIBW_TEST_SOURCES: |
+            resources
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: |
+            TBB_LIB=$(find $(pwd) -type f -name "libtbb*.so*" | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
+            export LD_LIBRARY_PATH="$BUILD_PATH"
+            auditwheel repair -w {dest_dir} {wheel}
+        with:
+          package-dir: .
+          output-dir: dist
+        if: matrix.os == 'ubuntu-24.04-arm'
       ############################# MACOS WHEELS #############################
       # We use Apple Clang as it is the only compiler offering cross-compiling for x86_64
       # The macOS GitHub Runner is nowadays arm64 based
       - name: Build wheels (macOS)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake
-          CIBW_ENABLE: cpython-freethreading
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
           CIBW_ENVIRONMENT: >
             MACOSX_DEPLOYMENT_TARGET="12"
             CC=clang
@@ -59,7 +102,22 @@ jobs:
             LDFLAGS="-stdlib=libc++"
             CMAKE_ARGS="-DCMAKE_CXX_STANDARD=20 -DCMAKE_INSTALL_RPATH=@loader_path"
           CIBW_ARCHS_MACOS: "x86_64 arm64"
-          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_REQUIRES: |
+            numpy
+            pytest>=6.0
+          CIBW_TEST_SOURCES: |
+            resources
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: |
+            WHEEL_ID=$(basename {wheel} | grep -oE 'cp[0-9]+(t?)-cp[0-9]+(t?)')
+            TBB_LIB=$(find $(pwd)/build -type f -name "libtbb*.dylib" \
+              | grep "$WHEEL_ID" \
+              | grep "{delocate_archs}" \
+              | head -n 1)
+            BUILD_PATH=$(dirname "$TBB_LIB")
+            export DYLD_LIBRARY_PATH="$BUILD_PATH:$DYLD_LIBRARY_PATH"
+            echo "Running delocate repair for macOS wheel with additional paths: $BUILD_PATH"
+            delocate-wheel --require-archs {delocate_archs} -w {dest_dir} {wheel}
         with:
           package-dir: .
           output-dir: dist
@@ -77,29 +135,38 @@ jobs:
           reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f
         if: matrix.os == 'windows-latest'
       - name: Build wheels (Windows)
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
-          CIBW_BEFORE_BUILD: pipx install ninja cmake
+          CIBW_BEFORE_BUILD: |
+            pipx install ninja cmake
           CIBW_ARCHS_WINDOWS: "auto64"
-          CIBW_TEST_COMMAND: 'python -c "import scikdtree"'
+          CIBW_TEST_COMMAND: 'pytest {project}'
+          CIBW_TEST_REQUIRES: |
+            numpy
+            pytest>=6.0
+          CIBW_TEST_SOURCES: |
+            resources
         with:
           package-dir: .
           output-dir: dist
         if: matrix.os == 'windows-latest'
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           path: dist/*.whl
-          name: wheels-${{ matrix.os }}  # Unique name per OS
+          name: wheels-${{ matrix.os }}-${{ matrix.arch }}  # Unique name per OS
 
   # 1.b Build the source distribution by simply running the build command
   make_sdist:
     name: Make SDist
     runs-on: ubuntu-latest
+    if: >
+      github.event_name != 'pull_request' ||
+      contains(github.event.pull_request.labels.*.name, 'run-pypi')
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Build SDist
         run: pipx run build --sdist
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           path: dist/*.tar.gz
           name: sdist
@@ -114,6 +181,9 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
+    if: >
+      (github.event_name == 'release') ||
+      (github.event_name == 'push' && startsWith(github.ref_name, 'v'))
     steps:
       - uses: actions/download-artifact@v6
         with:
@@ -134,7 +204,9 @@ jobs:
     permissions:
       id-token: write
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'  # Only upload to PyPI on actual releases, not on pushes or pull requests
+    if: >
+      (github.event_name == 'release' && github.event.release.prerelease == false) ||
+      (github.event_name == 'push' && startsWith(github.ref_name, 'v') && !contains(github.ref_name, '.dev'))
     steps:
      - uses: actions/download-artifact@v6
        with:
