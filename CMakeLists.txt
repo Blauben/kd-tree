@@ -4,7 +4,7 @@
 # Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
 # License: GPL-3.0
 
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.16)
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
