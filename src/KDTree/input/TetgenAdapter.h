@@ -46,7 +46,7 @@ namespace kdtree {
         /**
          * The vertices of the polyhedron to be build
          */
-        std::vector<std::array<double, 3>> _vertices;
+        std::vector<Vertex> _vertices;
 
         /**
          * The triangular faces of the polyhedron to be build
