@@ -46,7 +46,7 @@ namespace kdtree {
         /**
          * The vertices of the polyhedron to be build
          */
-        std::vector<std::array<double, 3>> _vertices;
+        std::vector<Vertex> _vertices;
 
         /**
          * The triangular faces of the polyhedron to be build
@@ -72,7 +72,7 @@ namespace kdtree {
          * converted to a Polyhedron.
          * @return a Polyhedron
          */
-        std::tuple<std::vector<Vertex>, std::vector<IndexVector>> getPolyhedralSource();
+        std::tuple<std::vector<Vertex>, const std::vector<IndexVector>> getPolyhedralSource();
 
         /**
          * Reads nodes from a .node file

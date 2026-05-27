@@ -5,13 +5,14 @@
 # License: GPL-3.0
 
 cmake_minimum_required(VERSION 3.16)
+# This project can be included with FetchContent or find_package(KDTree) and linked via the KDTree::KDTree_lib target.
 project(KDTree)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(KD_TREE_SOURCE_DIR ${PROJECT_SOURCE_DIR})
-set(KD_TREE_BINARY_DIR ${PROJECT_BINARY_DIR})
+set(KD_TREE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+set(KD_TREE_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
 # Appends the the module path to contain additional CMake modules for this project
 # and include everything necessary
@@ -49,7 +50,14 @@ add_compile_definitions(SPDLOG_ACTIVE_LEVEL=${LOGGING_LEVEL_INDEX})
 # Build docs
 option(BUILD_KD_TREE_DOCS "Builds the documentation (Default: OFF)" OFF)
 # Build C++ executable
-option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON)" ON)
+# Default to ON when this is the top-level project, otherwise OFF when
+# included via add_subdirectory / FetchContent.
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(_KD_TREE_DEFAULT_BUILD_EXECUTABLE ON)
+else()
+    set(_KD_TREE_DEFAULT_BUILD_EXECUTABLE OFF)
+endif()
+option(BUILD_KD_TREE_EXECUTABLE "Builds the C++ executable (Default: ON when top-level; OFF when added via add_subdirectory or FetchContent)" ${_KD_TREE_DEFAULT_BUILD_EXECUTABLE})
 # Build library (default ON), if the executable or tests are built this forced to ON
 cmake_dependent_option(BUILD_KD_TREE_LIBRARY "Builds the library (Default: ON)" ON
         "NOT BUILD_KD_TREE_EXECUTABLE AND NOT BUILD_KD_TREE_TESTS" ON)
@@ -83,8 +91,8 @@ endif()
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
 
-include(git)
-include(version.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/git.cmake)
+include(${KD_TREE_SOURCE_DIR}/version.cmake)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
@@ -103,13 +111,13 @@ message(STATUS "################################################################
 # Including dependencies needed across multiple targets
 #######################################################
 
-include(thrust)
-include(spdlog)
-include(tetgen)
-include(clang_format)
+include(${KD_TREE_SOURCE_DIR}/cmake/thrust.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/spdlog.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/tetgen.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/clang_format.cmake)
 
 if (${ENABLE_IWYU})
-    include(include-what-you-use)
+    include(${KD_TREE_SOURCE_DIR}/cmake/include-what-you-use.cmake)
 endif ()
 
 ###############################
@@ -119,7 +127,7 @@ endif ()
 # preinstalled but rather gets automatically set up via CMake
 # Nevertheless, there is still the option to enforce to use a local installation if one exists
 if (${KD_TREE_PARALLELIZATION} STREQUAL "TBB")
-    include(tbb)
+    include(${KD_TREE_SOURCE_DIR}/cmake/tbb.cmake)
     thrust_set_TBB_target(TBB::tbb)
     add_compile_definitions(KD_TREE_TBB)
 elseif (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
@@ -160,3 +168,5 @@ if (BUILD_KD_TREE_TESTS)
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
 endif ()
+
+include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)

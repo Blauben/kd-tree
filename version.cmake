@@ -16,10 +16,10 @@ if (NOT ${KD_TREE_WORKING_TREE})
 endif ()
 
 # Configure the output header file
-file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree")
+file(MAKE_DIRECTORY "${KD_TREE_BINARY_DIR}/src/KDTree")
 configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/KDTree/Info.h.in"
-        "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree/Info.h"
+        "${KD_TREE_SOURCE_DIR}/src/KDTree/Info.h.in"
+        "${KD_TREE_BINARY_DIR}/src/KDTree/Info.h"
 )
 
-set(KD_TREE_GENERATED_INFO_HEADER "${CMAKE_CURRENT_BINARY_DIR}/src/KDTree/Info.h")
+set(KD_TREE_GENERATED_INFO_HEADER "${KD_TREE_BINARY_DIR}/src/KDTree/Info.h")

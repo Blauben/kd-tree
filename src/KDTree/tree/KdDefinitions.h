@@ -26,9 +26,17 @@
 namespace kdtree {
 
     /**
-     * Alias for an array of size 3 (double), representing a vertex
-     * @example for x, y, z coordinates.
+     * Concept for a Vertex-like type: any indexed, sized container
+     * providing three elements convertible to double.
      */
+    template<typename T>
+    concept VertexLike = requires(T v) {
+        { v[0] } -> std::convertible_to<double>;
+        { v[1] } -> std::convertible_to<double>;
+        { v[2] } -> std::convertible_to<double>;
+    };
+
+    // Concrete internal vertex type used throughout the implementation
     using Vertex = std::array<double, 3>;
 
     /**
@@ -81,11 +89,11 @@ namespace kdtree {
     inline Vertex normal(const Direction direction) {
         switch (direction) {
             case Direction::X:
-                return Vertex{1, 0, 0};
+                return {1, 0, 0};
             case Direction::Y:
-                return Vertex{0, 1, 0};
+                return {0, 1, 0};
             case Direction::Z:
-                return Vertex{0, 0, 1};
+                return {0, 0, 1};
             default:
                 throw std::invalid_argument{"Unknown Direction enum value used during normal fetching."};
         }
@@ -111,7 +119,7 @@ namespace kdtree {
     template<typename T>
     const Vertex& asVertex(const T &object) {
         if constexpr (std::is_same_v<T, VertexHandle>) {
-            // Handle variant: extract either Vertex or const Vertex*
+            // Handle variant: extract either Vertex or pointer to it
             if (const auto* ptr = std::get_if<const Vertex*>(&object)) {
                 return **ptr;
             }
@@ -135,7 +143,7 @@ namespace kdtree {
         requires std::is_same_v<typename C::value_type, Vertex> || std::is_same_v<typename C::value_type, VertexHandle> {
         //return empty box centered at the origin if no vertices provided
         if (elements.empty()) {
-            return {{0, 0, 0}, {0, 0, 0}};
+            return {Vertex{0, 0, 0}, Vertex{0, 0, 0}};
         }
         //initialize values from the array -> even if only one vertex is provided the box is still correct without executing the loop.
         Vertex min = asVertex(elements[0]);
@@ -143,7 +151,7 @@ namespace kdtree {
 
         //test each vertex for proximity to the origin and find minima and maxima
         for (const auto &vertex: elements) {
-            const Vertex &coords = asVertex(vertex);
+            const auto &coords = asVertex(vertex);
             // test each dimension separately
             for (size_t i = 0; i < coords.size(); ++i) {
                 min[i] = std::min(min[i], coords[i]);

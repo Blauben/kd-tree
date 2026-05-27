@@ -1,4 +1,5 @@
 #include "KDTree/tree/LeafNode.h"
+#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
@@ -87,7 +88,6 @@ namespace kdtree {
         if (u < 0.0 || u > 1.0) {
             return std::nullopt;
         }
-
         const Vertex q = cross(s, edge1);
         const double v = f * dot(rayVector, q);
         if (v < 0.0 || u + v > 1.0) {
