@@ -71,11 +71,13 @@ NB_MODULE(scikdtree, m) {
             .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
             .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
     // Expose KDTree class to Python
-    nb::class_<KDTree>(m, "KDTree")
+        nb::class_<KDTree>(m, "KDTree")
             .def(nb::init<const std::vector<Vertex> &, std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def(nb::init<const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &, const PlaneSelectionAlgorithm::Algorithm>(), "polySource"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
             .def(nb::init<const std::string &, const std::string &, const PlaneSelectionAlgorithm::Algorithm>(), "nodeFilePath"_a, "faceFilePath"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
-            .def("countIntersections", &KDTree::countIntersections, "origin"_a, "ray"_a, R"doc(Count intersections of a ray with the KDTree.)doc")
+            .def("countIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
+                return self.countIntersections(origin, ray);
+            }, "origin"_a, "ray"_a, R"doc(Count intersections of a ray with the KDTree.)doc")
             .def("getIntersections", [](KDTree &self, const Vertex &origin, const Vertex &ray) {
             std::set<Vertex> intersections{};
             self.getIntersections(origin, ray, intersections);

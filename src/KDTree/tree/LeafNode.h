@@ -51,6 +51,7 @@ namespace kdtree {
          */
         bool needTreeRebuild();
 
+
         /**
         * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
         * @param origin The point where the ray originates from.
@@ -72,7 +73,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                         const GeometryObject &object);
+                     const GeometryObject &object);
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -82,7 +83,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                           const std::vector<Vertex> &triangleVertices);
+                   const std::vector<Vertex> &triangleVertices);
 
         /**
          * Ray-Point intersection test. Also counts the intersection if the ray passes the point with distance smaller than a specified epsilon.

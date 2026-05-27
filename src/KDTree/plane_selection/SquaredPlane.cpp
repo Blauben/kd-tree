@@ -26,9 +26,8 @@ namespace kdtree {
                                  const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
                              //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
-                             const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(
-                                     clippedVertices);
+                                 const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
+                                 const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(clippedVertices);
                              for (const auto planeSurfacePoint: {minPoint, maxPoint}) {
                                  //constructs the plane that goes through a vertex lying on the bounding box of the shape to be checked and spans in a specified direction.
                                  Plane candidatePlane{
@@ -81,12 +80,12 @@ namespace kdtree {
         //transform shapeIndices into the vertices
         auto [begin, end] = transformIterator(boundGeometry.cbegin(), boundGeometry.cend(), splitParam.geometryObjects);
         std::for_each(
-                begin, end,
-                [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, std::vector<Vertex>> pair) {
-                    auto [geoIndex, vertices] = std::move(pair);
+            begin, end,
+            [&splitParam, &split, &index_greater, &index_less, &index_equal](std::pair<size_t, std::vector<Vertex>> pair) {
+                auto [geoIndex, vertices] = std::move(pair);
                     bool less{false}, greater{false};
                     auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
-                    for (const Vertex vertex: clippedVertices) {
+                    for (const auto &vertex: clippedVertices) {
                         //vertex is closer to the origin than the plane
                         if (vertex[static_cast<int>(split.orientation)] < split.axisCoordinate && !less) {
                             less = true;

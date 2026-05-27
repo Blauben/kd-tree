@@ -22,7 +22,7 @@ namespace kdtree {
     using Algorithm = PlaneSelectionAlgorithm::Algorithm;
 
     // Param tuple used by the parameterized test
-    using ParamType = std::tuple<std::vector<Vertex>, std::vector<IndexVector>, Algorithm, std::vector<Vertex>>;
+    using ParamType = std::tuple<std::vector<std::array<double,3>>, std::vector<IndexVector>, Algorithm, std::vector<std::array<double,3>>>;
 
     namespace {
         /**
@@ -48,7 +48,7 @@ namespace kdtree {
          * @param rhs Second vertex.
          * @return Squared Euclidean distance between @p lhs and @p rhs.
          */
-        [[nodiscard]] double squaredDistance(const Vertex &lhs, const Vertex &rhs) {
+        [[nodiscard]] double squaredDistance(const std::array<double,3> &lhs, const std::array<double,3> &rhs) {
             const double dx = lhs[0] - rhs[0];
             const double dy = lhs[1] - rhs[1];
             const double dz = lhs[2] - rhs[2];
@@ -60,7 +60,7 @@ namespace kdtree {
          * @param vertex Vertex to format.
          * @return String in the form [x, y, z].
          */
-        [[nodiscard]] std::string vertexToString(const Vertex &vertex) {
+        [[nodiscard]] std::string vertexToString(const std::array<double,3> &vertex) {
             std::ostringstream stream;
             stream << "[" << vertex[0] << ", " << vertex[1] << ", " << vertex[2] << "]";
             return stream.str();
@@ -77,12 +77,12 @@ namespace kdtree {
          * @param expectedPoint Target point that should have been intersected.
          * @return Diagnostic message appended to gtest failure output.
          */
-        [[nodiscard]] std::string closestIntersectionMessage(const std::set<Vertex> &intersections, const Vertex &expectedPoint) {
+        [[nodiscard]] std::string closestIntersectionMessage(const std::set<std::array<double,3>> &intersections, const std::array<double,3> &expectedPoint) {
             if (intersections.empty()) {
                 return "Closest intersection: <none> (intersection set is empty)";
             }
 
-            const auto closest = std::min_element(intersections.begin(), intersections.end(), [&expectedPoint](const Vertex &lhs, const Vertex &rhs) {
+            const auto closest = std::min_element(intersections.begin(), intersections.end(), [&expectedPoint](const std::array<double,3> &lhs, const std::array<double,3> &rhs) {
                 return squaredDistance(lhs, expectedPoint) < squaredDistance(rhs, expectedPoint);
             });
 
@@ -97,7 +97,7 @@ namespace kdtree {
         /**
          * A simple cube polyhedron for testing purposes: vertices
          */
-        const std::vector<Vertex> cube_vertices{
+        const std::vector<std::array<double,3>> cube_vertices{
                 {-1.0, -1.0, -1.0},
                 {1.0, -1.0, -1.0},
                 {1.0, 1.0, -1.0},
@@ -129,7 +129,7 @@ namespace kdtree {
          * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
          * @return A tuple containing the vertices and faces of the big polyhedron.
          */
-        const std::tuple<std::vector<Vertex>, std::vector<IndexVector>> &getBigPolyhedron() {
+        const std::tuple<std::vector<std::array<double,3>>, const std::vector<IndexVector>> &getBigPolyhedron() {
             static const std::vector<std::string> polyhedronNodeFilePath = {
                     std::format("resources/Eros_scaled-{}.node", 27000),
                     std::format("resources/Eros_scaled-{}.face", 27000)};
@@ -152,7 +152,7 @@ namespace kdtree {
          * @param vertices The vertices of the triangle.
          * @return A random point on the surface of the triangle.
          */
-        Vertex randomPointOnFace(const std::array<Vertex, 3> &vertices) {
+        std::array<double,3> randomPointOnFace(const std::array<std::array<double,3>, 3> &vertices) {
             using namespace util;
             std::uniform_real_distribution<> distrib(0.0, 1.0);
             const double a = distrib(gen);
@@ -169,15 +169,15 @@ namespace kdtree {
          * @param n The number of random points to generate.
          * @return A vector of random points on the surface of the polyhedron.
          */
-        std::vector<Vertex> generateRandomPointsOnPolyhedron(const std::vector<Vertex> &vertices,
+        std::vector<std::array<double,3>> generateRandomPointsOnPolyhedron(const std::vector<std::array<double,3>> &vertices,
                                                              const std::vector<IndexVector> &faces,
                                                              const size_t n) {
-            std::vector<Vertex> randomPoints;
+            std::vector<std::array<double,3>> randomPoints;
             randomPoints.reserve(n);
             for (size_t i = 0; i < n; ++i) {
                 const auto faceIndex = getRandomIndex(faces.size());
                 const auto &verticeIndices = faces.at(faceIndex);
-                std::array<Vertex, 3> faceVertices{};
+                std::array<std::array<double,3>, 3> faceVertices{};
                 std::ranges::transform(verticeIndices, faceVertices.begin(),
                                        [&](const auto index) { return vertices.at(index); });
                 randomPoints.push_back(randomPointOnFace(faceVertices));

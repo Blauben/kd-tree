@@ -1,16 +1,18 @@
 ###############################
 # Building the KDTree Libray
 ################################
-if (BUILD_KD_TREE_LIBRARY)
+if (BUILD_KD_TREE_LIBRARY AND NOT TARGET ${PROJECT_NAME}_lib)
     message(STATUS "Building the KD Tree Library")
 
     add_subdirectory(KDTree)
 
-    # Adds the include Path PROJECT_SOURCE_DIR/src to the target KDTree
-    target_include_directories(${PROJECT_NAME}_lib PUBLIC
-            "${CMAKE_CURRENT_SOURCE_DIR}"
-            "${CMAKE_CURRENT_BINARY_DIR}"
-    )
+        # Adds the include paths for build and install. Use generator expressions
+        # so exported/installed targets do not contain absolute source/build dirs.
+        target_include_directories(${PROJECT_NAME}_lib PUBLIC
+            $<BUILD_INTERFACE:${KD_TREE_SOURCE_DIR}/src>
+            $<BUILD_INTERFACE:${KD_TREE_BINARY_DIR}/src>
+            $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/KDTree>
+        )
 
     # Link libraries needed in all targets
     target_link_libraries(${PROJECT_NAME}_lib
@@ -23,7 +25,7 @@ endif ()
 #####################################
 # Building the KDTree Executable
 #####################################
-if (BUILD_KD_TREE_EXECUTABLE)
+if (BUILD_KD_TREE_EXECUTABLE AND NOT TARGET ${PROJECT_NAME})
     message(STATUS "Building the KD Tree Executable")
 
     include(cli11)
@@ -47,7 +49,7 @@ endif ()
 ##########################################
 # Building the KDTree Python Interface
 ##########################################
-if (BUILD_KD_TREE_PYTHON_INTERFACE)
+if (BUILD_KD_TREE_PYTHON_INTERFACE AND NOT TARGET scikdtree)
     message(STATUS "Building the KD Tree Python Interface")
 
     # Include nanobind
@@ -61,7 +63,7 @@ endif ()
 #####################################################
 # Building the KDTree Time Measurement Executable
 #####################################################
-if (BUILD_KD_TREE_TIME_MEASUREMENT)
+if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
     message(STATUS "Building the KD Tree Benchmark Executable")
 
     include(benchmark)

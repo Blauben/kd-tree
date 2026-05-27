@@ -11,5 +11,6 @@ src/KDTree/Info.h
 __pycache__/
 CMakeFiles/
 CMakeUserPresets.json
+uv.lock
 
 dependencies/

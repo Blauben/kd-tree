@@ -80,9 +80,69 @@ namespace kdtree {
         * @return the lazily built KDTree.
         */
         KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-               PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true);
+             PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true);
 
+        
+        /**
+         * Constructor overload that allows passing the vertices as a different type than Vertex, as long as they are VertexLike. The constructor will convert the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a different type.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param vertices The vertex coordinates of the polyhedron
+         * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         */
+        template<kdtree::VertexLike V>
+        requires std::is_same_v<V, Vertex>
+        KDTree(const std::vector<V> &vertices, const std::vector<IndexVector> &shapes,
+            PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG)
+        : KDTree(static_cast<const std::vector<Vertex>&>(vertices), shapes, algorithm, true) {}
+
+        /**
+         * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a different type.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param vertices The vertex coordinates of the polyhedron
+         * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         */
+        template<kdtree::VertexLike V>
+        requires (!std::is_same_v<V, Vertex>)
+        KDTree(const std::vector<V> &vertices, const std::vector<IndexVector> &shapes,
+             PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG)
+            : KDTree([&]{
+                std::vector<Vertex> converted{};
+                converted.reserve(vertices.size());
+                for (const auto &v : vertices) converted.emplace_back(Vertex{static_cast<double>(v[0]), static_cast<double>(v[1]), static_cast<double>(v[2])});
+                return converted;
+            }(), shapes, algorithm, true) {}
+
+        /**
+         * Constructor overload for building a KDTree with particles instead of shapes. Each particle is represented by a single vertex and the tree will not contain any shapes. This means that the tree can be used to efficiently find the nearest point on a ray to a targeted vertex, but not for example to find ray-triangle intersections.
+         * @see KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes, PlaneSelectionAlgorithm::Algorithm algorithm) for more details on the parameters.
+         */
         explicit KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+
+        /**
+         * Constructor overload for building a KDTree with particles instead of shapes. Each particle is represented by a single vertex and the tree will not contain any shapes. This means that the tree can be used to efficiently find the nearest point on a ray to a targeted vertex, but not for example to find ray-triangle intersections. This overload allows passing the vertices as a different type than Vertex, as long as they are VertexLike. The constructor will convert the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param particles The vertex coordinates of the particles
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         */
+        template<kdtree::VertexLike V>
+        requires std::is_same_v<V, Vertex>
+        explicit KDTree(const std::vector<V> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG)
+            : KDTree(static_cast<const std::vector<Vertex>&>(particles), algorithm) {}
+
+        /**
+         * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param particles The vertex coordinates of the particles
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         */
+        template<kdtree::VertexLike V>
+        requires (!std::is_same_v<V, Vertex>)
+        explicit KDTree(const std::vector<V> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG)
+            : KDTree([&]{ std::vector<Vertex> converted{}; converted.reserve(particles.size()); for (const auto &v: particles) converted.emplace_back(Vertex{static_cast<double>(v[0]), static_cast<double>(v[1]), static_cast<double>(v[2])}); return converted;}(), algorithm) {}
 
         /**
          * Call to build a KDTree to speed up intersections of rays with a polyhedron's shapes.
@@ -94,15 +154,47 @@ namespace kdtree {
         KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
-         * Constructor overload that allows passing the paths for the .node and .face files in a std::pair.
-         * @param polySource The pair of the .node and .face file
+         * Constructor overload that takes a tuple of vertices and shapes as input. This allows for example to pass the output of a TetgenAdapter directly to the KDTree constructor without having to unpack the tuple first. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
+         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         **/
+         KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
+             PlaneSelectionAlgorithm::Algorithm algorithm);
+
+        /**
+         * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
-        KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
-               PlaneSelectionAlgorithm::Algorithm algorithm);
+        template<kdtree::VertexLike V>
+        requires std::is_same_v<V, Vertex>
+        KDTree(std::tuple<std::vector<V>, std::vector<IndexVector>> polySource,
+            PlaneSelectionAlgorithm::Algorithm algorithm)
+            : KDTree(static_cast<std::tuple<std::vector<Vertex>, std::vector<IndexVector>>&>(polySource), algorithm) {}
+
+        /**
+         * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
+         * @tparam V The vertex type, which must be VertexLike.
+         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         * @return the lazily built KDTree.
+         */
+        template<kdtree::VertexLike V>
+        requires (!std::is_same_v<V, Vertex>)
+        KDTree(std::tuple<std::vector<V>, std::vector<IndexVector>> polySource,
+            PlaneSelectionAlgorithm::Algorithm algorithm)
+            : KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>>{
+                [&]{ auto &vec = std::get<0>(polySource); std::vector<Vertex> c; c.reserve(vec.size()); for (const auto &v: vec) c.emplace_back(Vertex{static_cast<double>(v[0]), static_cast<double>(v[1]), static_cast<double>(v[2])}); return c;}(),
+                std::get<1>(polySource)
+            }, algorithm) {}
 
 
+        /**
+         * Container tracks handles to the tree nodes for direct access to the nodes, e.g. for checking if a tree rebuild is needed due to vertex movement outside the leaf node's bounding box. The handles are stored as weak_ptrs to avoid memory leaks and dangling pointers when tree nodes are destroyed.
+         */
         NodeRegister nodeRegister{};
 
         /**
@@ -122,12 +214,32 @@ namespace kdtree {
         void getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections);
 
         /**
+         * Overload of getIntersections for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double before calling the main getIntersections function. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand.
+         */
+        template<kdtree::VertexLike V>
+        void getIntersections(const V &origin, const V &ray, std::set<Vertex> &intersections) {
+            Vertex o{static_cast<double>(origin[0]), static_cast<double>(origin[1]), static_cast<double>(origin[2])};
+            Vertex r{static_cast<double>(ray[0]), static_cast<double>(ray[1]), static_cast<double>(ray[2])};
+            return getIntersections(o, r, intersections);
+        }
+
+        /**
          * Calculates the number of intersections of a ray with the polyhedron.
          * @param origin The origin point of the ray.
          * @param ray The ray direction vector.
          * @return the number of intersections.
          */
         size_t countIntersections(const Vertex &origin, const Vertex &ray);
+
+        /**
+         * Overload of countIntersections for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double before calling the main countIntersections function. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand.
+         */
+        template<kdtree::VertexLike V>
+        size_t countIntersections(const V &origin, const V &ray) {
+            Vertex o{static_cast<double>(origin[0]), static_cast<double>(origin[1]), static_cast<double>(origin[2])};
+            Vertex r{static_cast<double>(ray[0]), static_cast<double>(ray[1]), static_cast<double>(ray[2])};
+            return countIntersections(o, r);
+        }
 
         /**
          * Prebuilds the whole KDTree bypassing lazy loading entirely.

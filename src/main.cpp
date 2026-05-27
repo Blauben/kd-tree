@@ -34,17 +34,17 @@ namespace {
 
         std::size_t planeCount = 0;
         std::array<std::size_t, 3> axisSplitCounts{};
-        std::array<double, 3> minPlaneCoordinate{};
-        std::array<double, 3> maxPlaneCoordinate{};
-        std::array<double, 3> sumPlaneCoordinate{};
+        kdtree::Vertex minPlaneCoordinate{};
+        kdtree::Vertex maxPlaneCoordinate{};
+        kdtree::Vertex sumPlaneCoordinate{};
 
         double minBoxSurfaceArea = std::numeric_limits<double>::infinity();
         double maxBoxSurfaceArea = 0.0;
         double sumBoxSurfaceArea = 0.0;
 
         TreeStatistics() {
-            minPlaneCoordinate.fill(std::numeric_limits<double>::infinity());
-            maxPlaneCoordinate.fill(-std::numeric_limits<double>::infinity());
+            minPlaneCoordinate = kdtree::Vertex{std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity()};
+            maxPlaneCoordinate = kdtree::Vertex{-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()};
         }
     };
 
