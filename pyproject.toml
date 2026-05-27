@@ -5,7 +5,7 @@ build-backend = "scikit_build_core.build"
 [project]
 name = "scikdtree"
 dynamic = ["version"]
-description = "This project provides a lazily built KD_TREE operating on particles or triangle faces in three dimensional space."
+description = "This project provides a lazily built KD-Tree operating on particles or triangle faces in three dimensional space."
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
