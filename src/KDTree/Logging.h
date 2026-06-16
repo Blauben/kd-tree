@@ -14,7 +14,7 @@ namespace kdtree {
 
     public:
         KDTreeLogger()
-            : _logger(spdlog::stdout_color_mt<spdlog::synchronous_factory>("KDTREE_LOGGER")) {
+            : _logger(spdlog::stdout_logger_mt<spdlog::synchronous_factory>("KDTREE_LOGGER")) {
             _logger->set_level(static_cast<spdlog::level::level_enum>(SPDLOG_ACTIVE_LEVEL));
         }
 
