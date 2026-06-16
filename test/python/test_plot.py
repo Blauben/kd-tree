@@ -29,3 +29,26 @@ def test_plot_no_throw(tmp_path):
 
     assert generated.shape == reference.shape
     assert np.mean(np.abs(generated.astype(np.int16) - reference.astype(np.int16))) < 2
+
+def test_plot_console_output(tmp_path, capfd):
+    import scikdtree as sci
+    mesh_path = "resources/Eros_scaled-1000"
+    sci.KDTree.set_loglevel(sci.LogLevel.OFF)
+    tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
+    outpath = os.path.join(tmp_path, "kd_tree_plot_silent_test.png")
+
+    # Test with print_to_stdout=False and disable spdlog output
+    sci.plot_kd_tree(tree, outpath=outpath, print_to_stdout=False)
+    assert os.path.exists(outpath), "Plot file was not created as expected."
+    captured = capfd.readouterr()
+    assert captured.out == "", "Expected no output to stdout when print_to_stdout=False and log level is OFF"
+
+    # Now test with print_to_stdout=True (default argument) and enable spdlog output
+    sci.KDTree.set_loglevel(sci.LogLevel.INFO)
+    tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
+    sci.plot_kd_tree(tree, outpath=outpath)
+    captured = capfd.readouterr()
+    assert "KDTREE_LOGGER" in captured.out, "Expected spdlog output to stdout when log level is INFO"
+    assert "Plotting vertices" in captured.out, "Expected progress output to stdout when print_to_stdout=True"
+    assert "Building and plotting planes" in captured.out, "Expected progress output to stdout when print_to_stdout=True"
+    assert "Plot complete" in captured.out, "Expected completion message to stdout when print_to_stdout=True"
