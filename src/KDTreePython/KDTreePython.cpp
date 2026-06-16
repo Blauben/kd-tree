@@ -14,9 +14,12 @@
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
 
+#include <spdlog/spdlog.h>
+
 #include "KDTree/tree/KDTree.h"
 #include "KDTree/model/Plane.h"
 #include "KDTree/model/Box.h"
+#include "KDTree/Logging.h"
 
 namespace nb = nanobind;
 using namespace nb::literals;
@@ -70,6 +73,15 @@ NB_MODULE(scikdtree, m) {
             .value("LOGSQUARED", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)
             .value("QUADRATIC", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)
             .value("NOTREE", PlaneSelectionAlgorithm::Algorithm::NOTREE);
+    // Expose spdlog logging level enum to Python
+    nb::enum_<spdlog::level::level_enum>(m, "LogLevel")
+            .value("TRACE", spdlog::level::trace)
+            .value("DEBUG", spdlog::level::debug)
+            .value("INFO", spdlog::level::info)
+            .value("WARN", spdlog::level::warn)
+            .value("ERR", spdlog::level::err)
+            .value("CRITICAL", spdlog::level::critical)
+            .value("OFF", spdlog::level::off);
     // Expose KDTree class to Python
         nb::class_<KDTree>(m, "KDTree")
             .def(nb::init<const std::vector<Vertex> &, std::vector<IndexVector> &, const PlaneSelectionAlgorithm::Algorithm>(), "vertices"_a, "faces"_a, "algorithm"_a = PlaneSelectionAlgorithm::Algorithm::LOG)
@@ -100,5 +112,8 @@ NB_MODULE(scikdtree, m) {
         .def("geometry", [m](KDTree &self) {
             auto [begin, end] = self.geometryIterator();
             return nb::make_iterator(m, "geometry_iterator", begin, end);
-        }, R"doc(Get the geometry objects of the KDTree.)doc");
+        }, R"doc(Get the geometry objects of the KDTree.)doc")
+        .def_static("set_loglevel", [](spdlog::level::level_enum level) {
+            kdtree::KDTreeLogger::defaultLogger().getLogger()->set_level(level);
+        }, "level"_a, R"doc(Set the logging level for the KDTree.)doc");
 }
