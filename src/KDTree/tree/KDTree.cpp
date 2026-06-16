@@ -22,6 +22,8 @@ namespace kdtree {
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
                                                    PlaneSelectionAlgorithmFactory::create(algorithm), nodeRegister);
         LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
+        // flush the logger so that the messages are picked up by test cases that check for log output during tree construction
+        KDTreeLogger::defaultLogger().getLogger()->flush();
     }
 
     KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
