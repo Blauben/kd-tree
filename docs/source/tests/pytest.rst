@@ -8,7 +8,8 @@ Install Test Dependencies
 -------------------------
 
 .. code-block:: bash
-    # optional: create and activate a virtual environment
+   
+   # optional: create and activate a virtual environment
    pip install pytest
 
 Build and Install the Python Module

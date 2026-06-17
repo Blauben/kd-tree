@@ -16,7 +16,7 @@ release = 'v1.0.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx_rtd_theme', 'breathe']
+extensions = ['sphinx_rtd_theme', 'breathe', 'sphinx.ext.autodoc']
 
 templates_path = ['_templates']
 exclude_patterns = []

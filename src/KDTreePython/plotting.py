@@ -10,14 +10,14 @@ from .scikdtree import KDTree, Direction
 def plot_kd_tree(kdtree: KDTree, title: str = "KDTree", outpath: str = None, show_gui: bool = False, print_to_stdout: bool = True) -> plt.Figure:
     """Plots a 3d KD-Tree using matplotlib
 
-    :param show_gui: Shows the resulting plot in a gui. Attention: this blocks the program until the plot window is closed.
-    :param print_to_stdout: If True, prints the progress of plotting to stdout. Otherwise compute silent. Useful for keeping logs clean.
-    :param title: Sets the title of the plot
-    :param outpath: Where to save the resulting plot. If None, the plot will not be saved.
-    :param kdtree: The KDTree to plot
-    :type kdtree: KDTree
-    :return The resulting matplotlib figure
-    :rtype: plt.Figure
+        :param show_gui: Shows the resulting plot in a gui. Attention: this blocks the program until the plot window is closed.
+        :param print_to_stdout: If True, prints the progress of plotting to stdout. Otherwise compute silent. Useful for keeping logs clean.
+        :param title: Sets the title of the plot
+        :param outpath: Where to save the resulting plot. If None, the plot will not be saved.
+        :param kdtree: The KDTree to plot
+        :type kdtree: KDTree
+        :return The resulting matplotlib figure
+        :rtype: plt.Figure
     """
     fig = plt.figure(dpi=800)
     ax = fig.add_subplot(111, projection='3d')
