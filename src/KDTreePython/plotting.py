@@ -16,7 +16,8 @@ def plot_kd_tree(kdtree: KDTree, title: str = "KDTree", outpath: str = None, sho
         :param outpath: Where to save the resulting plot. If None, the plot will not be saved.
         :param kdtree: The KDTree to plot
         :type kdtree: KDTree
-        :return The resulting matplotlib figure
+
+        :return: The resulting matplotlib figure
         :rtype: plt.Figure
     """
     fig = plt.figure(dpi=800)

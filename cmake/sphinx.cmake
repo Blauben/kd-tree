@@ -1,18 +1,7 @@
 # Adapted from https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 
 # Set up a virtual environment variables with Sphinx, Breathe, and sphinx_rtd_theme
-set(VENV_DIR "${CMAKE_SOURCE_DIR}/.venv")
-
-# Cross-platform virtual environment paths
-if(WIN32)
-    set(VENV_BIN_DIR "${VENV_DIR}/Scripts")
-    set(VENV_PYTHON "${VENV_BIN_DIR}/python.exe")
-    set(VENV_SPHINX "${VENV_BIN_DIR}/sphinx-build.exe")
-else()
-    set(VENV_BIN_DIR "${VENV_DIR}/bin")
-    set(VENV_PYTHON "${VENV_BIN_DIR}/python")
-    set(VENV_SPHINX "${VENV_BIN_DIR}/sphinx-build")
-endif()
+include(pyvenv)
 
 function(install_sphinx)
     message(STATUS "Installing Sphinx, Breathe, and sphinx_rtd_theme...")
@@ -50,31 +39,6 @@ function(validate_sphinx_executable)
 endfunction()
 
 function(install_sphinx_virtual)
-    if(NOT EXISTS "${VENV_DIR}")
-        message(STATUS "Creating Python virtual environment at ${VENV_DIR}")
-        find_package(Python3 COMPONENTS Interpreter REQUIRED)
-        execute_process(
-            COMMAND "${Python3_EXECUTABLE}" -m venv "${VENV_DIR}"
-            RESULT_VARIABLE VENV_CREATE_RESULT
-        )
-        if(NOT VENV_CREATE_RESULT EQUAL 0)
-            message(FATAL_ERROR "Failed to create virtual environment")
-        endif()
-
-        # Install required packages
-        execute_process(
-            COMMAND "${VENV_PYTHON}" -m pip install --upgrade pip
-            RESULT_VARIABLE PIP_UPGRADE_RESULT
-            OUTPUT_VARIABLE PIP_UPGRADE_OUTPUT
-            ERROR_VARIABLE PIP_UPGRADE_ERROR
-        )
-        if(NOT PIP_UPGRADE_RESULT EQUAL 0)
-            message(STATUS "pip upgrade output: ${PIP_UPGRADE_OUTPUT}")
-            message(STATUS "pip upgrade error: ${PIP_UPGRADE_ERROR}")
-            message(WARNING "Failed to upgrade pip, continuing anyway...")
-        endif()
-    endif ()
-
     # Prevent stale CMake cache entries from reporting a removed executable as found.
     unset(SPHINX_EXECUTABLE)
     unset(SPHINX_EXECUTABLE CACHE)
