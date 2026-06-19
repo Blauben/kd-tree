@@ -1,8 +1,8 @@
 #pragma once
 #include <memory>
+#include <shared_mutex>
 #include <string>
 #include <vector>
-#include <shared_mutex>
 
 namespace kdtree {
 
@@ -38,6 +38,5 @@ namespace kdtree {
          * accessing invalid weak_ptr control blocks.
          */
         void unregisterLeafNode(const std::shared_ptr<LeafNode> &node);
-
     };
-}
+}// namespace kdtree

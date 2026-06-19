@@ -8,12 +8,12 @@
 
 #pragma once
 
+#include "Constants.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <functional>
 #include <iostream>
-#include "Constants.h"
 #include <numeric>
 #include <set>
 #include <string>
@@ -445,12 +445,12 @@ namespace kdtree::util {
     }
 
     template<typename T>
-    constexpr const T& asRef(const T& value) noexcept {
+    constexpr const T &asRef(const T &value) noexcept {
         return value;
     }
 
     template<typename T>
-    constexpr const T& asRef(const T* ptr) {
+    constexpr const T &asRef(const T *ptr) {
         return *ptr;
     }
 

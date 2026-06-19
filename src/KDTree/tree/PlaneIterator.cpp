@@ -13,7 +13,7 @@ namespace kdtree {
         return {node->_plane, node->_boundingBox};
     }
 
-    PlaneIterator & PlaneIterator::operator++() {
+    PlaneIterator &PlaneIterator::operator++() {
         // if the queue is empty no advancements can be made, return immediately
         if (_nodeQueue.empty()) {
             return *this;
@@ -31,16 +31,17 @@ namespace kdtree {
     }
 
     PlaneIterator PlaneIterator::operator++(int) {
-        auto currentState =  PlaneIterator(*this);
+        auto currentState = PlaneIterator(*this);
         this->operator++();
         return currentState;
     }
 
     bool PlaneIterator::operator==(const PlaneIterator &rhs) const {
-        return (_nodeQueue.empty() && rhs._nodeQueue.empty()) || (!_nodeQueue.empty() && !rhs._nodeQueue.empty() && _nodeQueue.front() == rhs._nodeQueue.front());;
+        return (_nodeQueue.empty() && rhs._nodeQueue.empty()) || (!_nodeQueue.empty() && !rhs._nodeQueue.empty() && _nodeQueue.front() == rhs._nodeQueue.front());
+        ;
     }
 
     bool PlaneIterator::operator!=(const PlaneIterator &rhs) const {
         return !(*this == rhs);
     }
-}
+}// namespace kdtree

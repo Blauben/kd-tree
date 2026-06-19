@@ -106,5 +106,4 @@ namespace kdtree::constants {
      */
     constexpr int MAX_EXPONENT_DIFFERENCE = 50;
 
-}  // namespace kdtree
-
+}// namespace kdtree::constants

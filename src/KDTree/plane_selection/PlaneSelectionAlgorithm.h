@@ -140,6 +140,7 @@ namespace kdtree {
                         std::move(_callbackArgs));
             }
         };
+
     protected:
         /**
        * Evaluates the cost function should the specified bounding box and it's shapes be divided by the specified plane. Used to evaluate possible split planes.

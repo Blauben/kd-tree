@@ -52,7 +52,7 @@ namespace kdtree {
                          [&splitParam, &events, &directions, &eventsMutex](const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
                              //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
-                                 const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(splitParam.boundingBox.clipToVoxel(vertices));
+                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(splitParam.boundingBox.clipToVoxel(vertices));
                              std::lock_guard lock(eventsMutex);
                              for (const auto &direction: directions) {
                                  // if the shape is perpendicular to the split direction, generate a planar event with the candidate plane in which the shape lies

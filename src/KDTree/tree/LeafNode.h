@@ -1,10 +1,10 @@
 #pragma once
 
-#include "KDTree/util/Constants.h"
 #include "KDTree/Logging.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
+#include "KDTree/util/Constants.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "KDTree/util/UtilityFloatArithmetic.h"
 #include "thrust/detail/execution_policy.h"
@@ -73,7 +73,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
-                     const GeometryObject &object);
+                                                         const GeometryObject &object);
 
         /**
          * Möller-Trumbore Algorithm for Ray-Face intersection.
@@ -83,7 +83,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
-                   const std::vector<Vertex> &triangleVertices);
+                                                           const std::vector<Vertex> &triangleVertices);
 
         /**
          * Ray-Point intersection test. Also counts the intersection if the ray passes the point with distance smaller than a specified epsilon.

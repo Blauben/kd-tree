@@ -13,7 +13,7 @@ namespace kdtree {
     /**
      * Allow KDTree data to be dynamic or static to avoid dangling references.
      */
-    using VertexHandle = std::variant<Vertex, const Vertex*>;
+    using VertexHandle = std::variant<Vertex, const Vertex *>;
 
     /**
      * This class contains a collection of vertices, representing the corners of a geometrical shape and provides the abstraction on which the kdtree operates.

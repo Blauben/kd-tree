@@ -100,7 +100,7 @@ namespace kdtree {
         using namespace util;
         //the distance is interpreted in the normal direction, negative values are in opposite direction of the normal.
         auto distanceMeasures = [&plane, &flipPlaneNormal](
-                        const Vertex &point) -> double {
+                                        const Vertex &point) -> double {
             // works for arbitrary plane orientations:
             // return dot(point - plane.originPoint(), plane.normal(flipPlaneNormal));
             // only works for axis aligned planes:
@@ -108,7 +108,7 @@ namespace kdtree {
         };
         static constexpr auto isInside = [](const double distance) { return distance >= 0.0; };
         static constexpr auto intersectionPoint = [](const Vertex &from, const Vertex &to, const double distanceFrom,
-                                 const double distanceTo) {
+                                                     const double distanceTo) {
             // solve for t in $ [(t * from + (1-t) * to ) - origin] * normal = 0 $
             // equation explained: search for a point on the plane defined by $ (point - origin) * normal $, where point is linearly interpolated using vectors from and to.
             const double t{distanceTo / (distanceTo - distanceFrom)};

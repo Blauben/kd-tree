@@ -18,8 +18,8 @@
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
-#include "KDTree/util/UtilityContainer.h"
 #include "KDTree/util/Constants.h"
+#include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
     struct SplitParam;

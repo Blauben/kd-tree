@@ -114,8 +114,8 @@ namespace kdtree {
             auto clipped = boundingBox.clipToVoxel(vertices);
             //create split plane anchor points using the bounding box
             const auto [minPoint, maxPoint] = Box::getBoundingBox(clipped);
-                //associate parameters for PlaneEvent creation
-                std::array<std::pair<const Vertex, PlaneEventType>, 2> planeEventParam{
+            //associate parameters for PlaneEvent creation
+            std::array<std::pair<const Vertex, PlaneEventType>, 2> planeEventParam{
                     std::make_pair(minPoint, PlaneEventType::starting),
                     std::make_pair(maxPoint, PlaneEventType::ending)};
             //create planes in each dimension, be careful to cluster similar anchor points together.
