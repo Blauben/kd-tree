@@ -44,3 +44,20 @@ add_custom_target(Sphinx ALL
         DEPENDS Doxygen 
         COMMENT "Generating documentation with Sphinx"
 )
+
+message(STATUS "Installing KDTree package in virtual environment for Sphinx documentation. This may take a moment...")
+
+execute_process(
+    COMMAND ${VENV_PYTHON} -m pip install ${KD_TREE_SOURCE_DIR}
+    RESULT_VARIABLE INSTALL_RESULT
+    OUTPUT_VARIABLE INSTALL_OUTPUT
+    ERROR_VARIABLE INSTALL_ERROR
+)
+
+if(NOT INSTALL_RESULT EQUAL 0)
+    message(STATUS "pip install output: ${INSTALL_OUTPUT}")
+    message(STATUS "pip install error: ${INSTALL_ERROR}")
+    message(WARNING "Failed to install KDTree package in virtual environment. Python documentation may not work correctly.")
+else()
+    message(STATUS "Successfully installed KDTree package in virtual environment")
+endif()
