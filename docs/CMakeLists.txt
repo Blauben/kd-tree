@@ -48,7 +48,7 @@ add_custom_target(Sphinx ALL
 message(STATUS "Installing KDTree package in virtual environment for Sphinx documentation. This may take a moment...")
 
 execute_process(
-    COMMAND ${VENV_PYTHON} -m pip install ${KD_TREE_SOURCE_DIR}
+    COMMAND ${VENV_PYTHON} -m pip install ${KD_TREE_SOURCE_DIR} --config-settings=cmake.args={"--preset","python"} -v
     RESULT_VARIABLE INSTALL_RESULT
     OUTPUT_VARIABLE INSTALL_OUTPUT
     ERROR_VARIABLE INSTALL_ERROR
