@@ -17,6 +17,7 @@ Tree Nodes
 .. doxygenclass:: kdtree::TreeNode
    :project: KDTree
    :members:
+   :undoc-members:
 
 .. doxygenclass:: kdtree::SplitNode
    :project: KDTree
