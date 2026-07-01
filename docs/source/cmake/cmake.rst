@@ -1,4 +1,4 @@
-.. _cmake::
+.. _cmake:
 
 CMake Reference
 ===============
@@ -86,7 +86,7 @@ Configure presets (from ``CMakePresets.json``):
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``release-tbb``| ``release``                   | Release build with TBB backend.                           |
 +----------------+-------------------------------+-----------------------------------------------------------+
-| ``test-release``| ``release-tbb``              | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``.     |
+| ``test-release``| ``release-tbb``              | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``.    |
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``test-debug`` | ``debug``                     | Test build in Debug with ``BUILD_KD_TREE_TESTS=ON``.      |
 +----------------+-------------------------------+-----------------------------------------------------------+

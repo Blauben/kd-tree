@@ -1,9 +1,9 @@
 #pragma once
 
-#include "KDTree/tree/NodeRegister.h"
 #include "KDTree/model/Box.h"
 #include "KDTree/model/GeometryObject.h"
 #include "KDTree/model/PlaneEvent.h"
+#include "KDTree/tree/NodeRegister.h"
 
 #include "KDTree/tree/KdDefinitions.h"
 
@@ -41,7 +41,7 @@ namespace kdtree {
         /**
          * The NodeRegister object located in the KDTree that is used to register and track node behavior throughout the tree.
          */
-        NodeRegister& nodeRegister;
+        NodeRegister &nodeRegister;
 
         /**
          * Constructor that initializes all fields. Intended for the use with std::make_unique. See {@link SplitParam} fields for further information.
@@ -64,7 +64,7 @@ namespace kdtree {
                    const Direction splitDirection,
                    const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy, NodeRegister &nodeRegister)
             : geometryObjects{geometryObjects}, boundObjects{boundObjects}, boundingBox{boundingBox},
-              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister {nodeRegister} {
+              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister{nodeRegister} {
         }
     };
 }// namespace kdtree

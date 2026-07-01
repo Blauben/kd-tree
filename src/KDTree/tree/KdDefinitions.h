@@ -1,7 +1,7 @@
 #pragma once
 
-#include "KDTree/util/UtilityContainer.h"
 #include "KDTree/util/Constants.h"
+#include "KDTree/util/UtilityContainer.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
@@ -42,7 +42,7 @@ namespace kdtree {
     /**
      * Allow KDTree data to be dynamic or static to avoid dangling references.
      */
-    using VertexHandle = std::variant<Vertex, const Vertex*>;
+    using VertexHandle = std::variant<Vertex, const Vertex *>;
 
     /**
      * Alias for an array of size 3 (size_t)
@@ -117,10 +117,10 @@ namespace kdtree {
     size_t recursionDepth(size_t nodeId);
 
     template<typename T>
-    const Vertex& asVertex(const T &object) {
+    const Vertex &asVertex(const T &object) {
         if constexpr (std::is_same_v<T, VertexHandle>) {
             // Handle variant: extract either Vertex or pointer to it
-            if (const auto* ptr = std::get_if<const Vertex*>(&object)) {
+            if (const auto *ptr = std::get_if<const Vertex *>(&object)) {
                 return **ptr;
             }
             return std::get<Vertex>(object);
@@ -140,7 +140,8 @@ namespace kdtree {
     */
     template<util::Container C>
     std::pair<Vertex, Vertex> findMinMaxCoordinates(C elements)
-        requires std::is_same_v<typename C::value_type, Vertex> || std::is_same_v<typename C::value_type, VertexHandle> {
+        requires std::is_same_v<typename C::value_type, Vertex> || std::is_same_v<typename C::value_type, VertexHandle>
+    {
         //return empty box centered at the origin if no vertices provided
         if (elements.empty()) {
             return {Vertex{0, 0, 0}, Vertex{0, 0, 0}};

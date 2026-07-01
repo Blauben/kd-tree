@@ -57,4 +57,4 @@ namespace kdtree {
         KDTreeLogger::defaultLogger().getLogger()->error(msg.str());
     }
 
-} // namespace kdtree
+}// namespace kdtree

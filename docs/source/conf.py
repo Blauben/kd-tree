@@ -16,7 +16,7 @@ release = 'v1.0.0'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx_rtd_theme', 'breathe']
+extensions = ['sphinx_rtd_theme', 'breathe', 'sphinx.ext.autodoc']
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -42,3 +42,5 @@ html_theme_options = {
     'navigation_depth': 4,
     'sticky_navigation': True,
 }
+
+suppress_warnings = ['duplicate_declaration.cpp']

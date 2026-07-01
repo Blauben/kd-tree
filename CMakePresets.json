@@ -108,15 +108,10 @@
     {
       "name": "docs",
       "displayName": "Documentation",
-      "inherits": "base",
+      "inherits": "python",
       "binaryDir": "${sourceDir}/build/docs",
       "cacheVariables": {
-        "BUILD_KD_TREE_DOCS": "ON",
-        "BUILD_KD_TREE_LIBRARY": "OFF",
-        "BUILD_KD_TREE_EXECUTABLE": "OFF",
-        "BUILD_KD_TREE_PYTHON_INTERFACE": "OFF",
-        "BUILD_KD_TREE_TESTS": "OFF",
-        "BUILD_KD_TREE_TIME_MEASUREMENT": "OFF"
+        "BUILD_KD_TREE_DOCS": "ON"
       }
     }
   ],

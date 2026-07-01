@@ -16,9 +16,9 @@ namespace kdtree {
 
     bool LeafNode::needTreeRebuild() {
         convertPlaneEventsToGeometry();
-        for (const auto &handle : std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
+        for (const auto &handle: std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
             const GeometryObject &object = _splitParam->geometryObjects[handle];
-            for (const auto &vertex : object.getVertices()) {
+            for (const auto &vertex: object.getVertices()) {
                 // TODO: set tolerance in relation to whole tree
                 if (!_splitParam->boundingBox.isVertexInBox(vertex, constants::EPSILON_VERTEX_BOX_TOLERANCE)) {
                     return true;
@@ -29,7 +29,7 @@ namespace kdtree {
     }
 
     void LeafNode::convertPlaneEventsToGeometry() {
-         if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
+        if (std::holds_alternative<PlaneEventVector>(_splitParam->boundObjects)) {
             std::call_once(_convertedToObjects, [this] {
                 LOG_DEBUG("LeafNode: Converting PlaneEventVector to Geometry for nodeId " + std::to_string(this->nodeId));
                 _splitParam->boundObjects = convertEventsToGeometry(std::get<PlaneEventVector>(_splitParam->boundObjects));
@@ -101,19 +101,19 @@ namespace kdtree {
         return std::nullopt;
     }
 
-     std::optional<Vertex> LeafNode::rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center) {
-         using namespace util;
+    std::optional<Vertex> LeafNode::rayIntersectsPoint(const Vertex &rayOrigin, const Vertex &rayVector, const Vertex &center) {
+        using namespace util;
 
-         // Vector from ray origin to sphere center
-         const Vertex oc = rayOrigin - center;
+        // Vector from ray origin to sphere center
+        const Vertex oc = rayOrigin - center;
 
         // Calculate the nearest intersection point
         const double t = -dot(rayVector, oc) / dot(rayVector, rayVector);
 
         const Vertex intersection = rayOrigin + rayVector * t;
 
-         const double distance = dot(intersection - center, intersection - center);
-         if (distance > constants::EPSILON_RAY_POINT_OFFSET) {
+        const double distance = dot(intersection - center, intersection - center);
+        if (distance > constants::EPSILON_RAY_POINT_OFFSET) {
             return std::nullopt;
         }
 

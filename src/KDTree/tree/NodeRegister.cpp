@@ -2,7 +2,7 @@
 
 #include "LeafNode.h"
 
-namespace kdtree{
+namespace kdtree {
 
     void NodeRegister::registerLeafNode(const std::shared_ptr<LeafNode> &node) {
         std::unique_lock lock(leafNodeMutex);
@@ -27,6 +27,4 @@ namespace kdtree{
             return ptr.expired();
         });
     }
-}
-
-
+}// namespace kdtree

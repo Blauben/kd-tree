@@ -37,11 +37,28 @@ set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
 
 # Sphinx target depends on Recurse_rst
 add_custom_target(Sphinx ALL
-        COMMAND ${SPHINX_EXECUTABLE} -b html
+        COMMAND ${SPHINX_EXECUTABLE} -W -b html
         -Dbreathe_projects.KDTree=${DOXYGEN_OUTPUT_DIR}/xml
         ${SPHINX_SOURCE} ${SPHINX_BUILD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS
-        Doxygen
+        DEPENDS Doxygen 
         COMMENT "Generating documentation with Sphinx"
 )
+
+message(STATUS "Installing KDTree package in virtual environment for Sphinx documentation. This may take a moment...")
+
+execute_process(
+    COMMAND ${VENV_PYTHON} -m pip install ${KD_TREE_SOURCE_DIR}
+            --config-settings=cmake.args=--preset
+            --config-settings=cmake.args=python
+            -v
+    RESULT_VARIABLE INSTALL_RESULT
+    OUTPUT_VARIABLE INSTALL_OUTPUT
+    ERROR_VARIABLE INSTALL_ERROR
+    ECHO_OUTPUT_VARIABLE
+)
+
+if(NOT INSTALL_RESULT EQUAL 0)
+    message(STATUS "pip install error: ${INSTALL_ERROR}")
+    message(WARNING "Failed to install KDTree package in virtual environment. Python documentation may not work correctly.")
+endif()

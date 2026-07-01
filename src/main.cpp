@@ -109,7 +109,7 @@ namespace {
             }
         }
     }
-}
+}// namespace
 
 int main(int argc, char **argv) {
     using namespace kdtree;
@@ -168,12 +168,12 @@ int main(int argc, char **argv) {
 
         const auto averagePlaneCoordinate = [&statistics](const std::size_t axisIndex) {
             return statistics.axisSplitCounts[axisIndex] == 0
-                       ? 0.0
-                       : statistics.sumPlaneCoordinate[axisIndex] / static_cast<double>(statistics.axisSplitCounts[axisIndex]);
+                           ? 0.0
+                           : statistics.sumPlaneCoordinate[axisIndex] / static_cast<double>(statistics.axisSplitCounts[axisIndex]);
         };
         const auto averageBoxSurfaceArea = statistics.planeCount == 0
-                                               ? 0.0
-                                               : statistics.sumBoxSurfaceArea / static_cast<double>(statistics.planeCount);
+                                                   ? 0.0
+                                                   : statistics.sumBoxSurfaceArea / static_cast<double>(statistics.planeCount);
 
         std::ostringstream summary;
         summary << std::fixed << std::setprecision(6);
@@ -209,7 +209,7 @@ int main(int argc, char **argv) {
             summary << " none\n";
         } else {
             summary << '\n';
-            for (const auto &[depth, count] : statistics.depthHistogram) {
+            for (const auto &[depth, count]: statistics.depthHistogram) {
                 summary << "    depth " << depth << ": " << count << '\n';
             }
         }

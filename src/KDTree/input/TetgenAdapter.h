@@ -11,8 +11,8 @@
 #include "KDTree/tree/KdDefinitions.h"
 #include "tetgen.h"
 
-#include "KDTree/util/UtilityContainer.h"
 #include "KDTree/util/Constants.h"
+#include "KDTree/util/UtilityContainer.h"
 #include <array>
 #include <exception>
 #include <functional>
@@ -33,10 +33,10 @@ namespace kdtree {
  */
     class TetgenAdapter {
 
-         /**
+        /**
           * Delegates the call to the library tetgen
           */
-         tetgenio _tetgenio;
+        tetgenio _tetgenio;
 
         /**
          * The file names from which to read in the polyhedron
