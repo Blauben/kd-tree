@@ -54,18 +54,18 @@ namespace kdtree {
         }
     };
 
-    Meshes erosMeshes{{"polyhedral_files/Eros_scaled-1000", "polyhedral_files/Eros_scaled-1732",
-                       "polyhedral_files/Eros_scaled-3000", "polyhedral_files/Eros_scaled-5196",
-                       "polyhedral_files/Eros_scaled-9000", "polyhedral_files/Eros_scaled-15588",
-                       "polyhedral_files/Eros_scaled-27000", "polyhedral_files/Eros_scaled-46765",
-                       "polyhedral_files/Eros_scaled-81000", "polyhedral_files/Eros_scaled-140296"}};
+    Meshes erosMeshes{{"resources/Eros_scaled-1000", "resources/Eros_scaled-1732",
+                       "resources/Eros_scaled-3000", "resources/Eros_scaled-5196",
+                       "resources/Eros_scaled-9000", "resources/Eros_scaled-15588",
+                       "resources/Eros_scaled-27000", "resources/Eros_scaled-46765",
+                       "resources/Eros_scaled-81000", "resources/Eros_scaled-140296"}};
 
 
-    Meshes sphereMeshes{{"polyhedral_files/sphere_scaled-1000", "polyhedral_files/sphere_scaled-1732",
-                         "polyhedral_files/sphere_scaled-3000", "polyhedral_files/sphere_scaled-5196",
-                         "polyhedral_files/sphere_scaled-9000", "polyhedral_files/sphere_scaled-15588",
-                         "polyhedral_files/sphere_scaled-27000", "polyhedral_files/sphere_scaled-46765",
-                         "polyhedral_files/sphere_scaled-81000", "polyhedral_files/sphere_scaled-140296"}};
+    Meshes sphereMeshes{{"resources/sphere_scaled-1000", "resources/sphere_scaled-1732",
+                         "resources/sphere_scaled-3000", "resources/sphere_scaled-5196",
+                         "resources/sphere_scaled-9000", "resources/sphere_scaled-15588",
+                         "resources/sphere_scaled-27000", "resources/sphere_scaled-46765",
+                         "resources/sphere_scaled-81000", "resources/sphere_scaled-140296"}};
 
     void BM_Eros_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         using namespace kdtree::util;
