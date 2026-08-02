@@ -51,6 +51,11 @@ namespace kdtree {
         LOG_INFO("KDTree: Data fetched from node and face file paths");
     }
 
+    KDTree::KDTree(const std::string &plyFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm)
+        : KDTree(TetgenAdapter{{plyFilePath}}.getPolyhedralSource(), algorithm) {
+        LOG_INFO("KDTree: Data fetched from ply file path");
+    }
+
     void KDTree::rebuildTree() {
         std::lock_guard lock(this->_rootNodeCreationMutex);
         this->_rootNode.reset();//reset the root node to allow rebuilding the tree

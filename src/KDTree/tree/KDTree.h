@@ -159,6 +159,13 @@ namespace kdtree {
         KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
 
         /**
+         * Constructor overload that takes a single .ply file as input. The .ply file is expected to contain the polyhedron's vertices and shapes. The constructor will parse the .ply file and extract the vertices and shapes to build the KDTree.
+         * @param plyFilePath The path to the .ply file containing information about the polyhedron's vertices and shapes.
+         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
+         */
+        KDTree(const std::string &plyFilePath, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+
+        /**
          * Constructor overload that takes a tuple of vertices and shapes as input. This allows for example to pass the output of a TetgenAdapter directly to the KDTree constructor without having to unpack the tuple first. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
          * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
