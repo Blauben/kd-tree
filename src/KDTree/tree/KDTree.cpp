@@ -1,9 +1,42 @@
 #include "KDTree/tree/KDTree.h"
 
 namespace kdtree {
+
+    namespace {
+
+#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
+        void buildChildNodes(const std::shared_ptr<TreeNode> &treeNode) {
+            if (auto splitNode = std::dynamic_pointer_cast<SplitNode>(treeNode)) {
+    #pragma omp task
+                {
+                    buildChildNodes(splitNode->getChildNode(0));
+                }
+    #pragma omp task
+                {
+                    buildChildNodes(splitNode->getChildNode(1));
+                }
+            }
+        }
+#endif
+
+#if defined(KD_TREE_TBB)
+        void buildChildNodes(const std::shared_ptr<TreeNode> &treeNode, tbb::task_group &tasks) {
+            if (auto splitNode = std::dynamic_pointer_cast<SplitNode>(treeNode)) {
+                tasks.run([splitNode, &tasks]() {
+                    buildChildNodes(splitNode->getChildNode(0), tasks);
+                });
+                tasks.run([splitNode, &tasks]() {
+                    buildChildNodes(splitNode->getChildNode(1), tasks);
+                });
+            }
+        }
+#endif
+    }// namespace
+
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices) : _algorithm{algorithm} {
+                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices)
+        : _algorithm{algorithm} {
         LOG_INFO("KDTree: Constructing from vertices and faces");
         if (copyVertices) {
             _vertices = std::make_shared<std::vector<VertexHandle>>(vertices.begin(), vertices.end());
@@ -26,18 +59,19 @@ namespace kdtree {
         KDTreeLogger::defaultLogger().getLogger()->flush();
     }
 
-    KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
-                                                                                                                       particles,
-                                                                                                                       [&particles] {
-                                                                                                                           //each particle is represented by a single vertex, so each shape only contains one vertex index
-                                                                                                                           std::vector<IndexVector> shapes{};
-                                                                                                                           shapes.reserve(particles.size());
-                                                                                                                           for (size_t index = 0; index < particles.size(); index++) {
-                                                                                                                               shapes.emplace_back(1, index);
-                                                                                                                           }
-                                                                                                                           return shapes;
-                                                                                                                       }(),
-                                                                                                                       algorithm} {
+    KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm)
+        : KDTree{
+                  particles,
+                  [&particles] {
+                      //each particle is represented by a single vertex, so each shape only contains one vertex index
+                      std::vector<IndexVector> shapes{};
+                      shapes.reserve(particles.size());
+                      for (size_t index = 0; index < particles.size(); index++) {
+                          shapes.emplace_back(1, index);
+                      }
+                      return shapes;
+                  }(),
+                  algorithm} {
         LOG_INFO("KDTree: Constructed from particles");
     }
 
@@ -47,7 +81,8 @@ namespace kdtree {
     }
 
 
-    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
+    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm)
+        : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
         LOG_INFO("KDTree: Data fetched from node and face file paths");
     }
 
@@ -62,14 +97,14 @@ namespace kdtree {
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         LOG_DEBUG("KDTree: getRootNode called");
-        std::lock_guard lock(this->_rootNodeCreationMutex);
-
-        //if the node has already been generated, don't do it again. Let the factory determine the TreeNode subclass based on the optimal split.
-        if (this->_rootNode != nullptr) {
-            LOG_DEBUG("KDTree: Root node already exists, returning existing node");
-        } else {
-            this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
+        while (this->_rootNode == nullptr) {
+            std::lock_guard lock(this->_rootNodeCreationMutex);
+            if (this->_rootNode == nullptr) {
+                LOG_DEBUG("KDTree: Root node is null, creating root node");
+                this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
+            }
         }
+        LOG_DEBUG("KDTree: Root node already exists, returning existing node");
         return this->_rootNode;
     }
 
@@ -112,27 +147,35 @@ namespace kdtree {
         LOG_INFO("KDTree: getIntersections finished");
     }
 
+#if defined(KD_TREE_OMP)
+
     KDTree &KDTree::prebuildTree() {
         LOG_INFO("KDTree: prebuildTree called");
         //queue for children of processed nodes
-        std::deque<std::shared_ptr<TreeNode>> queue{};
-        //subsequently call getter functions for the root node and all child nodes to initiate a full build of the tree
-        queue.push_back(getRootNode());
-        while (!queue.empty()) {
-            auto node = queue.front();
-            //if node is SplitNode perform intersection checks on the children and queue them accordingly
-            if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
-                LOG_DEBUG("KDTree: SplitNode encountered in prebuildTree");
-                //build child nodes and add them to the queue
-                queue.push_back(split->getChildNode(0));
-                queue.push_back(split->getChildNode(1));
+    #pragma omp parallel
+        {
+    #pragma omp single
+            {
+                buildChildNodes(getRootNode());
             }
-            //remove the processed node as its direct children have been built by getChildNode
-            queue.pop_front();
         }
         LOG_INFO("KDTree: prebuildTree finished");
         return *this;
     }
+#endif
+
+#if defined(KD_TREE_TBB)
+
+    KDTree &KDTree::prebuildTree() {
+        LOG_INFO("KDTree: prebuildTree called");
+        tbb::task_group tasks;
+        buildChildNodes(getRootNode(), tasks);
+        tasks.wait();
+        LOG_INFO("KDTree: prebuildTree finished");
+        return *this;
+    }
+
+#endif
 
     std::pair<std::vector<GeometryObject>::iterator, std::vector<GeometryObject>::iterator>
     KDTree::geometryIterator() {

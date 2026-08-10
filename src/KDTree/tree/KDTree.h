@@ -21,13 +21,14 @@
 #include "KDTree/plane_selection/PlaneSelectionAlgorithmFactory.h"
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/LeafNode.h"
+#include "KDTree/tree/NodeRegister.h"
 #include "KDTree/tree/PlaneIterator.h"
 #include "KDTree/tree/SplitNode.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
 #include "KDTree/util/UtilityContainer.h"
-#include "KDTree/tree/NodeRegister.h"
+#include "KDTree/util/pragma.h"
 
 namespace kdtree {
     /**

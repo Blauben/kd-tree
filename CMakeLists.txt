@@ -150,6 +150,8 @@ if (${KD_TREE_PARALLELIZATION} STREQUAL "TBB")
     add_compile_definitions(KD_TREE_TBB)
 elseif (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
     add_compile_definitions(KD_TREE_OMP)
+elseif (${KD_TREE_PARALLELIZATION} STREQUAL "CPP")
+    add_compile_definitions(KD_TREE_CPP)
 endif ()
 
 # Thrust set-up i.e. the parallelization library, create targets according to the users specification

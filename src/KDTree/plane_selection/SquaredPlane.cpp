@@ -21,7 +21,8 @@ namespace kdtree {
         auto [vertex_begin, vertex_end] = transformIterator(boundObjects.cbegin(), boundObjects.cend(),
                                                             splitParam.geometryObjects);
         std::mutex testedPlaneMutex{};
-        thrust::for_each(thrust::device, vertex_begin, vertex_end,
+        omp_set_num_threads(1);
+        thrust::for_each(thrust::host, vertex_begin, vertex_end,
                          [&splitParam, &optPlane, &testedPlaneCoordinates, &testedPlaneMutex](
                                  const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
@@ -48,14 +49,12 @@ namespace kdtree {
                                  auto [candidateCost, minSideChosen] = costForPlane(
                                          splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
                                          shapeIndexLists[1]->size(), shapeIndexLists[2]->size());
-                                 {
-                                     // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
-                                     // this is not important for functionality but for testing purposes
-                                     if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate) {
-                                         continue;
-                                     }
-                                     optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
+                                 // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
+                                 // this is not important for functionality but for testing purposes
+                                 if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate) {
+                                     continue;
                                  }
+                                 optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
                              }
                          });
         //generate the shape index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.

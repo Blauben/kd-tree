@@ -8,7 +8,7 @@ Install Test Dependencies
 -------------------------
 
 .. code-block:: bash
-   
+
    # optional: create and activate a virtual environment
    pip install pytest
 
@@ -42,4 +42,3 @@ Useful Variants
 
    # Parallel execution (requires pytest-xdist)
    pytest -n auto
-

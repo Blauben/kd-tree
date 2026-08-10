@@ -16,7 +16,7 @@ namespace kdtree {
         std::erase_if(leafNodes, [&node](const std::weak_ptr<LeafNode> &weakPtr) {
             // safe_ptr will be nullptr if the weak_ptr is expired or doesn't match
             auto safe_ptr = weakPtr.lock();
-            return safe_ptr.get() == node.get();
+            return safe_ptr.get() == node.get() || safe_ptr == nullptr;
         });
     }
 

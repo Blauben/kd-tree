@@ -19,61 +19,137 @@
         "ENABLE_IWYU": "OFF"
       }
     },
-    {
-      "name": "release",
-      "displayName": "Release",
-      "inherits": "base",
-      "binaryDir": "${sourceDir}/build/release",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "debug",
-      "displayName": "Debug",
-      "inherits": "base",
-      "binaryDir": "${sourceDir}/build/debug",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "KD_TREE_LOGGING_LEVEL": "DEBUG"
-      }
-    },
-    {
-      "name": "release-omp",
-      "displayName": "Release (OpenMP)",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/release-omp",
-      "cacheVariables": {
-        "KD_TREE_PARALLELIZATION": "OMP"
-      }
-    },
-    {
-      "name": "release-tbb",
-      "displayName": "Release (TBB)",
-      "inherits": "release",
-      "binaryDir": "${sourceDir}/build/release-tbb",
-      "cacheVariables": {
-        "KD_TREE_PARALLELIZATION": "TBB"
-      }
-    },
-    {
-      "name": "test-release",
-      "displayName": "Test (Release)",
-      "inherits": "release-tbb",
-      "binaryDir": "${sourceDir}/build/test-release",
-      "cacheVariables": {
-        "BUILD_KD_TREE_TESTS": "ON",
-        "KD_TREE_LOGGING_LEVEL": "WARN"
-      }
-    },
-    {
-        "name": "test-debug",
-        "displayName": "Test (Debug)",
-        "inherits": "debug",
-        "binaryDir": "${sourceDir}/build/test-debug",
-        "cacheVariables": {
-            "BUILD_KD_TREE_TESTS": "ON",
-            "KD_TREE_LOGGING_LEVEL": "WARN"
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "KD_TREE_PARALLELIZATION": "CPP",
+                "KD_TREE_LOGGING_LEVEL": "INFO",
+                "BUILD_KD_TREE_DOCS": "OFF",
+                "BUILD_KD_TREE_LIBRARY": "ON",
+                "BUILD_KD_TREE_EXECUTABLE": "ON",
+                "BUILD_KD_TREE_PYTHON_INTERFACE": "OFF",
+                "INSTALL_KD_TREE_PYTHON_INTERFACE": "OFF",
+                "BUILD_KD_TREE_TESTS": "OFF",
+                "BUILD_KD_TREE_TIME_MEASUREMENT": "OFF",
+                "ENABLE_IWYU": "OFF"
+            }
+        },
+        {
+            "name": "release",
+            "displayName": "Release",
+            "inherits": "base",
+            "binaryDir": "${sourceDir}/build/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "debug",
+            "displayName": "Debug",
+            "inherits": "base",
+            "binaryDir": "${sourceDir}/build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "KD_TREE_LOGGING_LEVEL": "DEBUG"
+            }
+        },
+        {
+            "name": "release-omp",
+            "displayName": "Release (OpenMP)",
+            "inherits": "release",
+            "binaryDir": "${sourceDir}/build/release-omp",
+            "cacheVariables": {
+                "KD_TREE_PARALLELIZATION": "OMP"
+            }
+        },
+        {
+            "name": "release-tbb",
+            "displayName": "Release (TBB)",
+            "inherits": "release",
+            "binaryDir": "${sourceDir}/build/release-tbb",
+            "cacheVariables": {
+                "KD_TREE_PARALLELIZATION": "TBB"
+            }
+        },
+        {
+            "name": "test-release",
+            "displayName": "Test (Release)",
+            "inherits": "release-tbb",
+            "binaryDir": "${sourceDir}/build/test-release",
+            "cacheVariables": {
+                "BUILD_KD_TREE_TESTS": "ON",
+                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
+                "KD_TREE_LOGGING_LEVEL": "WARN"
+            }
+        },
+        {
+            "name": "test-debug",
+            "displayName": "Test (Debug)",
+            "inherits": "debug",
+            "binaryDir": "${sourceDir}/build/test-debug",
+            "cacheVariables": {
+                "BUILD_KD_TREE_TESTS": "ON",
+                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
+                "KD_TREE_LOGGING_LEVEL": "WARN"
+            }
+        },
+        {
+            "name": "python",
+            "displayName": "Python Interface",
+            "inherits": "release",
+            "binaryDir": "${sourceDir}/build/python",
+            "cacheVariables": {
+                "BUILD_KD_TREE_PYTHON_INTERFACE": "ON",
+                "INSTALL_KD_TREE_PYTHON_INTERFACE": "ON",
+                "BUILD_KD_TREE_EXECUTABLE": "OFF"
+            }
+        },
+        {
+            "name": "python-tbb",
+            "displayName": "Python Interface (TBB)",
+            "inherits": "python",
+            "binaryDir": "${sourceDir}/build/python-tbb",
+            "cacheVariables": {
+                "KD_TREE_PARALLELIZATION": "TBB"
+            }
+        },
+        {
+            "name": "python-omp",
+            "displayName": "Python Interface (OpenMP)",
+            "inherits": "python",
+            "binaryDir": "${sourceDir}/build/python-omp",
+            "cacheVariables": {
+                "KD_TREE_PARALLELIZATION": "OMP"
+            }
+        },
+        {
+            "name": "docs",
+            "displayName": "Documentation",
+            "inherits": "python",
+            "binaryDir": "${sourceDir}/build/docs",
+            "cacheVariables": {
+                "BUILD_KD_TREE_DOCS": "ON"
+            }
+        },
+        {
+            "name": "release-debug-symbols",
+            "description": "",
+            "displayName": "Release with Debug Symbols",
+            "inherits": [
+                "base"
+            ],
+            "binaryDir": "${sourceDir}/build/release-debug-symbols",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+                "KD_TREE_PARALLELIZATION": "OMP",
+                "KD_TREE_LOGGING_LEVEL": "WARN",
+                "BUILD_KD_TREE_TESTS": "ON",
+                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
+                "CMAKE_CXX_FLAGS": "-march=native"
+            }
         }
     },
     {

@@ -17,6 +17,7 @@
 #include "KDTree/tree/KdDefinitions.h"
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/pragma.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
 #include "thrust/iterator/iterator_facade.h"
