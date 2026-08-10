@@ -177,6 +177,8 @@ kd-tree/
 
 Please refer to the [documentation](https://blauben.github.io/kd-tree/) for instructions on running unit tests and benchmarks.
 
+To build the optional grid search executable, configure CMake with `-DBUILD_KD_TREE_GRIDSEARCH=ON`. The KD-Tree comes with a set of constants influencing e.g. the eagerness to split nodes or the work threshold for parallelization in leaf nodes. The target evaluates a small constant grid against a representative mesh and prints the fastest candidate it finds.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.

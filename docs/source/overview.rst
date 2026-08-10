@@ -242,6 +242,20 @@ Benchmarking
    # Run benchmarks
    ./KDTree_time
 
+Grid search
+-----------
+
+The grid search executable is optional and disabled by default. It brute-forces a small range of KD-tree tuning constants, rebuilds the tree for each candidate, and reports the fastest configuration it found.
+
+.. code-block:: bash
+
+   # Build the optional grid search executable
+   cmake .. -DBUILD_KD_TREE_GRIDSEARCH=ON
+   cmake --build .
+
+   # Run the search from the build tree
+   ./gridsearch
+
 License
 -------
 

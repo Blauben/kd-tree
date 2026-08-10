@@ -71,6 +71,8 @@ option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: OFF
 option(KD_TREE_FORCE_GTEST_FETCH "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
 option(BUILD_KD_TREE_TIME_MEASUREMENT "Set to on if the benchmark executable should be built (Default: OFF)" OFF)
+# Option to build the grid search executable or not
+option(BUILD_KD_TREE_GRIDSEARCH "Set to on if the grid search executable should be built (Default: OFF)" OFF)
 # Option to enable Include-What-You-Use warnings during compilation
 option(ENABLE_IWYU "Set to on to enable Include-What-You-Use warnings (Default: OFF)" OFF)
 
@@ -106,6 +108,7 @@ message(STATUS "KD Tree C++ Executable   ${BUILD_KD_TREE_EXECUTABLE}")
 message(STATUS "KD Tree Python Interface ${BUILD_KD_TREE_PYTHON_INTERFACE}")
 message(STATUS "KD Tree Tests            ${BUILD_KD_TREE_TESTS}")
 message(STATUS "KD Tree Time Benchmark   ${BUILD_KD_TREE_TIME_MEASUREMENT}")
+message(STATUS "KD Tree Grid Search      ${BUILD_KD_TREE_GRIDSEARCH}")
 message(STATUS "#################################################################")
 #######################################################
 # Including dependencies needed across multiple targets
@@ -170,3 +173,7 @@ if (BUILD_KD_TREE_TESTS)
 endif ()
 
 include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)
+
+if (BUILD_KD_TREE_GRIDSEARCH)
+    include(gridsearch.cmake)
+endif ()

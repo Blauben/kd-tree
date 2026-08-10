@@ -47,6 +47,8 @@ Project Options
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
 | ``BUILD_KD_TREE_TIME_MEASUREMENT``   | ``OFF``                                                | Build benchmark executable ``KDTree_time``.                 |
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
+| ``BUILD_KD_TREE_GRIDSEARCH``         | ``OFF``                                                | Build the optional constant grid-search executable.         |
++--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
 | ``ENABLE_IWYU``                      | ``OFF``                                                | Enable include-what-you-use integration during compilation. |
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
 || ``KD_TREE_PARALLELIZATION``         || ``CPP``                                               || Backend for Thrust host/device path: ``CPP``, ``OMP``,     |
@@ -120,6 +122,8 @@ Workflow presets:
 - ``build-and-test-debug``
 - ``build-python-interface``
 - ``build-docs``
+
+Grid search is opt-in via ``-DBUILD_KD_TREE_GRIDSEARCH=ON``.
 
 Typical Commands
 ----------------
