@@ -28,10 +28,12 @@ namespace kdtree {
             },
                        _shapeLists);
             childParam.splitDirection = static_cast<Direction>(
-                    (static_cast<int>(_splitParam->splitDirection) + 1) % constants::DIMENSIONS);
+                    (static_cast<int>(childParam.splitDirection) + 1) % constants::DIMENSIONS);
             //increase the recursion depth of the direct child by 1
             node = TreeNodeFactory::createTreeNode(childParam, 2 * nodeId + 1 + index);
-            if (_lesser != nullptr && _greater != nullptr) {
+            //whichever call is the second to finish is guaranteed (via the atomic's acquire-release ordering) to see
+            //the other call's writes, so it can safely free the now-unneeded splitParam exactly once.
+            if (_builtChildCount.fetch_add(1, std::memory_order_acq_rel) == 1) {
                 _splitParam.reset();
             }
         });

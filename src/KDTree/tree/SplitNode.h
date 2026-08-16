@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cmath>
 #include <cstddef>
 #include <iosfwd>
@@ -45,6 +46,14 @@ namespace kdtree {
          * Flags set when child node is created. Index 0 for lesser and 1 for greater.
          */
         std::array<std::once_flag, 2> _childNodeCreated;
+        /**
+         * Counts how many of the two children have been built. The lesser and greater children are built via two
+         * independent `call_once` flags, which gives no happens-before relationship between the two: without this
+         * counter, concurrent calls to `getChildNode(0)` and `getChildNode(1)` would race when checking whether
+         * both children are already built and `_splitParam` can be freed. Whichever call increments the counter to
+         * 2 is guaranteed to see the other call's writes and safely performs the `_splitParam` reset exactly once.
+         */
+        std::atomic<int> _builtChildCount{0};
         /**
         * The plane splitting the two TreeNodes contained in this SplitNode
         */
