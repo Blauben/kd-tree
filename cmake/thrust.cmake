@@ -1,7 +1,13 @@
 include(FetchContent)
 
 message(STATUS "Setting up thrust")
-set(THRUST_VERSION 2.1.0)
+# NVIDIA/thrust was archived in favor of the NVIDIA/cccl monorepo (which still ships thrust's
+# own CMakeLists.txt/find_package(Thrust) API unchanged under its "thrust" subdirectory), so it
+# is fetched from there instead. The last standalone thrust release (2.1.0) bundles an old
+# libcudacxx whose unprefixed "_NOEXCEPT_" macro collides with recent Apple libc++ headers on
+# macOS; cccl's libcudacxx renamed its internal macros (e.g. to "_CCCL_*") to avoid exactly this
+# kind of collision with system headers.
+set(THRUST_VERSION 3.4.2)
 
 # Set custom variables, policies, etc.
 # Disable stuff not needed
@@ -19,8 +25,8 @@ if (${Thrust_FOUND})
 else()
     message(STATUS "Using thrust from GitHub Release ${THRUST_VERSION}")
     FetchContent_Declare(thrust
-            GIT_REPOSITORY https://github.com/NVIDIA/thrust.git
-            GIT_TAG ${THRUST_VERSION}
+            GIT_REPOSITORY https://github.com/NVIDIA/cccl.git
+            GIT_TAG v${THRUST_VERSION}
             )
     FetchContent_MakeAvailable(thrust)
 endif()
