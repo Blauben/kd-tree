@@ -64,6 +64,11 @@ if(MESH_SCALING_PYTHON_EXECUTABLE AND MESH_SCALING_OPEN3D_MISSING EQUAL 0)
     set(SCALED_MESH_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
     set(MESH_SCALE_SCRIPT "${KD_TREE_SOURCE_DIR}/script/scale_mesh.py")
 
+    # Created eagerly at configure time so it already exists once the custom commands below
+    # run; the Makefile generator cd's into WORKING_DIRECTORY before executing any of a custom
+    # command's steps, so creating it as one of those steps is too late.
+    file(MAKE_DIRECTORY "${SCALED_MESH_DIR}")
+
     # Matches the face amounts hardcoded in script/scale_mesh.py: round(1000 * sqrt(3)^k) for k in range(10)
     set(MESH_FACE_AMOUNTS 1000 1732 3000 5196 9000 15588 27000 46765 81000 140296)
 
@@ -80,7 +85,6 @@ if(MESH_SCALING_PYTHON_EXECUTABLE AND MESH_SCALING_OPEN3D_MISSING EQUAL 0)
 
         add_custom_command(
                 OUTPUT ${SCALED_MESH_FILES}
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${SCALED_MESH_DIR}"
                 COMMAND ${CMAKE_COMMAND} -E copy "${MESH_SOURCE_DIR}/${mesh_name}.node" "${MESH_SOURCE_DIR}/${mesh_name}.face" "${SCALED_MESH_DIR}"
                 COMMAND ${MESH_SCALING_PYTHON_EXECUTABLE} "${MESH_SCALE_SCRIPT}" "${mesh_name}.node" "${mesh_name}.face"
                 WORKING_DIRECTORY "${SCALED_MESH_DIR}"
