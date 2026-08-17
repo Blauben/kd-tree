@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <thrust/execution_policy.h>
 #include <thrust/for_each.h>
+#include <thrust/tuple.h>
 #include <unordered_set>
 #include <utility>
 #include <variant>
