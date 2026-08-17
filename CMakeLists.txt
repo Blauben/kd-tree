@@ -80,12 +80,30 @@ IF (_LIBCPP_DISABLE_AVAILABILITY)
 endif ()
 
 # AppleClang options
-if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))  
-    # Fixes undefined _VSTD when using Apple Clang 17  
-    message(STATUS "Using Apple Clang compiler. Defining _VSTD=std.")  
-    add_definitions(-D_VSTD=std)  
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang"))
+    # Fixes undefined _VSTD when using Apple Clang 17
+    message(STATUS "Using Apple Clang compiler. Defining _VSTD=std.")
+    add_definitions(-D_VSTD=std)
 endif()
 
+# Apple Clang ships no OpenMP runtime, so the OMP parallelization backend needs Homebrew's libomp
+# to be installed (the CI workflow does this via `brew install libomp`) and pointed out explicitly,
+# since CMake's FindOpenMP does not look in Homebrew's (keg-only) prefix on its own.
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND ${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
+    execute_process(COMMAND brew --prefix libomp
+            OUTPUT_VARIABLE LIBOMP_PREFIX
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+            ERROR_QUIET)
+    if (LIBOMP_PREFIX)
+        message(STATUS "Found Homebrew libomp at ${LIBOMP_PREFIX}, using it for OpenMP")
+        set(OpenMP_CXX_FLAGS "-Xpreprocessor -fopenmp -I${LIBOMP_PREFIX}/include" CACHE STRING "")
+        set(OpenMP_CXX_LIB_NAMES "omp" CACHE STRING "")
+        set(OpenMP_omp_LIBRARY "${LIBOMP_PREFIX}/lib/libomp.dylib" CACHE STRING "")
+    else ()
+        message(WARNING "KD_TREE_PARALLELIZATION is OMP but Homebrew's libomp was not found. "
+                "Install it via 'brew install libomp'.")
+    endif ()
+endif ()
 
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
