@@ -124,7 +124,7 @@ namespace kdtree {
                 {4, 5, 6},
                 {4, 6, 7}};
 
-        /** 
+        /**
          * Lazy load big polyhedron to avoid expensive global initialization at translation time
          * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
          * @return A tuple containing the vertices and faces of the big polyhedron.
@@ -162,7 +162,7 @@ namespace kdtree {
             return vertices[0] * a + vertices[1] * b + vertices[2] * c;
         }
 
-        /** 
+        /**
          * Generates a vector of random points on the surface of a polyhedron defined by its vertices and faces.
          * @param vertices The vertices of the polyhedron.
          * @param faces The faces of the polyhedron defined by vertex indices.
@@ -215,7 +215,7 @@ namespace kdtree {
             return param;
         }
 
-        /** 
+        /**
          * Extracts the face indices from a pair of vectors of face indices.
          * @param vectors The pair of vectors of face indices.
          * @return A pair of vectors of face indices.

@@ -80,7 +80,7 @@ std::vector<IndexVector> faces = {{0, 1, 2}, {0, 1, 3}, {0, 2, 3}, {1, 2, 3}};
 KDTree tree(vertices, faces, PlaneSelectionAlgorithm::Algorithm::LOG);
 
 // Option 2: From .node and .face files
-KDTree tree("path/to/model.node", "path/to/model.face", 
+KDTree tree("path/to/model.node", "path/to/model.face",
             PlaneSelectionAlgorithm::Algorithm::LOG);
 
 // Option 3: From particles

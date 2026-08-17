@@ -47,7 +47,7 @@ In order to build a KDTree operating on particles refer to the following code sn
 To build a KDTree operating on triangle meshes, replace the data definition and KDTree build sections with the following code snippet:
 
 .. code-block::
-   
+
    // data defintion section
    std::vector<std::array<double, 3>> vertices{
          {2.0, 3.0, 6.0}, {5.0, 4.0, 7.0}, {9.0, 6.0, 1.0},

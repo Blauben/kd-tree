@@ -37,6 +37,18 @@ namespace kdtree {
         }
     }
 
+    std::vector<std::pair<size_t, Vertex>> LeafNode::getContainedParticles() {
+        convertPlaneEventsToGeometry();
+        const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
+        std::vector<std::pair<size_t, Vertex>> particles{};
+        particles.reserve(boundObjects.size());
+        for (const auto &objIndex: boundObjects) {
+            const GeometryObject &object = _splitParam->geometryObjects[objIndex];
+            particles.emplace_back(object.getIndexVector()[0], object.getVertices()[0]);
+        }
+        return particles;
+    }
+
     void LeafNode::getIntersections(const Vertex &origin, const Vertex &ray,
                                     std::set<Vertex> &intersections) {
         LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));

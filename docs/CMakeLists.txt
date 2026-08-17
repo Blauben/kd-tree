@@ -41,7 +41,7 @@ add_custom_target(Sphinx ALL
         -Dbreathe_projects.KDTree=${DOXYGEN_OUTPUT_DIR}/xml
         ${SPHINX_SOURCE} ${SPHINX_BUILD}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS Doxygen 
+        DEPENDS Doxygen
         COMMENT "Generating documentation with Sphinx"
 )
 

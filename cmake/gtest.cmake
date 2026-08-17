@@ -9,7 +9,7 @@ if (NOT KD_TREE_FORCE_GTEST_FETCH)
     find_package(GTest ${GOOGLE_TEST_VERSION} QUIET)
 endif ()
 
-if (NOT KD_TREE_FORCE_GTEST_FETCH AND GTest_FOUND) 
+if (NOT KD_TREE_FORCE_GTEST_FETCH AND GTest_FOUND)
     message(STATUS "Found existing Google Test: ${GTEST_INCLUDE_DIRS}")
 else ()
     message(STATUS "Using Google Test from GitHub Release ${GOOGLE_TEST_VERSION}")

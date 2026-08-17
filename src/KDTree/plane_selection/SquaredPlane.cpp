@@ -47,7 +47,7 @@ namespace kdtree {
                                  //evaluate the candidate plane and store if it is better than the currently stored result
                                  auto [candidateCost, minSideChosen] = costForPlane(
                                          splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
-                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size());
+                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
                                  {
                                      // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                                      // this is not important for functionality but for testing purposes

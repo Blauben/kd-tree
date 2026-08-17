@@ -1,6 +1,6 @@
 include(FetchContent)
 
-if(NOT TARGET tetgen_lib) 
+if(NOT TARGET tetgen_lib)
         message(STATUS "Setting up tetgen")
         # taken from: https://github.com/libigl/tetgen
 

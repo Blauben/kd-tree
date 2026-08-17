@@ -44,14 +44,19 @@ namespace kdtree {
         NodeRegister &nodeRegister;
 
         /**
+        * This flag inidicates whether particles or geometric shapes (i.e triangles) are clustered by the tree.
+        */
+        const bool particleMode;
+
+        /**
          * Constructor that initializes all fields. Intended for the use with std::make_unique. See {@link SplitParam} fields for further information.
          *
          */
         SplitParam(const std::vector<GeometryObject> &geometryObjects, const Box &boundingBox,
                    const Direction splitDirection,
-                   const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy, NodeRegister &nodeRegister)
+                   const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy, NodeRegister &nodeRegister, const bool particleMode)
             : geometryObjects{geometryObjects}, boundObjects{ObjectIndexVector(geometryObjects.size())}, boundingBox{boundingBox},
-              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister{nodeRegister} {
+              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister{nodeRegister}, particleMode{particleMode} {
             auto &indexList = std::get<ObjectIndexVector>(boundObjects);
             std::iota(indexList.begin(), indexList.end(), 0);
         }
@@ -62,9 +67,9 @@ namespace kdtree {
         SplitParam(const std::vector<GeometryObject> &geometryObjects,
                    const std::variant<ObjectIndexVector, PlaneEventVector> &boundObjects, const Box &boundingBox,
                    const Direction splitDirection,
-                   const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy, NodeRegister &nodeRegister)
+                   const std::shared_ptr<PlaneSelectionAlgorithm> &planeSelectionStrategy, NodeRegister &nodeRegister, const bool particleMode)
             : geometryObjects{geometryObjects}, boundObjects{boundObjects}, boundingBox{boundingBox},
-              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister{nodeRegister} {
+              splitDirection{splitDirection}, planeSelectionStrategy{planeSelectionStrategy}, nodeRegister{nodeRegister}, particleMode{particleMode} {
         }
     };
 }// namespace kdtree
