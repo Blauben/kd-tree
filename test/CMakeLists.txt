@@ -61,7 +61,7 @@ if(MESH_SCALING_PYTHON_EXECUTABLE AND MESH_SCALING_OPEN3D_MISSING EQUAL 0)
     message(STATUS "Python3 with open3d found at ${MESH_SCALING_PYTHON_EXECUTABLE}. Scaled benchmark meshes will be generated via scale_mesh.py")
 
     set(MESH_SOURCE_DIR "${KD_TREE_SOURCE_DIR}/resources")
-    set(SCALED_MESH_DIR "${CMAKE_CURRENT_BINARY_DIR}/resources")
+    set(SCALED_MESH_DIR "${KD_TREE_BINARY_DIR}/resources")
     set(MESH_SCALE_SCRIPT "${KD_TREE_SOURCE_DIR}/script/scale_mesh.py")
 
     # Created eagerly at configure time so it already exists once the custom commands below
