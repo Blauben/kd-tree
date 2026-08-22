@@ -1,5 +1,10 @@
 #include "KDTree/plane_selection/LogNSquaredPlane.h"
 
+#if defined(KD_TREE_TBB)
+    #include <tbb/combinable.h>
+    #include <tbb/parallel_for.h>
+#endif
+
 namespace kdtree {
     // O(N*log^2(N)) implementation
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>>
@@ -26,7 +31,7 @@ namespace kdtree {
         traversePlaneEvents(optPlane, events, shapeCounter);
     }
 
-#if defined(KD_TREE_OMP) or defined(KD_USE_CPP)
+#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
     ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(
             const std::shared_ptr<PlaneEventVector> &planeEvents,
             const Plane &plane, const bool minSide) {
@@ -106,10 +111,7 @@ namespace kdtree {
     }
 #endif
 
-#if defined(KD_USE_TBB)
-    #include <tbb/combinable.h>
-    #include <tbb/parallel_for.h>
-
+#if defined(KD_TREE_TBB)
     ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(
             const std::shared_ptr<PlaneEventVector> &planeEvents,
             const Plane &plane, const bool minSide) {

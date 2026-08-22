@@ -55,6 +55,29 @@ namespace kdtree {
         }
     };
 
+    struct SingleFileMeshes {
+        std::vector<std::vector<Vertex>> vertices{};
+        std::vector<std::vector<IndexVector>> faces{};
+        std::vector<std::vector<Vertex>> centroids{};
+
+        explicit SingleFileMeshes(const std::vector<std::string> &filePaths) {
+            std::ranges::for_each(filePaths, [this](const std::string &filePath) {
+                const auto [fileVertices, fileFaces] = TetgenAdapter{{filePath}}.getPolyhedralSource();
+                centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
+                vertices.push_back(fileVertices);
+                faces.push_back(fileFaces);
+            });
+        }
+
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
+            return {vertices[index], faces[index], centroids[index]};
+        }
+
+        [[nodiscard]] long long size() const {
+            return static_cast<long long>(vertices.size());
+        }
+    };
+
     Meshes erosMeshes{{"resources/Eros_scaled-1000", "resources/Eros_scaled-1732",
                        "resources/Eros_scaled-3000", "resources/Eros_scaled-5196",
                        "resources/Eros_scaled-9000", "resources/Eros_scaled-15588",
@@ -68,9 +91,6 @@ namespace kdtree {
                          "resources/sphere_scaled-27000", "resources/sphere_scaled-46765",
                          "resources/sphere_scaled-81000", "resources/sphere_scaled-140296"}};
 
-<<<<<<< HEAD
-    void BM_Eros_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
-=======
     SingleFileMeshes a8567Mesh{{"resources/a8567.tab.ply"}};
     SingleFileMeshes comet67PMesh{{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply"}};
     SingleFileMeshes toutatisMesh{{"resources/4179toutatis.tab.ply"}};
@@ -84,7 +104,6 @@ namespace kdtree {
     void BM_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
         auto queryHandle = __itt_string_handle_create(("query_" + state.name()).c_str());
->>>>>>> 6b2ed06 (Optimize plane selection and tree building for benchmarking)
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
         constexpr Vertex origin{0, 0, 0};

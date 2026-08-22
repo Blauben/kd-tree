@@ -130,23 +130,16 @@ namespace kdtree {
 
         //transform shapes to vertices
         auto [begin_it, end_it] = transformIterator(geoIndices.cbegin(), geoIndices.cend(), splitParam.geometryObjects);
-        const auto n = std::distance(begin_it, end_it);
-        auto pos_begin = thrust::make_zip_iterator(
-                thrust::make_tuple(begin_it, thrust::counting_iterator<std::size_t>(0)));
-        auto pos_end = thrust::make_zip_iterator(
-                thrust::make_tuple(end_it, thrust::counting_iterator<std::size_t>(n)));
-
+        std::atomic_long minIndex{0};
+        std::atomic_long maxIndex{0};
         //create new events for each shape in both sub boxes
-        thrust::for_each(thrust::device, pos_begin, pos_end,
-                         [&minBox, maxBox, &minEvents, &maxEvents, &createPlaneEvents](
-                                 const auto &zipped) {
-                             const auto &indexAndTriplet = thrust::get<0>(zipped);
-                             const auto pos = thrust::get<1>(zipped);
-
+        thrust::for_each(thrust::device, begin_it, end_it,
+                         [&minBox, maxBox, &minEvents, &maxEvents, &createPlaneEvents, &minIndex, &maxIndex](
+                                 const auto &indexAndTriplet) {
                              const auto &[index, vertexTriplet] = indexAndTriplet;
                              //reserve slots of 6 for the threads using the atomic counters. Size fits because of earlier resize
-                             createPlaneEvents(vertexTriplet, minBox, index, minEvents.begin() + pos * 6);
-                             createPlaneEvents(vertexTriplet, maxBox, index, maxEvents.begin() + pos * 6);
+                             createPlaneEvents(vertexTriplet, minBox, index, minEvents.begin() + minIndex++ * 6);
+                             createPlaneEvents(vertexTriplet, maxBox, index, maxEvents.begin() + maxIndex++ * 6);
                          });
 
         //sort the lists for later merge sort integration
