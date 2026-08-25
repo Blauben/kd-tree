@@ -42,4 +42,3 @@ Useful Variants
 
    # Parallel execution (requires pytest-xdist)
    pytest -n auto
-
