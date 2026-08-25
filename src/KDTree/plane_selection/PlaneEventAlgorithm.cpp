@@ -61,7 +61,7 @@ namespace kdtree {
                                              PlaneEventType::planar,
                                              Plane(minPoint, direction),
                                              index);
-                                     return;
+                                     continue;
                                  }
                                  //else create a starting and ending event consisting of the planes defined by the min and max points of the shape's bounding box.
                                  events.emplace_back(
