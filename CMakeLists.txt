@@ -33,16 +33,10 @@ set(KD_TREE_PARALLELIZATION "CPP" CACHE STRING "Host parallelization chosen by t
  (CPP= Serial, OMP = OpenMP, TBB = Intel Threading Building Blocks")
 set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP TBB)
 
-# Set the Logging Level if spdlog has not been found, otherwise keep the existing logging level from the found spdlog library
+# Log level options used in cmake/spdlog.cmake, unless the parent project already defines SPDLOG_ACTIVE_LEVEL
 set(KD_TREE_LOGGING_LEVEL_LIST "TRACE" "DEBUG" "INFO" "WARN" "ERROR" "CRITICAL" "OFF")
 set(KD_TREE_LOGGING_LEVEL "INFO" CACHE STRING "Set the Logging level, default (INFO), available options: TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF")
 set_property(CACHE KD_TREE_LOGGING_LEVEL PROPERTY STRINGS ${KD_TREE_LOGGING_LEVEL_LIST})
-# Convert the logging level string to its corresponding number
-list(FIND KD_TREE_LOGGING_LEVEL_LIST ${KD_TREE_LOGGING_LEVEL} LOGGING_LEVEL_INDEX)
-if (${LOGGING_LEVEL_INDEX} EQUAL -1)
-    message(FATAL_ERROR "Invalid logging level: ${KD_TREE_LOGGING_LEVEL}")
-endif ()
-add_compile_definitions(SPDLOG_ACTIVE_LEVEL=${LOGGING_LEVEL_INDEX})
 
 #########################################################
 # What actually to build? - Options, Versions and Output
@@ -116,12 +110,7 @@ message(STATUS "################################################################
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
 message(STATUS "KD Tree Commit Hash      ${KD_TREE_COMMIT_HASH}")
 message(STATUS "KD Tree Parallelization Backend  ${KD_TREE_PARALLELIZATION}")
-# if spdlog is already found, we do not rebuild it, but rather use the existing one. In this case, we do not set the logging level here, but rather use the one from the found spdlog library
-if(TARGET spdlog::spdlog)
-    message(STATUS "KD Tree Logging Level    EXTERNAL")
-else()
-    message(STATUS "KD Tree Logging Level    ${KD_TREE_LOGGING_LEVEL}")
-endif()
+message(STATUS "KD Tree Logging Level    ${KD_TREE_LOGGING_LEVEL}")
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Documentation    ${BUILD_KD_TREE_DOCS}")
 message(STATUS "KD Tree Library          ${BUILD_KD_TREE_LIBRARY}")
