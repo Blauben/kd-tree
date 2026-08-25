@@ -7,7 +7,7 @@ def test_import_module():
 
 def test_kdtree_instantiation_and_methods():
     """Test that a KDTree can be instantiated and that its methods can be called without errors."""
-    
+
     import scikdtree
     # Minimal cube data (matches C++ test)
     vertices = [

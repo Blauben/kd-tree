@@ -85,7 +85,8 @@ namespace kdtree {
 
             ~OptimalPlane() = default;
 
-            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit) : _optPlane(0, splitParam.splitDirection), _boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
+            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit)
+                : _optPlane(0, splitParam.splitDirection), _boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
             }
 
             /**
