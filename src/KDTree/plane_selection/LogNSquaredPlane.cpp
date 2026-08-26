@@ -1,8 +1,8 @@
 #include "KDTree/plane_selection/LogNSquaredPlane.h"
 
 #if defined(KD_TREE_TBB)
-    #include <tbb/combinable.h>
-    #include <tbb/parallel_for.h>
+#include <tbb/combinable.h>
+#include <tbb/parallel_for.h>
 #endif
 
 namespace kdtree {
@@ -49,7 +49,7 @@ namespace kdtree {
             localMaxLookup[t].reserve(planeEvents->size() / 4 / numThreads);
         }
 
-    #pragma omp parallel
+#pragma omp parallel
         {
             const int tid = omp_get_thread_num();
             auto &myMin = localMin[tid];
@@ -68,7 +68,7 @@ namespace kdtree {
                 }
             };
 
-    #pragma omp for schedule(static) nowait
+#pragma omp for schedule(static) nowait
             for (size_t i = 0; i < planeEvents->size(); ++i) {
                 const auto &event = (*planeEvents)[i];
                 if (event.plane.axisCoordinate != plane.axisCoordinate) {

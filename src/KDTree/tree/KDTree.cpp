@@ -7,11 +7,11 @@ namespace kdtree {
 #if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
         void buildChildNodes(const std::shared_ptr<TreeNode> &treeNode) {
             if (auto splitNode = std::dynamic_pointer_cast<SplitNode>(treeNode)) {
-    #pragma omp task
+#pragma omp task
                 {
                     buildChildNodes(splitNode->getChildNode(0));
                 }
-    #pragma omp task
+#pragma omp task
                 {
                     buildChildNodes(splitNode->getChildNode(1));
                 }
@@ -152,9 +152,9 @@ namespace kdtree {
     KDTree &KDTree::prebuildTree() {
         LOG_INFO("KDTree: prebuildTree called");
         //queue for children of processed nodes
-    #pragma omp parallel
+#pragma omp parallel
         {
-    #pragma omp single
+#pragma omp single
             {
                 buildChildNodes(getRootNode());
             }
