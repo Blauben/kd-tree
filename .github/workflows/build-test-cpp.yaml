@@ -21,5 +21,8 @@ jobs:
           lfs: true
       - uses: ilammy/msvc-dev-cmd@v1
         if: matrix.os == 'windows-latest'
+      - name: Install libomp (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install libomp
       - name: Build and test (Linux & macOS)
         run: cmake --workflow --preset build-and-test-release
