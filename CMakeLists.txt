@@ -61,6 +61,8 @@ option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface sh
 option(INSTALL_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be installed (Default: OFF)" OFF)
 # Option to build tests or not
 option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: OFF)" OFF)
+# Option to build example executables for showing usage
+option(BUILD_KD_TREE_EXAMPLES "Set to on if the example executables should be built (Default: OFF)" OFF)
 # Option to force fetching Google Test even if it is already installed locally
 option(KD_TREE_FORCE_GTEST_FETCH "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
@@ -179,6 +181,11 @@ if (BUILD_KD_TREE_TESTS)
 
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
+endif ()
+
+if (BUILD_KD_TREE_EXAMPLES)
+    message(STATUS "Building the KD Tree Examples")
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/usage-examples)
 endif ()
 
 include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)

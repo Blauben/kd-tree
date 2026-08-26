@@ -67,6 +67,7 @@
             "binaryDir": "${sourceDir}/build/test-release",
             "cacheVariables": {
                 "BUILD_KD_TREE_TESTS": "ON",
+                "BUILD_KD_TREE_EXAMPLES": "ON",
                 "KD_TREE_LOGGING_LEVEL": "WARN"
             }
         },
@@ -77,6 +78,7 @@
             "binaryDir": "${sourceDir}/build/test-debug",
             "cacheVariables": {
                 "BUILD_KD_TREE_TESTS": "ON",
+                "BUILD_KD_TREE_EXAMPLES": "ON",
                 "KD_TREE_LOGGING_LEVEL": "WARN"
             }
         },

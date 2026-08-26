@@ -61,6 +61,11 @@ namespace kdtree {
         const PlaneSelectionAlgorithm::Algorithm _algorithm;
 
         /**
+         * Whether particles or geometric shapes (i.e. triangles) are clustered by the tree. Stored in the KDTree, alongside _algorithm, to ensure that the same particleMode is used for all splits during tree construction and rebuilding, independent of the current state of _splitParam.
+         */
+        const bool _particleMode;
+
+        /**
          * Used to avoid multiple threads building the root node at the same time when getRootNode is called for the first time by multiple threads. After the root node is built, this mutex is not used anymore.
          */
         std::mutex _rootNodeCreationMutex;
@@ -80,7 +85,7 @@ namespace kdtree {
         * @return the lazily built KDTree.
         */
         KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-               PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true);
+               PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true, bool particleMode = false);
 
 
         /**
@@ -123,7 +128,7 @@ namespace kdtree {
          * Constructor overload for building a KDTree with particles instead of shapes. Each particle is represented by a single vertex and the tree will not contain any shapes. This means that the tree can be used to efficiently find the nearest point on a ray to a targeted vertex, but not for example to find ray-triangle intersections.
          * @see KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes, PlaneSelectionAlgorithm::Algorithm algorithm) for more details on the parameters.
          */
-        explicit KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG);
+        explicit KDTree(const std::vector<Vertex> &particles, PlaneSelectionAlgorithm::Algorithm algorithm = PlaneSelectionAlgorithm::Algorithm::LOG, bool copyVertices = true);
 
         /**
          * Constructor overload for building a KDTree with particles instead of shapes. Each particle is represented by a single vertex and the tree will not contain any shapes. This means that the tree can be used to efficiently find the nearest point on a ray to a targeted vertex, but not for example to find ray-triangle intersections. This overload allows passing the vertices as a different type than Vertex, as long as they are VertexLike. The constructor will convert the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand.
@@ -261,15 +266,16 @@ namespace kdtree {
         geometryIterator();
 
         /**
-         * Generates iterators for the planes contained in the kdtree. As the planes are not stored in a container but rather generated on the fly during tree construction, the iterators are implemented as a custom iterator class that traverses the tree and generates the planes lazily.
+         * Generates iterators for the planes contained in the kd-tree. As the planes are not stored in a container but rather generated on the fly during tree construction, the iterators are implemented as a custom iterator class that traverses the tree and generates the planes lazily.
          * @return a pair of iterators to iterate over all split planes of the kd-tree.
          */
         std::pair<PlaneIterator, PlaneIterator> planeIterator();
 
         /**
          * Checks if any of the leaf nodes in the tree require a rebuild due to vertices having moved outside their bounding boxes since the last tree build. If a rebuild is needed, the tree is rebuilt to maintain correct intersection results.
+         * @return true if the tree is rebuilt as a result of the check, false otherwise.
          */
-        void rebuildTreeIfNeeded();
+        bool rebuildTreeIfNeeded();
 
         /**
          * Overloads the output stream operator to print a representation of the KDTree.
