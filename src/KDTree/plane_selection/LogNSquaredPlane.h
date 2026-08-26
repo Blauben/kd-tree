@@ -20,6 +20,14 @@
 #include "thrust/execution_policy.h"
 #include "thrust/system/detail/sequential/for_each.h"
 
+#if defined(KD_TREE_TBB)
+#include <tbb/combinable.h>
+#include <tbb/parallel_for.h>
+#endif
+#if defined(KD_TREE_OMP)
+#include <omp.h>
+#endif
+
 namespace kdtree {
     //forward declaration
     struct SplitParam;

@@ -1,9 +1,5 @@
 #include "KDTree/plane_selection/LogNSquaredPlane.h"
 
-#if defined(KD_TREE_TBB)
-#include <tbb/combinable.h>
-#include <tbb/parallel_for.h>
-#endif
 
 namespace kdtree {
     // O(N*log^2(N)) implementation

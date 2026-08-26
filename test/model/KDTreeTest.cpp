@@ -14,11 +14,11 @@
 #include <vector>
 
 namespace kdtree {
-    using testing::ContainerEq;
     using testing::Contains;
     using testing::DoubleNear;
     using testing::ElementsAre;
     using testing::Pair;
+    using testing::UnorderedElementsAreArray;
     using Algorithm = PlaneSelectionAlgorithm::Algorithm;
 
     // Param tuple used by the parameterized test
@@ -334,10 +334,10 @@ namespace kdtree {
                 EXPECT_EQ(optimalCost, variantCost) << "Plane cost check failed for node with id: " << splitNodePtr->nodeId << "; Algorithm: " << variantPlane << ", Optimal: " << optimalPlane << std::endl;
                 ASSERT_EQ(optimalPlane, variantPlane) << "Plane check failed for node with id: " << splitNodePtr->nodeId << "; " << variantPlane << " != " << optimalPlane << std::endl;
 
-                ASSERT_THAT(optimalTriangleIndices.first, ContainerEq(variantTriangleIndices.first))
+                ASSERT_THAT(optimalTriangleIndices.first, UnorderedElementsAreArray(variantTriangleIndices.first))
                         << "Triangle locality check (minFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
                         << "Plane: " << optimalPlane;
-                ASSERT_THAT(optimalTriangleIndices.second, ContainerEq(variantTriangleIndices.second))
+                ASSERT_THAT(optimalTriangleIndices.second, UnorderedElementsAreArray(variantTriangleIndices.second))
                         << "Triangle locality check (maxFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
                         << "Plane: " << optimalPlane;
 

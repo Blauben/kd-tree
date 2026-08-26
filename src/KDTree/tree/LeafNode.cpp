@@ -45,7 +45,6 @@ namespace kdtree {
         auto transform_op = [this, &ray, &origin, &intersections](const size_t objIndex) -> std::optional<Vertex> {
             const std::optional<Vertex> intersection = rayIntersectsObject(
                     origin, ray, _splitParam->geometryObjects[objIndex]);
-            LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
             return intersection;
         };
 
@@ -65,6 +64,7 @@ namespace kdtree {
         out.resize(out_end - out.begin());
         // Insert the valid intersections into the output set
         std::transform(out.begin(), out.end(), std::inserter(intersections, intersections.end()), [](const std::optional<Vertex> &opt) { return opt.value(); });
+        LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
     }
 
     std::optional<Vertex> LeafNode::rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,

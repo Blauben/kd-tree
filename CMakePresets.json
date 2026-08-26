@@ -133,8 +133,7 @@
                 "KD_TREE_PARALLELIZATION": "OMP",
                 "KD_TREE_LOGGING_LEVEL": "WARN",
                 "BUILD_KD_TREE_TESTS": "ON",
-                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
-                "CMAKE_CXX_FLAGS": "-march=native"
+                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON"
             }
         }
     ],

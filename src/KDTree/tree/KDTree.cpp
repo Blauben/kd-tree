@@ -88,7 +88,8 @@ namespace kdtree {
 
     void KDTree::rebuildTree() {
         std::lock_guard lock(this->_rootNodeCreationMutex);
-        this->_rootNode.reset();//reset the root node to allow rebuilding the tree
+        this->_rootNodeCreated.store(false, std::memory_order_relaxed);//re-arm the lazy-build gate for the next getRootNode() call
+        this->_rootNode.reset();                                       //reset the root node to allow rebuilding the tree
         nodeRegister.leafNodes.clear();
         // since splitParam are moved once the previous tree is built, they have to regenerated here
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
@@ -97,14 +98,18 @@ namespace kdtree {
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
         LOG_DEBUG("KDTree: getRootNode called");
-        while (this->_rootNode == nullptr) {
+        if (!this->_rootNodeCreated.load(std::memory_order_acquire)) {
             std::lock_guard lock(this->_rootNodeCreationMutex);
-            if (this->_rootNode == nullptr) {
+            if (!this->_rootNodeCreated.load(std::memory_order_relaxed)) {
                 LOG_DEBUG("KDTree: Root node is null, creating root node");
-                this->_rootNode = TreeNodeFactory::createTreeNode(*std::move(_splitParam), 0);
+                this->_rootNode = TreeNodeFactory::createTreeNode(*_splitParam, 0);
+                this->_rootNodeCreated.store(true, std::memory_order_release);
+            } else {
+                LOG_DEBUG("KDTree: Root node already created by another thread in the meantime, returning existing node");
             }
+        } else {
+            LOG_DEBUG("KDTree: Root node already created, returning existing node");
         }
-        LOG_DEBUG("KDTree: Root node already exists, returning existing node");
         return this->_rootNode;
     }
 
@@ -147,7 +152,7 @@ namespace kdtree {
         LOG_INFO("KDTree: getIntersections finished");
     }
 
-#if defined(KD_TREE_OMP)
+#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
 
     KDTree &KDTree::prebuildTree() {
         LOG_INFO("KDTree: prebuildTree called");

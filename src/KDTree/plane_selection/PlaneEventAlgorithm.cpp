@@ -105,7 +105,7 @@ namespace kdtree {
                 thrust::make_permutation_iterator(offsets.begin(), input_index_map.begin()),
                 local_index.begin(), thrust::minus<int>());
 
-        thrust::host_vector<PlaneEvent> output(total);
+        std::vector<PlaneEvent> output(total);
         thrust::transform(
                 thrust::make_permutation_iterator(clippedResults.begin(), input_index_map.begin()),
                 thrust::make_permutation_iterator(clippedResults.begin(), input_index_map.begin()) + total,
@@ -131,9 +131,8 @@ namespace kdtree {
                     throw std::runtime_error("PlaneEventAlgorithm::generatePlaneEventsFromGeometry: Invalid local index for generating PlaneEvent");
                 });
 
-        std::vector<PlaneEvent> flattenedOutput(output.begin(), output.end());
-        std::sort(flattenedOutput.begin(), flattenedOutput.end());
-        return flattenedOutput;
+        std::sort(output.begin(), output.end());
+        return output;
     }
 
 }// namespace kdtree

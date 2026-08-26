@@ -67,14 +67,23 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
     message(STATUS "Building the KD Tree Benchmark Executable")
 
     include(benchmark)
-    include(ittapi)
 
     # Building the standalone Executable
     add_executable(${PROJECT_NAME}_time kd_time_main.cpp)
-    target_include_directories(${PROJECT_NAME}_time PUBLIC ${KD_TREE_SOURCE_DIR}/src)
+    target_include_directories(${PROJECT_NAME}_time PRIVATE ${KD_TREE_SOURCE_DIR}/src)
 
     # Link executable with library
-    target_link_libraries(${PROJECT_NAME}_time PUBLIC ${PROJECT_NAME}_lib benchmark::benchmark ittapi::ittnotify)
+    target_link_libraries(${PROJECT_NAME}_time PUBLIC ${PROJECT_NAME}_lib benchmark::benchmark)
+
+    # Intel ITT/VTune instrumentation is opt-in: it pulls in intel/ittapi from GitHub at configure
+    # time and is only useful when profiling with VTune, so it must not be a hard dependency of the
+    # benchmark executable.
+    if (ENABLE_ITT_INSTRUMENTATION)
+        include(ittapi)
+        target_link_libraries(${PROJECT_NAME}_time PUBLIC ittapi::ittnotify)
+        target_compile_definitions(${PROJECT_NAME}_time PRIVATE ENABLE_ITT_INSTRUMENTATION)
+    endif ()
+
     kd_tree_copy_runtime_dlls(${PROJECT_NAME}_time)
 
     # Place the executable in the top level directory

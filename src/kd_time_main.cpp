@@ -4,9 +4,33 @@
 
 #include <algorithm>
 #include <benchmark/benchmark.h>
-#include <ittnotify.h>
 #include <string>
 #include <vector>
+
+#ifdef ENABLE_ITT_INSTRUMENTATION
+#include <ittnotify.h>
+#else
+// No-op shims for the Intel ITT API calls below, so the benchmark bodies stay instrumented and
+// readable without requiring the ittapi dependency unless VTune profiling is enabled.
+struct __itt_domain {};
+struct __itt_string_handle {};
+struct __itt_id {};
+static constexpr __itt_id __itt_null{};
+inline __itt_domain *__itt_domain_create(const char *) {
+    return nullptr;
+}
+inline __itt_string_handle *__itt_string_handle_create(const char *) {
+    return nullptr;
+}
+inline void __itt_frame_begin_v3(const __itt_domain *, const __itt_id *) {
+}
+inline void __itt_frame_end_v3(const __itt_domain *, const __itt_id *) {
+}
+inline void __itt_task_begin(const __itt_domain *, __itt_id, __itt_id, __itt_string_handle *) {
+}
+inline void __itt_task_end(const __itt_domain *) {
+}
+#endif
 
 namespace kdtree {
 
