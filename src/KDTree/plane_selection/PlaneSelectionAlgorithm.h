@@ -154,7 +154,7 @@ namespace kdtree {
        * @return A pair of: 1. the cost for performing intersection operations on the finalized tree later, should the KDTree be built using the specified split plane and the shape sets resulting through division by the plane.
        * 2. true if the planar shapes should be added to the min side of the bounding box.
        */
-        static std::pair<const double, bool> costForPlane(const Box &boundingBox, Plane plane, size_t shapesMin, size_t shapesMax, size_t shapesPlanar, const bool particleMode);
+        static std::pair<const double, bool> costForPlane(const Box &boundingBox, Plane plane, size_t shapesMin, size_t shapesMax, size_t shapesPlanar, bool particleMode = false);
     };
 
 }// namespace kdtree

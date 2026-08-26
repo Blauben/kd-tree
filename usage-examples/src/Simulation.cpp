@@ -9,18 +9,8 @@
 namespace gravity_demo {
 
     namespace {
-        using kdtree::IndexVector;
         using kdtree::Vertex;
         using namespace kdtree::util;
-
-        std::vector<IndexVector> buildParticleShapes(const std::size_t particleCount) {
-            std::vector<IndexVector> shapes{};
-            shapes.reserve(particleCount);
-            for (std::size_t index = 0; index < particleCount; ++index) {
-                shapes.emplace_back(1, index);
-            }
-            return shapes;
-        }
 
         std::vector<Vertex> generatePositions(const SimulationConfig &config, std::mt19937 &rng) {
             std::uniform_real_distribution<double> coordinate(-config.halfExtent, config.halfExtent);
@@ -76,7 +66,7 @@ namespace gravity_demo {
           // copyVertices = false: the tree stores pointers directly into _positions, so
           // mutating _positions in step() and calling rebuildTree() keeps the tree in sync
           // without having to reconstruct it (and re-hand every vertex) each step.
-          _tree(_positions, buildParticleShapes(config.particleCount), config.algorithm, false) {
+          _tree(_positions, config.algorithm, false) {
         _accelerations = computeNextAccelerations();
     }
 
@@ -98,22 +88,20 @@ namespace gravity_demo {
     }
 
     std::vector<Simulation::Cluster> Simulation::buildClusters() {
-        // Identifies the current root node so a rebuild can be detected below: rebuildTree()
-        // (called directly, or internally by rebuildTreeIfNeeded()) always replaces it with a
-        // freshly constructed one, while a skipped rebuild leaves the existing root in place.
-        const auto *previousRoot = _tree.getRootNode().get();
-
-        if (_config.adaptiveRebuild) {
-            // Only performs a full rebuild if a particle has actually moved outside its leaf
-            // node's bounding box since the tree was last built; otherwise the existing tree
-            // (and thus its clusters) is reused as-is, which is cheaper than rebuilding
-            // unconditionally every step.
-            _tree.rebuildTreeIfNeeded();
-        } else {
+        if (!_config.adaptiveRebuild) {
+            // Always rebuild the tree unconditionally every step, so the clusters are
+            // always up to date with the current particle positions.
             _tree.rebuildTree();
+            _tree.prebuildTree();
+            _lastRebuildOccurred = true;
+        } else if (_tree.rebuildTreeIfNeeded()) {
+            // The tree was rebuilt due to a particle having moved outside its leaf's bounding box.
+            _tree.prebuildTree();
+            _lastRebuildOccurred = true;
+        } else {
+            // The tree was not rebuilt, so the clusters are still valid from the previous step.
+            _lastRebuildOccurred = false;
         }
-        _tree.prebuildTree();
-        _lastRebuildOccurred = _tree.getRootNode().get() != previousRoot;
 
         std::vector<Cluster> clusters{};
         std::shared_lock lock(_tree.nodeRegister.leafNodeMutex);

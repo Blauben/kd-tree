@@ -17,7 +17,7 @@ endif ()
 # interface stay off (their defaults already do this for a non-top-level build).
 # Quieten the library's own logging so it doesn't drown out this example's per-step
 # output, since the tree is rebuilt every simulation step.
-set(KD_TREE_LOGGING_LEVEL "WARN" CACHE STRING "Logging level for the KDTree library" FORCE)
+set(KD_TREE_LOGGING_LEVEL "WARN" CACHE STRING "Logging level for the KDTree library")
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/.. ${CMAKE_CURRENT_BINARY_DIR}/kdtree-lib)
 
 # The parent project's own CMake module path (which provides the cli11 module below) is

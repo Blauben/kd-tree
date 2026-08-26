@@ -44,7 +44,7 @@ namespace kdtree {
         NodeRegister &nodeRegister;
 
         /**
-        * This flag inidicates whether particles or geometric shapes (i.e triangles) are clustered by the tree.
+        * This flag indicates whether particles or geometric shapes (i.e. triangles) are clustered by the tree.
         */
         const bool particleMode;
 

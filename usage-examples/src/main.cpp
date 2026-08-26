@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
             ->excludes(kdTreeFlag);
 
     CLI11_PARSE(app, argc, argv);
-    options.simulation.algorithm = parseAlgorithm(algorithmName);
 
     try {
+        options.simulation.algorithm = parseAlgorithm(algorithmName);
         if (compareAccuracy) {
             return runAccuracyComparison(options);
         }

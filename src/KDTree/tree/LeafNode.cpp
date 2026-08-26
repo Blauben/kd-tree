@@ -38,6 +38,10 @@ namespace kdtree {
     }
 
     std::vector<std::pair<size_t, Vertex>> LeafNode::getContainedParticles() {
+        if (!_splitParam->particleMode) {
+            LOG_ERROR("LeafNode: getContainedParticles called on a non-particle KDTree node with nodeId " + std::to_string(this->nodeId));
+            throw std::logic_error("Error: getContainedParticles called on a non-particle KDTree node.");
+        }
         convertPlaneEventsToGeometry();
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         std::vector<std::pair<size_t, Vertex>> particles{};

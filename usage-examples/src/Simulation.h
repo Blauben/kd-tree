@@ -14,6 +14,7 @@
 #include "KDTree/tree/KDTree.h"
 
 #include <cstddef>
+#include <iostream>
 #include <vector>
 
 namespace gravity_demo {
