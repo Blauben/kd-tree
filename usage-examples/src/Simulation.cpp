@@ -139,32 +139,36 @@ namespace gravity_demo {
         std::vector<Vertex> accelerations(_positions.size(), Vertex{0.0, 0.0, 0.0});
 
         for (const auto &cluster: clusters) {
-            for (const auto &[particleIndex, particlePosition]: cluster.members) {
-                Vertex acceleration{0.0, 0.0, 0.0};
-
-                // Particles sharing a leaf node are close together, so their interactions
-                // are computed directly rather than approximated.
-                for (const auto &[otherIndex, otherPosition]: cluster.members) {
-                    if (otherIndex == particleIndex) {
-                        continue;
-                    }
-                    const Vertex delta = otherPosition - particlePosition;
+            // Particles sharing a leaf node are close together, so their interactions are
+            // computed directly rather than approximated. By Newton's third law, a pair's
+            // acceleration contributions are equal in magnitude and opposite in direction
+            // (scaled by the other particle's mass), so each pair only needs to be evaluated
+            // once instead of twice; this halves the direct-interaction work. This is safe
+            // without synchronization only as long as this loop stays single-threaded, since
+            // each iteration writes into two shared accelerations[] slots.
+            for (std::size_t a = 0; a < cluster.members.size(); ++a) {
+                const auto &[indexA, positionA] = cluster.members[a];
+                for (std::size_t b = a + 1; b < cluster.members.size(); ++b) {
+                    const auto &[indexB, positionB] = cluster.members[b];
+                    const Vertex delta = positionB - positionA;
                     const double distanceSquared = dot(delta, delta) + _config.softening * _config.softening;
                     const double inverseDistance = 1.0 / std::sqrt(distanceSquared);
                     const double inverseDistanceCubed = inverseDistance * inverseDistance * inverseDistance;
-                    acceleration = acceleration + delta * (_config.gravitationalConstant * _masses[otherIndex] * inverseDistanceCubed);
+                    const Vertex accelerationPerUnitMass = delta * (_config.gravitationalConstant * inverseDistanceCubed);
+                    accelerations[indexA] = accelerations[indexA] + accelerationPerUnitMass * _masses[indexB];
+                    accelerations[indexB] = accelerations[indexB] - accelerationPerUnitMass * _masses[indexA];
                 }
+            }
 
-                // Every other cluster/leaf is approximated as a single combined point mass
-                // located at that leaf's center of mass.
+            // Every other cluster/leaf is approximated as a single combined point mass
+            // located at that leaf's center of mass.
+            for (const auto &[particleIndex, particlePosition]: cluster.members) {
                 for (const auto &otherCluster: clusters) {
                     if (&otherCluster == &cluster) {
                         continue;
                     }
-                    acceleration = acceleration + accelerationTowardsCluster(particlePosition, otherCluster);
+                    accelerations[particleIndex] = accelerations[particleIndex] + accelerationTowardsCluster(particlePosition, otherCluster);
                 }
-
-                accelerations[particleIndex] = acceleration;
             }
         }
         return accelerations;
@@ -172,19 +176,19 @@ namespace gravity_demo {
 
     std::vector<kdtree::Vertex> Simulation::computeAccelerationsBruteForce() const {
         std::vector<Vertex> accelerations(_positions.size(), Vertex{0.0, 0.0, 0.0});
+        // By Newton's third law, a pair's acceleration contributions are equal in magnitude
+        // and opposite in direction (scaled by the other particle's mass), so each pair only
+        // needs to be evaluated once instead of twice; this halves the O(n^2) direct-sum work.
         for (std::size_t i = 0; i < _positions.size(); ++i) {
-            Vertex acceleration{0.0, 0.0, 0.0};
-            for (std::size_t j = 0; j < _positions.size(); ++j) {
-                if (i == j) {
-                    continue;
-                }
+            for (std::size_t j = i + 1; j < _positions.size(); ++j) {
                 const Vertex delta = _positions[j] - _positions[i];
                 const double distanceSquared = dot(delta, delta) + _config.softening * _config.softening;
                 const double inverseDistance = 1.0 / std::sqrt(distanceSquared);
                 const double inverseDistanceCubed = inverseDistance * inverseDistance * inverseDistance;
-                acceleration = acceleration + delta * (_config.gravitationalConstant * _masses[j] * inverseDistanceCubed);
+                const Vertex accelerationPerUnitMass = delta * (_config.gravitationalConstant * inverseDistanceCubed);
+                accelerations[i] = accelerations[i] + accelerationPerUnitMass * _masses[j];
+                accelerations[j] = accelerations[j] - accelerationPerUnitMass * _masses[i];
             }
-            accelerations[i] = acceleration;
         }
         return accelerations;
     }
