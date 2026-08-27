@@ -30,4 +30,3 @@ Run a Specific CTest Case
 .. code-block:: bash
 
    ctest --test-dir build/test -R KDTree --output-on-failure
-

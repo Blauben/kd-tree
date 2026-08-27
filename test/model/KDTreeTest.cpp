@@ -124,7 +124,7 @@ namespace kdtree {
                 {4, 5, 6},
                 {4, 6, 7}};
 
-        /** 
+        /**
          * Lazy load big polyhedron to avoid expensive global initialization at translation time
          * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
          * @return A tuple containing the vertices and faces of the big polyhedron.
@@ -162,7 +162,7 @@ namespace kdtree {
             return vertices[0] * a + vertices[1] * b + vertices[2] * c;
         }
 
-        /** 
+        /**
          * Generates a vector of random points on the surface of a polyhedron defined by its vertices and faces.
          * @param vertices The vertices of the polyhedron.
          * @param faces The faces of the polyhedron defined by vertex indices.
@@ -215,7 +215,7 @@ namespace kdtree {
             return param;
         }
 
-        /** 
+        /**
          * Extracts the face indices from a pair of vectors of face indices.
          * @param vectors The pair of vectors of face indices.
          * @return A pair of vectors of face indices.
@@ -343,6 +343,67 @@ namespace kdtree {
                 nodePtrQueue.push_back(splitNodePtr->getChildNode(1));
             }
             nodePtrQueue.pop_front();
+        }
+    }
+
+    namespace {
+        /**
+         * Recursively counts the particles contained in the subtree rooted at the given node.
+         * @param node Root of the subtree to count particles in.
+         * @return the number of particles contained in the subtree.
+         */
+        size_t countParticlesInSubtree(const std::shared_ptr<TreeNode> &node) {
+            if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
+                return leaf->getContainedParticles().size();
+            }
+            const auto split = std::dynamic_pointer_cast<SplitNode>(node);
+            return countParticlesInSubtree(split->getChildNode(0)) + countParticlesInSubtree(split->getChildNode(1));
+        }
+    }// namespace
+
+    /**
+     * Regression test for the particle-mode SAH cost function (see PlaneSelectionAlgorithm::costForPlane): the
+     * "empty space" cost discount must not apply when particleMode is set. A zero-extent particle sitting exactly
+     * on a candidate split plane is counted as "planar" rather than belonging to either child box, so it is free to
+     * be assigned to whichever side is cheaper; once assigned, that side's bound is only tightened to the plane
+     * itself, not to the true extent of its remaining particles (Box::splitBox just clips to the plane coordinate).
+     * That leaves slack between the box bound and the actual outermost remaining particle, so the very next split
+     * can place a plane exactly at that particle's true position and get an "empty" (shapesMin/shapesMax == 0) box
+     * for free, entirely regardless of how many particles are actually left. Without the particleMode guard, this
+     * discount made the SAH prefer chipping off one boundary particle at a time over an even split, snowballing into
+     * a heavily skewed, linked-list-like tree. The particle set below reproduces this: particles spread out along x
+     * (so there is always more than one to chip away) while y and z span a much wider, fixed range, which elongates
+     * every node's box as x keeps shrinking and makes a real, evenly-dividing split look expensive in surface-area
+     * terms compared to a thin "shave one particle off the edge" cut, unless the discount is correctly disabled.
+     */
+    TEST_F(KDTreeTest, ParticleModeDoesNotIsolateSingleParticles) {
+        std::vector<Vertex> particles{};
+        constexpr int numberOfParticles = 30;
+        for (int i = 0; i < numberOfParticles; ++i) {
+            const double wideCoordinate = i % 2 == 0 ? 0.0 : 500.0;
+            particles.push_back(Vertex{static_cast<double>(i), wideCoordinate, wideCoordinate});
+        }
+
+        KDTree tree{particles, Algorithm::LOG};
+        tree.prebuildTree();
+
+        std::deque<std::shared_ptr<TreeNode>> nodeQueue;
+        nodeQueue.push_back(tree.getRootNode());
+        while (!nodeQueue.empty()) {
+            if (const auto splitNode = std::dynamic_pointer_cast<SplitNode>(nodeQueue.front())) {
+                const auto lesserCount = countParticlesInSubtree(splitNode->getChildNode(0));
+                const auto greaterCount = countParticlesInSubtree(splitNode->getChildNode(1));
+                // A split isolating a single particle while more than a handful remain is the signature of the
+                // empty-space discount being wrongly applied; a real spatial split should divide particles more evenly.
+                if (lesserCount + greaterCount > 3) {
+                    EXPECT_GT(std::min(lesserCount, greaterCount), 1)
+                            << "Split isolated a single particle instead of dividing the "
+                            << (lesserCount + greaterCount) << " particles evenly.";
+                }
+                nodeQueue.push_back(splitNode->getChildNode(0));
+                nodeQueue.push_back(splitNode->getChildNode(1));
+            }
+            nodeQueue.pop_front();
         }
     }
 

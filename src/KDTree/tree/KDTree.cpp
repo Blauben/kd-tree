@@ -3,8 +3,9 @@
 namespace kdtree {
     //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
-                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices) : _algorithm{algorithm} {
-        LOG_INFO("KDTree: Constructing from vertices and faces");
+                   const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices, const bool particleMode)
+        : _algorithm{algorithm}, _particleMode{particleMode} {
+        LOG_DEBUG("KDTree: Start initialization");
         if (copyVertices) {
             _vertices = std::make_shared<std::vector<VertexHandle>>(vertices.begin(), vertices.end());
         } else {
@@ -20,25 +21,26 @@ namespace kdtree {
             _geometryObjects.emplace_back(vertexIndices, objectIndex++, _vertices);
         });
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(algorithm), nodeRegister);
+                                                   PlaneSelectionAlgorithmFactory::create(algorithm), nodeRegister, particleMode);
         LOG_DEBUG("KDTree: Construction complete, split parameters initialized");
         // flush the logger so that the messages are picked up by test cases that check for log output during tree construction
         KDTreeLogger::defaultLogger().getLogger()->flush();
     }
 
-    KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree{
-                                                                                                                       particles,
-                                                                                                                       [&particles] {
-                                                                                                                           //each particle is represented by a single vertex, so each shape only contains one vertex index
-                                                                                                                           std::vector<IndexVector> shapes{};
-                                                                                                                           shapes.reserve(particles.size());
-                                                                                                                           for (size_t index = 0; index < particles.size(); index++) {
-                                                                                                                               shapes.emplace_back(1, index);
-                                                                                                                           }
-                                                                                                                           return shapes;
-                                                                                                                       }(),
-                                                                                                                       algorithm} {
-        LOG_INFO("KDTree: Constructed from particles");
+    KDTree::KDTree(const std::vector<Vertex> &particles, const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices)
+        : KDTree{
+                  particles,
+                  [&particles] {
+                      //each particle is represented by a single vertex, so each shape only contains one vertex index
+                      std::vector<IndexVector> shapes{};
+                      shapes.reserve(particles.size());
+                      for (size_t index = 0; index < particles.size(); index++) {
+                          shapes.emplace_back(1, index);
+                      }
+                      return shapes;
+                  }(),
+                  algorithm, copyVertices, true} {
+        LOG_DEBUG("KDTree: Constructed from particles");
     }
 
     KDTree::KDTree(std::tuple<std::vector<Vertex>, std::vector<IndexVector>> polySource,
@@ -47,8 +49,9 @@ namespace kdtree {
     }
 
 
-    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm) : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
-        LOG_INFO("KDTree: Data fetched from node and face file paths");
+    KDTree::KDTree(const std::string &nodeFilePath, const std::string &faceFilePath, const PlaneSelectionAlgorithm::Algorithm algorithm)
+        : KDTree(TetgenAdapter{{nodeFilePath, faceFilePath}}.getPolyhedralSource(), algorithm) {
+        LOG_DEBUG("KDTree: Data fetched from node and face file paths");
     }
 
     void KDTree::rebuildTree() {
@@ -57,7 +60,7 @@ namespace kdtree {
         nodeRegister.leafNodes.clear();
         // since splitParam are moved once the previous tree is built, they have to regenerated here
         _splitParam = std::make_unique<SplitParam>(_geometryObjects, Box::getBoundingBox(*_vertices), Direction::X,
-                                                   PlaneSelectionAlgorithmFactory::create(_algorithm), nodeRegister);
+                                                   PlaneSelectionAlgorithmFactory::create(_algorithm), nodeRegister, _particleMode);
     }
 
     std::shared_ptr<TreeNode> KDTree::getRootNode() {
@@ -79,7 +82,7 @@ namespace kdtree {
         //it's possible that a single intersection point is on the edge between two triangles. The point would be counted twice if the intersection points were not documented -> use of std::set
         std::set<Vertex> set{};
         this->getIntersections(origin, ray, set);
-        LOG_INFO("KDTree: Intersections counted: " + std::to_string(set.size()));
+        LOG_DEBUG("KDTree: Intersections counted: " + std::to_string(set.size()));
         return set.size();
     }
 
@@ -109,11 +112,11 @@ namespace kdtree {
             }
             queue.pop_front();
         }
-        LOG_INFO("KDTree: getIntersections finished");
+        LOG_DEBUG("KDTree: getIntersections finished");
     }
 
     KDTree &KDTree::prebuildTree() {
-        LOG_INFO("KDTree: prebuildTree called");
+        LOG_DEBUG("KDTree: prebuildTree called");
         //queue for children of processed nodes
         std::deque<std::shared_ptr<TreeNode>> queue{};
         //subsequently call getter functions for the root node and all child nodes to initiate a full build of the tree
@@ -130,7 +133,7 @@ namespace kdtree {
             //remove the processed node as its direct children have been built by getChildNode
             queue.pop_front();
         }
-        LOG_INFO("KDTree: prebuildTree finished");
+        LOG_DEBUG("KDTree: prebuildTree finished");
         return *this;
     }
 
@@ -149,7 +152,7 @@ namespace kdtree {
         return {begin, PlaneIterator{}};
     }
 
-    void KDTree::rebuildTreeIfNeeded() {
+    bool KDTree::rebuildTreeIfNeeded() {
         std::shared_lock lock(nodeRegister.leafNodeMutex);
         const bool rebuildTree = std::ranges::any_of(nodeRegister.leafNodes.cbegin(), nodeRegister.leafNodes.cend(), [](const auto &leafNodePtr) {
             if (const auto leafNode = leafNodePtr.lock()) {
@@ -161,10 +164,11 @@ namespace kdtree {
         });
         lock.unlock();
         if (!rebuildTree) {
-            return;
+            return false;
         }
-        LOG_INFO("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
+        LOG_DEBUG("KDTree: Rebuild needed due to vertex movement outside leaf node bounding box. Rebuilding tree...");
         this->rebuildTree();
+        return true;
     }
 
     std::ostream &operator<<(std::ostream &os, const KDTree &kdTree) {

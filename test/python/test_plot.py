@@ -37,7 +37,7 @@ def test_plot_console_output(tmp_path, capfd):
     tree = sci.KDTree(mesh_path + ".node", mesh_path + ".face")
     outpath = os.path.join(tmp_path, "kd_tree_plot_silent_test.png")
 
-    # Test with print_to_stdout=False 
+    # Test with print_to_stdout=False
     sci.plot_kd_tree(tree, outpath=outpath, print_to_stdout=False)
     assert os.path.exists(outpath), "Plot file was not created as expected."
     captured = capfd.readouterr()

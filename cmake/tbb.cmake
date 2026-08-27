@@ -52,4 +52,3 @@ function(kd_tree_copy_runtime_dlls target_name)
         )
     endif ()
 endfunction()
-

@@ -132,7 +132,7 @@ namespace kdtree {
                 auto [candidateCost, minSideChosen] = costForPlane(boundingBox, candidatePlane,
                                                                    shapeCounter.getMin(candidatePlane.orientation),
                                                                    shapeCounter.getMax(candidatePlane.orientation),
-                                                                   shapeCounter.getPlanar(candidatePlane.orientation));
+                                                                   shapeCounter.getPlanar(candidatePlane.orientation), optPlane.splitParam.particleMode);
                 // this condition exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                 // this is not important for functionality but for testing purposes
                 bool skipEvaluation = candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate;
