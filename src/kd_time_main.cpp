@@ -1,6 +1,7 @@
 #include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/tree/KDTree.h"
+#include "ScaledMeshAmounts.h"
 
 #include <algorithm>
 #include <benchmark/benchmark.h>
@@ -113,11 +114,9 @@ namespace kdtree {
         }
     };
 
-    const std::vector<long long> scaledMeshNodeCounts{1000, 1732, 3000, 5196, 9000, 15588, 27000, 46765, 81000, 140296};
+    Meshes erosMeshes{"resources/Eros_scaled", scaledMeshFaceAmounts, false};
 
-    Meshes erosMeshes{"resources/Eros_scaled", scaledMeshNodeCounts, false};
-
-    Meshes sphereMeshes{"resources/sphere_scaled", scaledMeshNodeCounts, false};
+    Meshes sphereMeshes{"resources/sphere_scaled", scaledMeshFaceAmounts, false};
 
     Meshes a8567Mesh{"resources/a8567.tab.ply", {}, true};
     Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply", {}, true};

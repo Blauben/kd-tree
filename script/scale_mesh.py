@@ -1,6 +1,5 @@
+import argparse
 import os
-import sys
-import time
 
 import open3d as o3d
 import numpy as np
@@ -20,12 +19,12 @@ class Node:
 
     @staticmethod
     def from_line(line):
-        index, *floats = line.split(" ")
+        index, *floats = line.split()
         index = int(index)
         floats = list(map(float, floats))
         return Node(index, *floats)
 
-    
+
     def vertex(self):
         return [self.x,self.y,self.z]
 
@@ -45,9 +44,9 @@ class Face:
 
     @staticmethod
     def from_line(line):
-        results = list(map(int, line.split(" ")))
+        results = list(map(int, line.split()))
         return Face(*results)
-    
+
     def triangle(self):
         return [self.v_idx1, self.v_idx2, self.v_idx3]
 
@@ -78,24 +77,30 @@ def fetch_data(node_file, face_file):
         faces.append(Face.from_line(line))
     return nodes, faces
 
-def scale_mesh(nodes, faces, number_of_faces):
+def mesh_from_node_face(nodes, faces):
     vertices = list(map(lambda n: n.vertex(), nodes))
-    triangles = list(map(lambda n: n.triangle(), faces))
-    mesh = o3d.geometry.TriangleMesh(vertices=o3d.utility.Vector3dVector(vertices), triangles=o3d.utility.Vector3iVector(triangles))
-    iterations = max(0, math.ceil(math.log(number_of_faces / len(triangles)) / math.log(4)))
+    triangles = list(map(lambda f: f.triangle(), faces))
+    return o3d.geometry.TriangleMesh(vertices=o3d.utility.Vector3dVector(vertices), triangles=o3d.utility.Vector3iVector(triangles))
+
+
+def node_face_from_mesh(mesh):
+    vertices = np.asarray(mesh.vertices).tolist()
+    triangles = np.asarray(mesh.triangles).tolist()
+    nodes = [Node(i, *vertex) for i, vertex in enumerate(vertices)]
+    faces = [Face(i, *triangle) for i, triangle in enumerate(triangles)]
+    return nodes, faces
+
+
+def scale_mesh(mesh, number_of_faces):
+    num_triangles = len(mesh.triangles)
+    if num_triangles == 0:
+        raise ValueError("The mesh has no triangles. Cannot scale an empty mesh.")
+    iterations = max(0, math.ceil(math.log(number_of_faces / num_triangles) / math.log(4)))
     if iterations > 0:
         mesh = mesh.subdivide_loop(number_of_iterations=iterations)
     mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=number_of_faces)
     mesh = mesh.remove_unreferenced_vertices()
-    vertices = np.asarray(mesh.vertices).tolist()
-    triangles = np.asarray(mesh.triangles).tolist()
-    nodes = []
-    faces = []
-    for i in range(len(vertices)):
-        nodes.append(Node(i,*vertices[i]))
-    for i in range(len(triangles)):
-        faces.append(Face(i, *triangles[i]))
-    return nodes, faces
+    return mesh
 
 
 def write_to_file(nodes, faces, filename):
@@ -121,15 +126,33 @@ def write_to_file(nodes, faces, filename):
 
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python scale_mesh.py <node_file> <face_file>")
-        return -1
-    filename = os.path.splitext(sys.argv[1])[0]
-    face_amounts = [round(1000* math.sqrt(3)**k) for k in range(10)]
-    for amount in face_amounts:
-        nodes, faces = fetch_data(sys.argv[1], sys.argv[2])
-        nodes, faces = scale_mesh(nodes, faces, amount)
-        write_to_file(nodes, faces, f"{filename}_scaled-{amount}")
+    parser = argparse.ArgumentParser(description="Scale a mesh into several progressively larger variants.")
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--node-face", nargs=2, metavar=("NODE_FILE", "FACE_FILE"),
+                              help="Path to a .node/.face mesh pair to scale (tetgen format).")
+    input_group.add_argument("--ply", metavar="PLY_FILE",
+                              help="Path to a single .ply mesh file to scale.")
+    parser.add_argument("--face-amounts", type=int, nargs="+",
+                         default=[round(1000 * math.sqrt(3) ** k) for k in range(10)],
+                         help="Target face counts to generate scaled variants for "
+                              "(default: round(1000 * sqrt(3)^k) for k in range(10)).")
+    args = parser.parse_args()
+
+    if args.node_face:
+        node_file, face_file = args.node_face
+        filename = os.path.splitext(node_file)[0]
+        nodes, faces = fetch_data(node_file, face_file)
+        base_mesh = mesh_from_node_face(nodes, faces)
+        for amount in args.face_amounts:
+            scaled_mesh = scale_mesh(base_mesh, amount)
+            scaled_nodes, scaled_faces = node_face_from_mesh(scaled_mesh)
+            write_to_file(scaled_nodes, scaled_faces, f"{filename}_scaled-{amount}")
+    else:
+        filename = os.path.splitext(args.ply)[0]
+        base_mesh = o3d.io.read_triangle_mesh(args.ply)
+        for amount in args.face_amounts:
+            scaled_mesh = scale_mesh(base_mesh, amount)
+            o3d.io.write_triangle_mesh(f"{filename}_scaled-{amount}.ply", scaled_mesh)
 
 
 if __name__ == "__main__":

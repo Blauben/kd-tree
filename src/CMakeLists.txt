@@ -67,6 +67,16 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
     message(STATUS "Building the KD Tree Benchmark Executable")
 
     include(benchmark)
+    include(scale_test_meshes)
+
+    # Configure the generated header exposing scaledMeshFaceAmounts (see
+    # cmake/scaled_mesh_amounts.cmake) to kd_time_main.cpp, keeping the benchmark's mesh
+    # sizes in sync with what test/CMakeLists.txt generates via script/scale_mesh.py.
+    list(JOIN KD_TREE_SCALED_MESH_AMOUNTS ", " KD_TREE_SCALED_MESH_AMOUNTS_CPP)
+    configure_file(
+            "${KD_TREE_SOURCE_DIR}/src/ScaledMeshAmounts.h.in"
+            "${KD_TREE_BINARY_DIR}/src/ScaledMeshAmounts.h"
+    )
 
     # Building the standalone Executable
     add_executable(${PROJECT_NAME}_time kd_time_main.cpp)

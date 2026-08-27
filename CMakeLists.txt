@@ -110,6 +110,7 @@ add_compile_definitions(FMT_HEADER_ONLY)
 
 include(${KD_TREE_SOURCE_DIR}/cmake/git.cmake)
 include(${KD_TREE_SOURCE_DIR}/version.cmake)
+include(${KD_TREE_SOURCE_DIR}/cmake/scaled_mesh_amounts.cmake)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")
@@ -184,6 +185,8 @@ if (BUILD_KD_TREE_TESTS)
     message(STATUS "Building the KD Tree Tests")
     # Enables CTest, must be in the top-level CMakeList.txt, otherwise it won't work
     enable_testing()
+
+    include(scale_test_meshes)
 
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
