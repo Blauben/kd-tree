@@ -42,28 +42,27 @@ namespace kdtree {
         convertPlaneEventsToGeometry();
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
-        auto transform_op = [this, &ray, &origin, &intersections](const size_t objIndex) -> std::optional<Vertex> {
-            const std::optional<Vertex> intersection = rayIntersectsObject(
-                    origin, ray, _splitParam->geometryObjects[objIndex]);
-            return intersection;
-        };
-
-        // Create transform iterators for the bound objects and perform intersection tests in them
-        auto tbegin = thrust::make_transform_iterator(boundObjects.begin(), transform_op);
-        auto tend = thrust::make_transform_iterator(boundObjects.end(), transform_op);
-
-        thrust::host_vector<std::optional<Vertex>> out(boundObjects.size());// upper bound
-
-        // execute thrust::copy_if on device or host based on the number of objects in the leaf node
-        auto out_end = boundObjects.size() >= constants::LEAF_THRUST_PARALLEL_THRESHOLD
-                               ? thrust::copy_if(thrust::device, tbegin, tend, out.begin(),
-                                                 [](const std::optional<Vertex> &i) { return i.has_value(); })
-                               : thrust::copy_if(thrust::host, tbegin, tend, out.begin(),
-                                                 [](const std::optional<Vertex> &i) { return i.has_value(); });
-
-        out.resize(out_end - out.begin());
-        // Insert the valid intersections into the output set
-        std::transform(out.begin(), out.end(), std::inserter(intersections, intersections.end()), [](const std::optional<Vertex> &opt) { return opt.value(); });
+        //leaves are small by construction, so below the threshold a plain sequential pass avoids both parallel dispatch and locking overhead
+        if (boundObjects.size() > constants::LEAF_THRUST_PARALLEL_THRESHOLD) {
+            std::mutex writeLock{};
+            thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
+                             [this, &ray, &origin, &intersections, &writeLock](const size_t objIndex) {
+                                 const std::optional<Vertex> intersection = rayIntersectsObject(
+                                         origin, ray, _splitParam->geometryObjects[objIndex]);
+                                 if (intersection.has_value()) {
+                                     std::unique_lock lock(writeLock);
+                                     intersections.insert(intersection.value());
+                                 }
+                             });
+        } else {
+            for (const size_t objIndex: boundObjects) {
+                const std::optional<Vertex> intersection = rayIntersectsObject(
+                        origin, ray, _splitParam->geometryObjects[objIndex]);
+                if (intersection.has_value()) {
+                    intersections.insert(intersection.value());
+                }
+            }
+        }
         LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
     }
 

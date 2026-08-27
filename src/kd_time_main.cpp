@@ -4,7 +4,10 @@
 
 #include <algorithm>
 #include <benchmark/benchmark.h>
+#include <filesystem>
+#include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #ifdef ENABLE_ITT_INSTRUMENTATION
@@ -57,40 +60,23 @@ namespace kdtree {
         std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Vertex>> centroids{};
 
-        explicit Meshes(const std::vector<std::string> &filePaths) {
-            std::ranges::for_each(filePaths, [this](const std::string &filePath) {
-                const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath)}.getPolyhedralSource();
-                centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-                vertices.push_back(fileVertices);
-                faces.push_back(fileFaces);
-            });
-        }
+        /**
+         * If true, basename is a complete path to a single mesh file (e.g. a .ply) and nodeCounts is ignored - exactly one
+         * mesh is loaded from it directly. If false, basename is the shared prefix of a series of variants distinguished by
+         * their node count (e.g. "resources/Eros_scaled" with nodeCount 1000 -> "resources/Eros_scaled-1000.node"/".face"),
+         * one mesh loaded per entry in nodeCounts.
+         */
+        const bool singleFileMesh;
 
-        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
-            return {vertices[index], faces[index], centroids[index]};
-        }
-
-        static std::vector<std::string> buildCompleteFilePaths(const std::string &filePath) {
-            return {filePath + ".node", filePath + ".face"};
-        }
-
-        [[nodiscard]] long long size() const {
-            return static_cast<long long>(vertices.size());
-        }
-    };
-
-    struct SingleFileMeshes {
-        std::vector<std::vector<Vertex>> vertices{};
-        std::vector<std::vector<IndexVector>> faces{};
-        std::vector<std::vector<Vertex>> centroids{};
-
-        explicit SingleFileMeshes(const std::vector<std::string> &filePaths) {
-            std::ranges::for_each(filePaths, [this](const std::string &filePath) {
-                const auto [fileVertices, fileFaces] = TetgenAdapter{{filePath}}.getPolyhedralSource();
-                centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-                vertices.push_back(fileVertices);
-                faces.push_back(fileFaces);
-            });
+        Meshes(const std::string &basename, const std::vector<long long> &nodeCounts, const bool singleFileMesh)
+            : singleFileMesh{singleFileMesh} {
+            if (nodeCounts.empty()) {
+                loadMesh(basename, std::nullopt);
+            } else {
+                std::ranges::for_each(nodeCounts, [this, &basename](const long long nodeCount) {
+                    loadMesh(basename, nodeCount);
+                });
+            }
         }
 
         std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
@@ -100,36 +86,66 @@ namespace kdtree {
         [[nodiscard]] long long size() const {
             return static_cast<long long>(vertices.size());
         }
+
+    private:
+        void loadMesh(const std::string &filePath, const std::optional<long long> &nodeCount) {
+            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount)}.getPolyhedralSource();
+            centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
+            vertices.push_back(fileVertices);
+            faces.push_back(fileFaces);
+        }
+
+        // Builds the file path(s) to load a mesh variant from. filePath is the basename shared across all variants;
+        // nodeCount, if present, identifies which variant. For a single mesh file, the count (if any) is spliced in
+        // before the extension (e.g. "resources/a8567.tab.ply" + 1000 -> "resources/a8567.tab-1000.ply"); with no count
+        // the path is used as-is. For a .node/.face pair, the count (if any) is appended before the extensions are added.
+        // PR #60 will introduce scaled .ply variants, so this function will be updated to handle that case as well.
+        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<long long> &nodeCount) const {
+            if (singleFileMesh) {
+                if (!nodeCount.has_value()) {
+                    return {filePath};
+                }
+                const std::filesystem::path path{filePath};
+                return {(path.parent_path() / (path.stem().string() + "-" + std::to_string(*nodeCount) + path.extension().string())).string()};
+            }
+            const std::string suffixedPath = nodeCount.has_value() ? filePath + "-" + std::to_string(*nodeCount) : filePath;
+            return {suffixedPath + ".node", suffixedPath + ".face"};
+        }
     };
 
-    Meshes erosMeshes{{"resources/Eros_scaled-1000", "resources/Eros_scaled-1732",
-                       "resources/Eros_scaled-3000", "resources/Eros_scaled-5196",
-                       "resources/Eros_scaled-9000", "resources/Eros_scaled-15588",
-                       "resources/Eros_scaled-27000", "resources/Eros_scaled-46765",
-                       "resources/Eros_scaled-81000", "resources/Eros_scaled-140296"}};
+    const std::vector<long long> scaledMeshNodeCounts{1000, 1732, 3000, 5196, 9000, 15588, 27000, 46765, 81000, 140296};
 
+    Meshes erosMeshes{"resources/Eros_scaled", scaledMeshNodeCounts, false};
 
-    Meshes sphereMeshes{{"resources/sphere_scaled-1000", "resources/sphere_scaled-1732",
-                         "resources/sphere_scaled-3000", "resources/sphere_scaled-5196",
-                         "resources/sphere_scaled-9000", "resources/sphere_scaled-15588",
-                         "resources/sphere_scaled-27000", "resources/sphere_scaled-46765",
-                         "resources/sphere_scaled-81000", "resources/sphere_scaled-140296"}};
+    Meshes sphereMeshes{"resources/sphere_scaled", scaledMeshNodeCounts, false};
 
-    SingleFileMeshes a8567Mesh{{"resources/a8567.tab.ply"}};
-    SingleFileMeshes comet67PMesh{{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply"}};
-    SingleFileMeshes toutatisMesh{{"resources/4179toutatis.tab.ply"}};
-    SingleFileMeshes itokawaObjectMesh{{"resources/Object 25143_Itokawa_200k.ply"}};
-    SingleFileMeshes hartley2Mesh{{"resources/hartley2_2012_cart.ply"}};
-    SingleFileMeshes shapeSfmMesh{{"resources/SHAPE_SFM_3M_v20180804.ply"}};
-    SingleFileMeshes mu69Mesh{{"resources/MU69_Merged.ply"}};
+    Meshes a8567Mesh{"resources/a8567.tab.ply", {}, true};
+    Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply", {}, true};
+    Meshes toutatisMesh{"resources/4179toutatis.tab.ply", {}, true};
+    Meshes itokawaObjectMesh{"resources/Object 25143_Itokawa_200k.ply", {}, true};
+    Meshes hartley2Mesh{"resources/hartley2_2012_cart.ply", {}, true};
+    Meshes shapeSfmMesh{"resources/SHAPE_SFM_3M_v20180804.ply", {}, true};
+    Meshes mu69Mesh{"resources/MU69_Merged.ply", {}, true};
 
     static __itt_domain *kdTreeIttDomain = __itt_domain_create("KDTree");
 
-    void BM_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
-        auto queryHandle = __itt_string_handle_create(("query_" + state.name()).c_str());
+    // ITT string handles are meant to be created once per name and cached, not re-created on every benchmark
+    // function invocation (each DenseRange entry and --benchmark_repetitions re-run calls the benchmark function
+    // again with the same state.name()). Cache them here instead of paying that cost inside the measured process.
+    static __itt_string_handle *getIttStringHandle(const std::string &name) {
+        static std::unordered_map<std::string, __itt_string_handle *> handles;
+        auto [it, inserted] = handles.try_emplace(name, nullptr);
+        if (inserted) {
+            it->second = __itt_string_handle_create(name.c_str());
+        }
+        return it->second;
+    }
+
+    void BM_Intersection_Tree(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+        auto buildHandle = getIttStringHandle("build_" + state.name());
+        auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
+        const auto [vertices, faces, centroids] = mesh[state.range(0)];
         constexpr Vertex origin{0, 0, 0};
         std::set<Vertex> intersections;
         __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
@@ -149,76 +165,11 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Intersection_Tree_Twice(benchmark::State &state) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
-        auto queryHandle = __itt_string_handle_create(("query_" + state.name()).c_str());
+    void BM_Intersection_Tree_Twice(benchmark::State &state, const Meshes &mesh) {
+        auto buildHandle = getIttStringHandle("build_" + state.name());
+        auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        constexpr Vertex origin{0, 0, 0};
-        std::set<Vertex> intersections;
-        __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
-        for (auto _: state) {
-            __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, buildHandle);
-            KDTree tree{vertices, faces};
-            tree.prebuildTree();
-            __itt_task_end(kdTreeIttDomain);
-            __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, queryHandle);
-            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
-                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
-            });
-            __itt_task_end(kdTreeIttDomain);
-            benchmark::ClobberMemory();
-            intersections.clear();
-        }
-        __itt_frame_end_v3(kdTreeIttDomain, nullptr);
-        state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
-    }
-
-    void BM_Intersection_Tree_Build(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
-        using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = erosMeshes[state.range(0)];
-        __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
-        for (auto _: state) {
-            __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, buildHandle);
-            KDTree tree{vertices, faces, algorithm};
-            tree.prebuildTree();
-            __itt_task_end(kdTreeIttDomain);
-            benchmark::ClobberMemory();
-        }
-        __itt_frame_end_v3(kdTreeIttDomain, nullptr);
-        state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
-    }
-
-    void BM_Single_File_Mesh_Intersection_Tree(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm, const SingleFileMeshes &meshes) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
-        auto queryHandle = __itt_string_handle_create(("query_" + state.name()).c_str());
-        using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = meshes[state.range(0)];
-        constexpr Vertex origin{0, 0, 0};
-        std::set<Vertex> intersections;
-        __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
-        for (auto _: state) {
-            __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, buildHandle);
-            KDTree tree{vertices, faces, algorithm};
-            __itt_task_end(kdTreeIttDomain);
-            __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, queryHandle);
-            std::ranges::for_each(centroids, [&](const Vertex &centroid) {
-                tree.getIntersections(origin, (centroid - origin) / 10., intersections);
-            });
-            __itt_task_end(kdTreeIttDomain);
-            benchmark::ClobberMemory();
-            intersections.clear();
-        }
-        __itt_frame_end_v3(kdTreeIttDomain, nullptr);
-        state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
-    }
-
-    void BM_Single_File_Mesh_Intersection_Tree_Twice(benchmark::State &state, const SingleFileMeshes &meshes) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
-        auto queryHandle = __itt_string_handle_create(("query_" + state.name()).c_str());
-        using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = meshes[state.range(0)];
+        const auto [vertices, faces, centroids] = mesh[state.range(0)];
         constexpr Vertex origin{0, 0, 0};
         std::set<Vertex> intersections;
         __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
@@ -239,10 +190,10 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Single_File_Mesh_Intersection_Tree_Build(benchmark::State &state, const PlaneSelectionAlgorithm::Algorithm &algorithm, const SingleFileMeshes &meshes) {
-        auto buildHandle = __itt_string_handle_create(("build_" + state.name()).c_str());
+    void BM_Intersection_Tree_Build(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+        auto buildHandle = getIttStringHandle("build_" + state.name());
         using namespace kdtree::util;
-        const auto [vertices, faces, centroids] = meshes[state.range(0)];
+        const auto [vertices, faces, centroids] = mesh[state.range(0)];
         __itt_frame_begin_v3(kdTreeIttDomain, nullptr);
         for (auto _: state) {
             __itt_task_begin(kdTreeIttDomain, __itt_null, __itt_null, buildHandle);
@@ -254,44 +205,34 @@ namespace kdtree {
         __itt_frame_end_v3(kdTreeIttDomain, nullptr);
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
+
+
+#define REGISTER_MESH_BENCHMARKS(prefix, mesh)                                                                                                                                                                          \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/NoTree", mesh, PlaneSelectionAlgorithm::Algorithm::NOTREE)->Name(prefix "/NoTree")->DenseRange(0, mesh.size() - 1, 1);                                             \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Quadratic", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/Quadratic")->DenseRange(0, std::max(mesh.size() - 3, 0LL), 1);                     \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/LogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/LogSquared")->DenseRange(0, mesh.size() - 1, 1);                                 \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Log", mesh, PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/Log")->DenseRange(0, mesh.size() - 1, 1);                                                      \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Twice, prefix "/SecondRun", mesh)->Name(prefix "/SecondRun")->DenseRange(0, mesh.size() - 1, 1);                                                                             \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeSquared", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/BuildTreeSquared")->DenseRange(0, std::max(mesh.size() - 3, 0LL), 1); \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/BuildTreeLogSquared")->DenseRange(0, mesh.size() - 1, 1);         \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLog", mesh, PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/BuildTreeLog")->DenseRange(0, mesh.size() - 1, 1);
+
     // eros mesh benchmarks
-#define REGISTER_POLYHEDRON_MESH_BENCHMARKS(prefix, mesh)                                                                                                                                                 \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/NoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE)->Name(prefix "/NoTree")->DenseRange(0, mesh.size() - 1, 1);                                     \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Quadratic", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/Quadratic")->DenseRange(0, mesh.size() - 3, 1);                            \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/LogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/LogSquared")->DenseRange(0, mesh.size() - 1, 1);                         \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Log", PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/Log")->DenseRange(0, mesh.size() - 1, 1);                                              \
-    BENCHMARK(BM_Intersection_Tree_Twice)->Name(prefix "/SecondRun")->DenseRange(0, mesh.size() - 1, 1);                                                                                                  \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/BuildTreeSquared")->DenseRange(0, mesh.size() - 3, 1);        \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/BuildTreeLogSquared")->DenseRange(0, mesh.size() - 1, 1); \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLog", PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/BuildTreeLog")->DenseRange(0, mesh.size() - 1, 1);
-
-    REGISTER_POLYHEDRON_MESH_BENCHMARKS("ErosPolyhedron", erosMeshes)
+    REGISTER_MESH_BENCHMARKS("ErosPolyhedron", erosMeshes)
 
     // sphere mesh benchmarks
-    REGISTER_POLYHEDRON_MESH_BENCHMARKS("SpherePolyhedron", sphereMeshes)
+    REGISTER_MESH_BENCHMARKS("SpherePolyhedron", sphereMeshes)
 
-#undef REGISTER_POLYHEDRON_MESH_BENCHMARKS
+    // ply file mesh benchmarks
+    REGISTER_MESH_BENCHMARKS("A8567Mesh", a8567Mesh)
+    REGISTER_MESH_BENCHMARKS("67PESANAVCAMMesh", comet67PMesh)
+    REGISTER_MESH_BENCHMARKS("ToutatisMesh", toutatisMesh)
+    REGISTER_MESH_BENCHMARKS("ItokawaObjectMesh", itokawaObjectMesh)
+    REGISTER_MESH_BENCHMARKS("Hartley2Mesh", hartley2Mesh)
+    REGISTER_MESH_BENCHMARKS("ShapeSFMMesh", shapeSfmMesh)
+    REGISTER_MESH_BENCHMARKS("MU69Mesh", mu69Mesh)
+#undef REGISTER_MESH_BENCHMARKS
 
-    // single-file mesh benchmarks
-#define REGISTER_SINGLE_FILE_MESH_BENCHMARK(prefix, mesh)                                                                                                                                                                        \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree, prefix "/NoTree", PlaneSelectionAlgorithm::Algorithm::NOTREE, mesh)->Name(prefix "/NoTree")->DenseRange(0, mesh.size() - 1, 1);                                     \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree, prefix "/Quadratic", PlaneSelectionAlgorithm::Algorithm::QUADRATIC, mesh)->Name(prefix "/Quadratic")->DenseRange(0, mesh.size() - 1, 1);                            \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree, prefix "/LogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED, mesh)->Name(prefix "/LogSquared")->DenseRange(0, mesh.size() - 1, 1);                         \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree, prefix "/Log", PlaneSelectionAlgorithm::Algorithm::LOG, mesh)->Name(prefix "/Log")->DenseRange(0, mesh.size() - 1, 1);                                              \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree_Twice, prefix "/SecondRun", mesh)->Name(prefix "/SecondRun")->DenseRange(0, mesh.size() - 1, 1);                                                                     \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree_Build, prefix "/BuildTreeSquared", PlaneSelectionAlgorithm::Algorithm::QUADRATIC, mesh)->Name(prefix "/BuildTreeSquared")->DenseRange(0, mesh.size() - 3, 1);        \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree_Build, prefix "/BuildTreeLogSquared", PlaneSelectionAlgorithm::Algorithm::LOGSQUARED, mesh)->Name(prefix "/BuildTreeLogSquared")->DenseRange(0, mesh.size() - 1, 1); \
-    BENCHMARK_CAPTURE(BM_Single_File_Mesh_Intersection_Tree_Build, prefix "/BuildTreeLog", PlaneSelectionAlgorithm::Algorithm::LOG, mesh)->Name(prefix "/BuildTreeLog")->DenseRange(0, mesh.size() - 1, 1);
-
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("A8567Mesh", a8567Mesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("67PESANAVCAMMesh", comet67PMesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("ToutatisMesh", toutatisMesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("ItokawaObjectMesh", itokawaObjectMesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("Hartley2Mesh", hartley2Mesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("ShapeSFMMesh", shapeSfmMesh)
-    REGISTER_SINGLE_FILE_MESH_BENCHMARK("MU69Mesh", mu69Mesh)
-
-#undef REGISTER_SINGLE_FILE_MESH_BENCHMARK
 }// namespace kdtree
 
 BENCHMARK_MAIN();

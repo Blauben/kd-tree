@@ -89,7 +89,8 @@ namespace kdtree::constants {
      * Threshold for the number of objects in a leaf node to determine whether to use Thrust on the device or host for intersection computations.
      * If the number of objects exceeds this threshold, Thrust will be used on the device (GPU) for parallel processing; otherwise, it will be used on the host (CPU).
      */
-    constexpr size_t LEAF_THRUST_PARALLEL_THRESHOLD = 256;
+    constexpr size_t LEAF_THRUST_PARALLEL_THRESHOLD = 512;
+
 
     // ============================================================================
     // TetgenAdapter Constants
