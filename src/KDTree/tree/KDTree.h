@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstddef>
 #include <deque>
 #include <iterator>
@@ -28,6 +29,7 @@
 #include "KDTree/tree/TreeNode.h"
 #include "KDTree/tree/TreeNodeFactory.h"
 #include "KDTree/util/UtilityContainer.h"
+#include "KDTree/util/pragma.h"
 
 namespace kdtree {
     /**
@@ -66,9 +68,14 @@ namespace kdtree {
         const bool _particleMode;
 
         /**
-         * Used to avoid multiple threads building the root node at the same time when getRootNode is called for the first time by multiple threads. After the root node is built, this mutex is not used anymore.
+         * Used to avoid multiple threads building the root node at the same time when getRootNode is called for the first time by multiple threads, and to serialize rebuildTree() against both getRootNode() and itself. After the root node is built, this mutex is not used anymore until the next rebuildTree() call.
          */
         std::mutex _rootNodeCreationMutex;
+
+        /**
+         * Fast-path gate for whether the root node has been built for the current "build epoch". Read without holding _rootNodeCreationMutex on the common path; only the slow path (first build, or first build after a rebuild) takes the mutex, re-checks this flag, and holds the lock for the whole build so it can never interleave with rebuildTree().
+         */
+        std::atomic<bool> _rootNodeCreated{false};
 
         /**
         * Parameters for lazily building the root node {@link SplitParam}

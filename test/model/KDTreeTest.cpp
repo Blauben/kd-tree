@@ -14,11 +14,11 @@
 #include <vector>
 
 namespace kdtree {
-    using testing::ContainerEq;
     using testing::Contains;
     using testing::DoubleNear;
     using testing::ElementsAre;
     using testing::Pair;
+    using testing::UnorderedElementsAreArray;
     using Algorithm = PlaneSelectionAlgorithm::Algorithm;
 
     // Param tuple used by the parameterized test
@@ -300,19 +300,20 @@ namespace kdtree {
     }
 
     /**
-     * Tests the regression of the plane selection algorithms used in the KDTree. The test builds a KDTree using a specified plane selection algorithm and then traverses the tree to compare the planes selected by the algorithm with those selected by a reference quadratic algorithm. The test checks if the planes, their costs, and the locality of the triangles they reference are consistent between the two algorithms for each split node in the tree. As the quadratic algorithm is used as a reference due to its simplicity and correctness, this may take a while.
+     * Tests the regression of the plane selection algorithms used in the KDTree. The test builds a KDTree using a specified plane selection algorithm and then traverses the tree to compare the planes selected by the algorithm with those selected by a reference algorithm. The test checks if the planes, their costs, and the locality of the triangles they reference are consistent between the two algorithms for each split node in the tree.
      */
     TEST_P(KDTreeTest, AlgorithmRegressionTest) {
         using namespace util;
+        constexpr Algorithm referenceAlgorithmType = Algorithm::LOG;
         std::vector<Vertex> vertices;
         std::vector<IndexVector> faces;
         Algorithm algorithm;
         std::tie(vertices, faces, algorithm, std::ignore) = GetParam();
-        if (algorithm == Algorithm::QUADRATIC || algorithm == Algorithm::NOTREE) {
-            GTEST_SKIP() << "Skipping regression test for notree and quadratic algorithm as it is used as the reference algorithm.";
+        if (algorithm == referenceAlgorithmType || algorithm == Algorithm::NOTREE) {
+            GTEST_SKIP() << "Skipping regression test for notree and the designated reference algorithm as it is used as the reference algorithm.";
         }
-        KDTree tree{vertices, faces, algorithm};
-        auto squaredAlgorithm = PlaneSelectionAlgorithmFactory::create(Algorithm::QUADRATIC);
+        KDTree tree{vertices, faces, referenceAlgorithmType};
+        auto referenceAlgorithm = PlaneSelectionAlgorithmFactory::create(referenceAlgorithmType);
         auto variantAlgorithm = PlaneSelectionAlgorithmFactory::create(algorithm);
 
         std::deque<std::shared_ptr<TreeNode>> nodePtrQueue;
@@ -320,9 +321,10 @@ namespace kdtree {
         while (!nodePtrQueue.empty()) {
             if (auto splitNodePtr = std::dynamic_pointer_cast<SplitNode>(nodePtrQueue.front())) {
                 SplitParam param = *splitNodePtr->_splitParam;
-                param.splitDirection = splitNodePtr->_plane.orientation;
 
-                const auto [optimalPlane, optimalCost, optimalTriangles] = squaredAlgorithm->findPlane(holdsFaceIndices(param));
+                const auto [optimalPlane, optimalCost, optimalTriangles] = referenceAlgorithm->findPlane(holdsFaceIndices(param));
+                // set the split direction to the optimal plane orientation for the variant algorithm. Some algorithms use round-robin to determine the split direction, which may not match the optimal plane orientation. This ensures that the variant algorithm is tested with the same split direction as the reference algorithm.
+                param.splitDirection = optimalPlane.orientation;
                 const auto [variantPlane, variantCost, variantTriangles] = variantAlgorithm->findPlane(param);
 
                 const auto optimalTriangleIndices = extractFaceIndicesFromVectors(std::move(optimalTriangles));
@@ -332,10 +334,10 @@ namespace kdtree {
                 EXPECT_EQ(optimalCost, variantCost) << "Plane cost check failed for node with id: " << splitNodePtr->nodeId << "; Algorithm: " << variantPlane << ", Optimal: " << optimalPlane << std::endl;
                 ASSERT_EQ(optimalPlane, variantPlane) << "Plane check failed for node with id: " << splitNodePtr->nodeId << "; " << variantPlane << " != " << optimalPlane << std::endl;
 
-                ASSERT_THAT(optimalTriangleIndices.first, ContainerEq(variantTriangleIndices.first))
+                ASSERT_THAT(optimalTriangleIndices.first, UnorderedElementsAreArray(variantTriangleIndices.first))
                         << "Triangle locality check (minFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
                         << "Plane: " << optimalPlane;
-                ASSERT_THAT(optimalTriangleIndices.second, ContainerEq(variantTriangleIndices.second))
+                ASSERT_THAT(optimalTriangleIndices.second, UnorderedElementsAreArray(variantTriangleIndices.second))
                         << "Triangle locality check (maxFaces) failed for node with id: " << splitNodePtr->nodeId << std::endl
                         << "Plane: " << optimalPlane;
 

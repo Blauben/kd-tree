@@ -7,8 +7,10 @@
 #include "KDTree/util/Constants.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "KDTree/util/UtilityFloatArithmetic.h"
+#include "KDTree/util/pragma.h"
 #include "thrust/detail/execution_policy.h"
 #include "thrust/execution_policy.h"
+#include "thrust/host_vector.h"
 #include "thrust/system/detail/sequential/for_each.h"
 
 #include <algorithm>

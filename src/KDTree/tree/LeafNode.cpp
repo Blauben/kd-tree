@@ -1,5 +1,4 @@
 #include "KDTree/tree/LeafNode.h"
-#include "KDTree/util/Constants.h"
 
 namespace kdtree {
     LeafNode::LeafNode(const SplitParam &splitParam, const size_t nodeId)
@@ -57,18 +56,29 @@ namespace kdtree {
                                     std::set<Vertex> &intersections) {
         LOG_DEBUG("LeafNode: getIntersections called for nodeId ", std::to_string(this->nodeId));
         convertPlaneEventsToGeometry();
-        std::mutex writeLock{};
         const ObjectIndexVector &boundObjects{std::get<ObjectIndexVector>(_splitParam->boundObjects)};
         //traverses all contained faces and performs intersection tests with them -> store results in the buffer passed in the arguments
-        thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
-                         [this, &ray, &origin, &intersections, &writeLock](const size_t objIndex) {
-                             const std::optional<Vertex> intersection = rayIntersectsObject(
-                                     origin, ray, _splitParam->geometryObjects[objIndex]);
-                             if (intersection.has_value()) {
-                                 std::unique_lock lock(writeLock);
-                                 intersections.insert(intersection.value());
-                             }
-                         });
+        //leaves are small by construction, so below the threshold a plain sequential pass avoids both parallel dispatch and locking overhead
+        if (boundObjects.size() > constants::LEAF_THRUST_PARALLEL_THRESHOLD) {
+            std::mutex writeLock{};
+            thrust::for_each(thrust::device, boundObjects.cbegin(), boundObjects.cend(),
+                             [this, &ray, &origin, &intersections, &writeLock](const size_t objIndex) {
+                                 const std::optional<Vertex> intersection = rayIntersectsObject(
+                                         origin, ray, _splitParam->geometryObjects[objIndex]);
+                                 if (intersection.has_value()) {
+                                     std::unique_lock lock(writeLock);
+                                     intersections.insert(intersection.value());
+                                 }
+                             });
+        } else {
+            for (const size_t objIndex: boundObjects) {
+                const std::optional<Vertex> intersection = rayIntersectsObject(
+                        origin, ray, _splitParam->geometryObjects[objIndex]);
+                if (intersection.has_value()) {
+                    intersections.insert(intersection.value());
+                }
+            }
+        }
         LOG_DEBUG("LeafNode: getIntersections finished for nodeId " + std::to_string(this->nodeId));
     }
 
