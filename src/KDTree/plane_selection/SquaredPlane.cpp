@@ -20,9 +20,8 @@ namespace kdtree {
         std::unordered_set<double> testedPlaneCoordinates{};
         auto [vertex_begin, vertex_end] = transformIterator(boundObjects.cbegin(), boundObjects.cend(),
                                                             splitParam.geometryObjects);
-        std::mutex testedPlaneMutex{};
-        thrust::for_each(thrust::device, vertex_begin, vertex_end,
-                         [&splitParam, &optPlane, &testedPlaneCoordinates, &testedPlaneMutex](
+        thrust::for_each(thrust::host, vertex_begin, vertex_end,
+                         [&splitParam, &optPlane, &testedPlaneCoordinates](
                                  const auto &indexAndVertices) {
                              const auto [index, vertices] = indexAndVertices;
                              //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
@@ -34,8 +33,6 @@ namespace kdtree {
                                          planeSurfacePoint[static_cast<int>(splitParam.splitDirection)],
                                          splitParam.splitDirection};
                                  {
-                                     //continue if plane has already been tested
-                                     std::lock_guard lock{testedPlaneMutex};
                                      if (testedPlaneCoordinates.contains(candidatePlane.axisCoordinate)) {
                                          continue;
                                      }
@@ -47,7 +44,7 @@ namespace kdtree {
                                  //evaluate the candidate plane and store if it is better than the currently stored result
                                  auto [candidateCost, minSideChosen] = costForPlane(
                                          splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
-                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size());
+                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
                                  {
                                      // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                                      // this is not important for functionality but for testing purposes

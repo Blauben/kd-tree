@@ -15,7 +15,9 @@
 #include "KDTree/tree/SplitParam.h"
 #include "KDTree/util/UtilityContainer.h"
 #include "thrust/detail/execution_policy.h"
+#include "thrust/device_vector.h"
 #include "thrust/execution_policy.h"
+#include "thrust/host_vector.h"
 #include "thrust/iterator/iterator_facade.h"
 #include "thrust/iterator/transform_iterator.h"
 #include "thrust/system/detail/sequential/for_each.h"
@@ -132,7 +134,7 @@ namespace kdtree {
                 auto [candidateCost, minSideChosen] = costForPlane(boundingBox, candidatePlane,
                                                                    shapeCounter.getMin(candidatePlane.orientation),
                                                                    shapeCounter.getMax(candidatePlane.orientation),
-                                                                   shapeCounter.getPlanar(candidatePlane.orientation));
+                                                                   shapeCounter.getPlanar(candidatePlane.orientation), optPlane.splitParam.particleMode);
                 // this condition exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
                 // this is not important for functionality but for testing purposes
                 bool skipEvaluation = candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate;

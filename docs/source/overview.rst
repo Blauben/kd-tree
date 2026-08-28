@@ -268,4 +268,3 @@ Citation
 --------
 
 If you use this library in your research, please cite it appropriately.
-

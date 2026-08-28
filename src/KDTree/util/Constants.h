@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 namespace kdtree::constants {
@@ -84,6 +85,13 @@ namespace kdtree::constants {
      */
     constexpr double EPSILON_VERTEX_BOX_TOLERANCE = 0.5;
 
+    /**
+     * Threshold for the number of objects in a leaf node to determine whether to use Thrust on the device or host for intersection computations.
+     * If the number of objects exceeds this threshold, Thrust will be used on the device (GPU) for parallel processing; otherwise, it will be used on the host (CPU).
+     */
+    constexpr size_t LEAF_THRUST_PARALLEL_THRESHOLD = 512;
+
+
     // ============================================================================
     // TetgenAdapter Constants
     // ============================================================================
@@ -97,7 +105,7 @@ namespace kdtree::constants {
             "read in at all or if no assignment was possible.";
 
     /**
-     * Geometry index used as a unique identifier in certain contexts
+     * Geometry index used as a unique identifier in debugging contexts to trace a specific geometry object through the KDTree construction and intersection processes.
      */
     constexpr unsigned long GEOMETRY_INDEX = 2124;
 

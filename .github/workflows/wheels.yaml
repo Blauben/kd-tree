@@ -17,7 +17,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: >
       github.event_name != 'pull_request' ||
-      contains(github.event.pull_request.labels.*.name, 'run-pypi')
+      contains(github.event.pull_request.labels.*.name, 'run-pypi') ||
+      startsWith(github.head_ref, 'release/') ||
+      startsWith(github.head_ref, 'prerelease/')
     strategy:
       fail-fast: false
       matrix:
@@ -161,7 +163,9 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       github.event_name != 'pull_request' ||
-      contains(github.event.pull_request.labels.*.name, 'run-pypi')
+      contains(github.event.pull_request.labels.*.name, 'run-pypi') ||
+      startsWith(github.head_ref, 'release/') ||
+      startsWith(github.head_ref, 'prerelease/')
     steps:
       - uses: actions/checkout@v6
         with:
