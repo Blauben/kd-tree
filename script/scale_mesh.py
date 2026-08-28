@@ -152,7 +152,7 @@ def main():
         base_mesh = o3d.io.read_triangle_mesh(args.ply)
         for amount in args.face_amounts:
             scaled_mesh = scale_mesh(base_mesh, amount)
-            o3d.io.write_triangle_mesh(f"{filename}_scaled-{amount}.ply", scaled_mesh)
+            o3d.io.write_triangle_mesh(f"{filename}_scaled-{amount}.ply", scaled_mesh, write_ascii=True)
 
 
 if __name__ == "__main__":

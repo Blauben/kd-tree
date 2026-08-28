@@ -110,7 +110,6 @@ add_compile_definitions(FMT_HEADER_ONLY)
 
 include(${KD_TREE_SOURCE_DIR}/cmake/git.cmake)
 include(${KD_TREE_SOURCE_DIR}/version.cmake)
-include(${KD_TREE_SOURCE_DIR}/cmake/scaled_mesh_amounts.cmake)
 
 message(STATUS "#################################################################")
 message(STATUS "KD Tree Version          ${KD_TREE_VERSION}")

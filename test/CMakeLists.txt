@@ -12,6 +12,8 @@ file(GLOB_RECURSE TEST_SRC
 
 # Creates the Test Target
 add_executable(${PROJECT_NAME}_test ${TEST_SRC})
+# Builds the meshes used for the tests via script/scale_mesh.py (see cmake/scale_test_meshes.cmake)
+add_dependencies(${PROJECT_NAME}_test scale_test_meshes)
 
 set_target_properties(${PROJECT_NAME}_test PROPERTIES
             ARCHIVE_OUTPUT_DIRECTORY ${KD_TREE_BINARY_DIR}
@@ -30,9 +32,6 @@ target_link_libraries(${PROJECT_NAME}_test
 kd_tree_copy_runtime_dlls(${PROJECT_NAME}_test)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${KD_TREE_SOURCE_DIR}/src)
-
-# Copies the test resources into a directory next to the test executable
-file(COPY "${KD_TREE_SOURCE_DIR}/resources" DESTINATION "${KD_TREE_BINARY_DIR}")
 
 include(GoogleTest)
 

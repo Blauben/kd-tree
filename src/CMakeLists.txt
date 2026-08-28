@@ -80,6 +80,9 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
 
     # Building the standalone Executable
     add_executable(${PROJECT_NAME}_time kd_time_main.cpp)
+    # Build the scaled meshes used for the benchmark via script/scale_mesh.py (see cmake/scale_test_meshes.cmake)
+    add_dependencies(${PROJECT_NAME}_time scale_test_meshes)
+
     target_include_directories(${PROJECT_NAME}_time PRIVATE ${KD_TREE_SOURCE_DIR}/src)
 
     # Link executable with library

@@ -1,6 +1,7 @@
 #include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/tree/KDTree.h"
+#include "KDTree/tree/KdDefinitions.h"
 #include "ScaledMeshAmounts.h"
 
 #include <algorithm>
@@ -61,22 +62,14 @@ namespace kdtree {
         std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Vertex>> centroids{};
 
-        /**
-         * If true, basename is a complete path to a single mesh file (e.g. a .ply) and nodeCounts is ignored - exactly one
-         * mesh is loaded from it directly. If false, basename is the shared prefix of a series of variants distinguished by
-         * their node count (e.g. "resources/Eros_scaled" with nodeCount 1000 -> "resources/Eros_scaled-1000.node"/".face"),
-         * one mesh loaded per entry in nodeCounts.
-         */
-        const bool singleFileMesh;
 
-        Meshes(const std::string &basename, const std::vector<long long> &nodeCounts, const bool singleFileMesh)
-            : singleFileMesh{singleFileMesh} {
-            if (nodeCounts.empty()) {
-                loadMesh(basename, std::nullopt);
-            } else {
-                std::ranges::for_each(nodeCounts, [this, &basename](const long long nodeCount) {
-                    loadMesh(basename, nodeCount);
+        Meshes(const std::string &basename, const std::string &mesh_format, const std::optional<std::vector<long long>> &nodeCounts) {
+            if (nodeCounts.has_value()) {
+                std::ranges::for_each(nodeCounts.value(), [this, &basename, &mesh_format](const long long nodeCount) {
+                    loadMesh(basename, mesh_format, nodeCount);
                 });
+            } else {
+                loadMesh(basename, mesh_format, std::nullopt);
             }
         }
 
@@ -89,42 +82,38 @@ namespace kdtree {
         }
 
     private:
-        void loadMesh(const std::string &filePath, const std::optional<long long> &nodeCount) {
-            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount)}.getPolyhedralSource();
+        void loadMesh(const std::string &filePath, const std::string &mesh_format, const std::optional<long long> &nodeCount) {
+            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount, mesh_format)}.getPolyhedralSource();
             centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
             vertices.push_back(fileVertices);
             faces.push_back(fileFaces);
         }
 
-        // Builds the file path(s) to load a mesh variant from. filePath is the basename shared across all variants;
-        // nodeCount, if present, identifies which variant. For a single mesh file, the count (if any) is spliced in
-        // before the extension (e.g. "resources/a8567.tab.ply" + 1000 -> "resources/a8567.tab-1000.ply"); with no count
-        // the path is used as-is. For a .node/.face pair, the count (if any) is appended before the extensions are added.
-        // PR #60 will introduce scaled .ply variants, so this function will be updated to handle that case as well.
-        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<long long> &nodeCount) const {
-            if (singleFileMesh) {
-                if (!nodeCount.has_value()) {
-                    return {filePath};
-                }
-                const std::filesystem::path path{filePath};
-                return {(path.parent_path() / (path.stem().string() + "-" + std::to_string(*nodeCount) + path.extension().string())).string()};
+        /**
+         * This function builds the complete file paths for the mesh files based on the provided base file path, optional node count, and mesh format. If the mesh is a single file mesh, it constructs the file path accordingly. Otherwise, it appends the node count to the base file path and adds the appropriate file extensions for node and face files.
+         */
+        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<unsigned> &nodeCount, const std::string &mesh_format) const {
+            std::string appendedFilePath = filePath + (nodeCount.has_value() ? "_scaled-" + std::to_string(nodeCount.value()) : "");
+
+            if (mesh_format == "ply") {
+                return {appendedFilePath + ".ply"};
             }
-            const std::string suffixedPath = nodeCount.has_value() ? filePath + "-" + std::to_string(*nodeCount) : filePath;
-            return {suffixedPath + ".node", suffixedPath + ".face"};
+            if (mesh_format == "node-face") {
+                return {appendedFilePath + ".node", appendedFilePath + ".face"};
+            }
+            throw std::invalid_argument("Unsupported mesh format: " + mesh_format);
         }
     };
 
-    Meshes erosMeshes{"resources/Eros_scaled", scaledMeshFaceAmounts, false};
-
-    Meshes sphereMeshes{"resources/sphere_scaled", scaledMeshFaceAmounts, false};
-
-    Meshes a8567Mesh{"resources/a8567.tab.ply", {}, true};
-    Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply", {}, true};
-    Meshes toutatisMesh{"resources/4179toutatis.tab.ply", {}, true};
-    Meshes itokawaObjectMesh{"resources/Object 25143_Itokawa_200k.ply", {}, true};
-    Meshes hartley2Mesh{"resources/hartley2_2012_cart.ply", {}, true};
-    Meshes shapeSfmMesh{"resources/SHAPE_SFM_3M_v20180804.ply", {}, true};
-    Meshes mu69Mesh{"resources/MU69_Merged.ply", {}, true};
+    Meshes erosMeshes{"resources/Eros", "node-face", scaledMeshFaceAmounts};
+    Meshes sphereMeshes{"resources/sphere", "node-face", scaledMeshFaceAmounts};
+    Meshes a8567Mesh{"resources/a8567.tab", "ply", scaledMeshFaceAmounts};
+    Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k", "ply", scaledMeshFaceAmounts};
+    Meshes toutatisMesh{"resources/4179toutatis.tab", "ply", scaledMeshFaceAmounts};
+    Meshes itokawaObjectMesh{"resources/Object_25143_Itokawa_200k", "ply", scaledMeshFaceAmounts};
+    Meshes hartley2Mesh{"resources/hartley2_2012_cart", "ply", scaledMeshFaceAmounts};
+    Meshes shapeSfmMesh{"resources/SHAPE_SFM_3M_v20180804", "ply", scaledMeshFaceAmounts};
+    Meshes mu69Mesh{"resources/MU69_Merged", "ply", scaledMeshFaceAmounts};
 
     static __itt_domain *kdTreeIttDomain = __itt_domain_create("KDTree");
 
