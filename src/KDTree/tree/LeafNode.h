@@ -24,6 +24,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
@@ -61,6 +62,12 @@ namespace kdtree {
         * @param intersections The set intersection points are added to.
         */
         void getIntersections(const Vertex &origin, const Vertex &ray, std::set<Vertex> &intersections);
+
+        /**
+         * Returns the particles contained in this leaf node, each paired with its vertex index in the owning KDTree's vertex storage. Assumes the tree was built from single-vertex particle objects, e.g. via one of the particle-based {@link KDTree} constructors; behavior is undefined for shapes with more than one vertex (such as triangles).
+         * @return a vector of (vertex index, vertex position) pairs for the particles contained in this leaf.
+         */
+        [[nodiscard]] std::vector<std::pair<size_t, Vertex>> getContainedParticles();
 
         [[nodiscard]] std::string toString() const override;
 

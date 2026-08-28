@@ -44,13 +44,15 @@ namespace kdtree {
                                  //evaluate the candidate plane and store if it is better than the currently stored result
                                  auto [candidateCost, minSideChosen] = costForPlane(
                                          splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
-                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size());
-                                 // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
-                                 // this is not important for functionality but for testing purposes
-                                 if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate) {
-                                     continue;
+                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
+                                 {
+                                     // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
+                                     // this is not important for functionality but for testing purposes
+                                     if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate) {
+                                         continue;
+                                     }
+                                     optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
                                  }
-                                 optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
                              }
                          });
         //generate the shape index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.

@@ -33,16 +33,10 @@ set(KD_TREE_PARALLELIZATION "CPP" CACHE STRING "Host parallelization chosen by t
  (CPP= Serial, OMP = OpenMP, TBB = Intel Threading Building Blocks")
 set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP TBB)
 
-# Set the Logging Level
+# Log level options used in cmake/spdlog.cmake, unless the parent project already defines SPDLOG_ACTIVE_LEVEL
 set(KD_TREE_LOGGING_LEVEL_LIST "TRACE" "DEBUG" "INFO" "WARN" "ERROR" "CRITICAL" "OFF")
 set(KD_TREE_LOGGING_LEVEL "INFO" CACHE STRING "Set the Logging level, default (INFO), available options: TRACE, DEBUG, INFO, WARN, ERROR, CRITICAL, OFF")
 set_property(CACHE KD_TREE_LOGGING_LEVEL PROPERTY STRINGS ${KD_TREE_LOGGING_LEVEL_LIST})
-# Convert the logging level string to its corresponding number
-list(FIND KD_TREE_LOGGING_LEVEL_LIST ${KD_TREE_LOGGING_LEVEL} LOGGING_LEVEL_INDEX)
-if (${LOGGING_LEVEL_INDEX} EQUAL -1)
-    message(FATAL_ERROR "Invalid logging level: ${KD_TREE_LOGGING_LEVEL}")
-endif ()
-add_compile_definitions(SPDLOG_ACTIVE_LEVEL=${LOGGING_LEVEL_INDEX})
 
 #########################################################
 # What actually to build? - Options, Versions and Output
@@ -67,6 +61,8 @@ option(BUILD_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface sh
 option(INSTALL_KD_TREE_PYTHON_INTERFACE "Set this to on if the python interface should be installed (Default: OFF)" OFF)
 # Option to build tests or not
 option(BUILD_KD_TREE_TESTS "Set to on if the tests should be built (Default: OFF)" OFF)
+# Option to build example executables for showing usage
+option(BUILD_KD_TREE_EXAMPLES "Set to on if the example executables should be built (Default: OFF)" OFF)
 # Option to force fetching Google Test even if it is already installed locally
 option(KD_TREE_FORCE_GTEST_FETCH "Force the the fetching of Google Test (Default: OFF)" OFF)
 # Option to build benchmarks or not
@@ -191,6 +187,11 @@ if (BUILD_KD_TREE_TESTS)
 
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)
+endif ()
+
+if (BUILD_KD_TREE_EXAMPLES)
+    message(STATUS "Building the KD Tree Examples")
+    add_subdirectory(${KD_TREE_SOURCE_DIR}/usage-examples)
 endif ()
 
 include(${KD_TREE_SOURCE_DIR}/cmake/cmake-pkg-config.cmake)
