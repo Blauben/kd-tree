@@ -59,6 +59,8 @@ namespace kdtree {
         std::vector<std::vector<Vertex>> vertices{};
         std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Vertex>> centroids{};
+        const std::string basename;
+        const std::vector<long long> nodeCounts;
 
         /**
          * If true, basename is a complete path to a single mesh file (e.g. a .ply) and nodeCounts is ignored - exactly one
@@ -70,16 +72,18 @@ namespace kdtree {
 
         Meshes(const std::string &basename, const std::vector<long long> &nodeCounts, const bool singleFileMesh)
             : singleFileMesh{singleFileMesh} {
-            if (nodeCounts.empty()) {
-                loadMesh(basename, std::nullopt);
-            } else {
-                std::ranges::for_each(nodeCounts, [this, &basename](const long long nodeCount) {
-                    loadMesh(basename, nodeCount);
-                });
-            }
+            vertices.reserve(nodeCounts.size());
+            faces.reserve(nodeCounts.size());
+            centroids.reserve(nodeCounts.size());
         }
 
-        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) {
+            if (index >= vertices.size()) {
+                throw std::out_of_range("Meshes index out of range");
+            }
+            if (vertices[index].empty() || faces[index].empty() || centroids[index].empty()) {
+                loadMesh(nodeCounts.empty() ? std::nullopt : nodeCounts[index]);
+            }
             return {vertices[index], faces[index], centroids[index]};
         }
 
@@ -88,8 +92,8 @@ namespace kdtree {
         }
 
     private:
-        void loadMesh(const std::string &filePath, const std::optional<long long> &nodeCount) {
-            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount)}.getPolyhedralSource();
+        void loadMesh(const std::optional<long long> nodeCount) {
+            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(basename, nodeCount)}.getPolyhedralSource();
             centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
             vertices.push_back(fileVertices);
             faces.push_back(fileFaces);
