@@ -61,19 +61,28 @@ namespace kdtree {
         std::vector<std::vector<Vertex>> vertices{};
         std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Vertex>> centroids{};
+        const std::string basename;
+        const std::string mesh_format;
+        const std::optional<std::vector<long long>> nodeCounts;
 
-
-        Meshes(const std::string &basename, const std::string &mesh_format, const std::optional<std::vector<long long>> &nodeCounts) {
-            if (nodeCounts.has_value()) {
-                std::ranges::for_each(nodeCounts.value(), [this, &basename, &mesh_format](const long long nodeCount) {
-                    loadMesh(basename, mesh_format, nodeCount);
-                });
-            } else {
-                loadMesh(basename, mesh_format, std::nullopt);
-            }
+        // Loading every mesh variant eagerly at static-init time was slow and wasteful for
+        // benchmarks that only ever touch a handful of variants, so loading is deferred to the
+        // first operator[] access of a given index instead (see the emptiness check below).
+        Meshes(const std::string &basename, const std::string &mesh_format, const std::optional<std::vector<long long>> &nodeCounts)
+            : basename{basename}, mesh_format{mesh_format}, nodeCounts{nodeCounts} {
+            const size_t count = nodeCounts.has_value() ? nodeCounts->size() : 1;
+            vertices.resize(count);
+            faces.resize(count);
+            centroids.resize(count);
         }
 
-        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) {
+            if (index >= vertices.size()) {
+                throw std::out_of_range("Meshes index out of range");
+            }
+            if (vertices[index].empty() || faces[index].empty() || centroids[index].empty()) {
+                loadMesh(nodeCounts.has_value() ? std::optional<long long>{(*nodeCounts)[index]} : std::nullopt, index);
+            }
             return {vertices[index], faces[index], centroids[index]};
         }
 
@@ -82,11 +91,11 @@ namespace kdtree {
         }
 
     private:
-        void loadMesh(const std::string &filePath, const std::string &mesh_format, const std::optional<long long> &nodeCount) {
-            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount, mesh_format)}.getPolyhedralSource();
-            centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-            vertices.push_back(fileVertices);
-            faces.push_back(fileFaces);
+        void loadMesh(const std::optional<long long> &nodeCount, const size_t index) {
+            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(basename, nodeCount, mesh_format)}.getPolyhedralSource();
+            centroids[index] = getPolyhedralFaceCentroids(fileVertices, fileFaces);
+            vertices[index] = fileVertices;
+            faces[index] = fileFaces;
         }
 
         /**
@@ -129,7 +138,7 @@ namespace kdtree {
         return it->second;
     }
 
-    void BM_Intersection_Tree(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+    void BM_Intersection_Tree(benchmark::State &state, Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
@@ -153,7 +162,7 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Intersection_Tree_Twice(benchmark::State &state, const Meshes &mesh) {
+    void BM_Intersection_Tree_Twice(benchmark::State &state, Meshes &mesh) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
@@ -178,7 +187,7 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Intersection_Tree_Build(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+    void BM_Intersection_Tree_Build(benchmark::State &state, Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = mesh[state.range(0)];
