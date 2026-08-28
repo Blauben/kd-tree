@@ -67,7 +67,6 @@
             "binaryDir": "${sourceDir}/build/test-release",
             "cacheVariables": {
                 "BUILD_KD_TREE_TESTS": "ON",
-                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
                 "KD_TREE_LOGGING_LEVEL": "WARN"
             }
         },
@@ -78,7 +77,6 @@
             "binaryDir": "${sourceDir}/build/test-debug",
             "cacheVariables": {
                 "BUILD_KD_TREE_TESTS": "ON",
-                "BUILD_KD_TREE_TIME_MEASUREMENT": "ON",
                 "KD_TREE_LOGGING_LEVEL": "WARN"
             }
         },
@@ -122,7 +120,6 @@
         },
         {
             "name": "release-debug-symbols",
-            "description": "",
             "displayName": "Release with Debug Symbols",
             "inherits": [
                 "base"
@@ -192,6 +189,12 @@
             "targets": [
                 "Sphinx"
             ]
+        },
+        {
+            "name": "release-debug-symbols",
+            "displayName": "Release with Debug Symbols",
+            "configurePreset": "release-debug-symbols",
+            "configuration": "RelWithDebInfo"
         }
     ],
     "testPresets": [
@@ -209,6 +212,15 @@
             "displayName": "Run Tests (Debug)",
             "configurePreset": "test-debug",
             "configuration": "Debug",
+            "output": {
+                "outputOnFailure": true
+            }
+        },
+        {
+            "name": "test-release-debug-symbols",
+            "displayName": "Run Tests (Release with Debug Symbols)",
+            "configurePreset": "release-debug-symbols",
+            "configuration": "RelWithDebInfo",
             "output": {
                 "outputOnFailure": true
             }
@@ -290,6 +302,24 @@
                 {
                     "type": "test",
                     "name": "test-debug"
+                }
+            ]
+        },
+        {
+            "name": "build-and-test-benchmarks",
+            "displayName": "Build and Test Benchmarks (Release with Debug Symbols)",
+            "steps": [
+                {
+                    "type": "configure",
+                    "name": "release-debug-symbols"
+                },
+                {
+                    "type": "build",
+                    "name": "release-debug-symbols"
+                },
+                {
+                    "type": "test",
+                    "name": "test-release-debug-symbols"
                 }
             ]
         },

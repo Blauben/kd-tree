@@ -4,7 +4,7 @@
 # Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
 # License: GPL-3.0
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 # This project can be included with FetchContent or find_package(KDTree) and linked via the KDTree::KDTree_lib target.
 project(KDTree)
 

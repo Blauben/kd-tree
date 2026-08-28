@@ -25,6 +25,9 @@ configure/build/test sequence and reduce manual flag drift.
    cmake --workflow --preset build-python-interface
    cmake --workflow --preset build-docs
 
+   # Benchmarks (builds and runs KDTree_time)
+   cmake --workflow --preset build-and-test-benchmarks
+
 Project Options
 ---------------
 
@@ -58,6 +61,11 @@ Project Options
 
 ``BUILD_KD_TREE_LIBRARY`` is a dependent option and is forced ``ON`` when
 the executable or tests are enabled.
+
+``BUILD_KD_TREE_TIME_MEASUREMENT`` is ``OFF`` in ``test-release``/``test-debug``,
+so the default test workflows don't compile the benchmark executable on every
+push. It's built and exercised separately via ``release-debug-symbols`` /
+``build-and-test-benchmarks``.
 
 Standard CMake Variables
 ------------------------
@@ -98,6 +106,9 @@ Configure presets (from ``CMakePresets.json``):
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``docs``       | ``base``                      | Docs-only configure preset.                               |
 +----------------+-------------------------------+-----------------------------------------------------------+
+| ``release-debug-symbols``      | ``base``     | ``RelWithDebInfo`` build with tests and the benchmark     |
+|                |                               | executable (``BUILD_KD_TREE_TIME_MEASUREMENT=ON``).       |
++----------------+-------------------------------+-----------------------------------------------------------+
 
 Build presets:
 
@@ -105,11 +116,13 @@ Build presets:
 - ``test-release``, ``test-debug``
 - ``python-cpp``, ``python-omp``, ``python-tbb``
 - ``docs-build`` (build target: ``Sphinx``)
+- ``release-debug-symbols``
 
 Test presets:
 
 - ``test-release``
 - ``test-debug``
+- ``test-release-debug-symbols``
 
 Workflow presets:
 
@@ -118,6 +131,7 @@ Workflow presets:
 - ``build-release-tbb``
 - ``build-and-test-release``
 - ``build-and-test-debug``
+- ``build-and-test-benchmarks``
 - ``build-python-interface``
 - ``build-docs``
 
@@ -134,6 +148,7 @@ Preferred: run workflows directly:
    cmake --workflow --preset build-release-omp
    cmake --workflow --preset build-and-test-release
    cmake --workflow --preset build-and-test-debug
+   cmake --workflow --preset build-and-test-benchmarks
    cmake --workflow --preset build-python-interface
    cmake --workflow --preset build-docs
 
