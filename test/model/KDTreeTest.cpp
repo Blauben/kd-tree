@@ -341,7 +341,6 @@ namespace kdtree {
                 indicators::option::Stream{progressBarStream()}};
         auto rng = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
-        tree.prebuildTree();
         constexpr Vertex origin{200, 200, 200};
         auto pointTest = [&tree, &origin](const Vertex &point, const size_t pointIndex) {
             const auto ray = point - origin;
