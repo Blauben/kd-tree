@@ -2,8 +2,7 @@ include(FetchContent)
 
 message(STATUS "Setting up thrust")
 # NVIDIA/thrust was archived in favor of the NVIDIA/cccl monorepo (which still ships thrust's
-# own CMakeLists.txt/find_package(Thrust) API unchanged under its "thrust" subdirectory), so it
-# is fetched from there instead.
+# own CMakeLists.txt/find_package(Thrust) API unchanged under its "thrust" subdirectory), so it is fetched from there instead.
 
 set(THRUST_VERSION 3.4.2)
 
