@@ -540,7 +540,7 @@ namespace kdtree {
 
     // Names of the meshes, also used by the benchmark suite.
     constexpr auto EROS_MESH_NAME = "Eros";
-    constexpr auto SPHERE_MESH_NAME = "Sphere";
+    constexpr auto SPHERE_MESH_NAME = "sphere";
     constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
     constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
     constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
