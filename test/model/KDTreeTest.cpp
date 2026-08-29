@@ -5,10 +5,13 @@
 #include "gtest/gtest.h"
 
 #include <array>
+#include <cstdlib>
 #include <indicators/progress_bar.hpp>
+#include <iostream>
 #include <map>
 #include <random>
 #include <sstream>
+#include <streambuf>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -38,6 +41,27 @@ namespace kdtree {
          * seed for random number generation to ensure reproducibility in tests
          */
         auto gen = std::mt19937(SEED);
+
+        /**
+         * Discards everything written to it; used to silence indicators::ProgressBar output on CI,
+         * where its carriage-return-based redraws would otherwise flood the log with noise.
+         */
+        class NullBuffer final : public std::streambuf {
+        protected:
+            int overflow(int character) override {
+                return character;
+            }
+        };
+
+        /**
+         * Returns the stream indicators::ProgressBar should render to: stdout normally, or a
+         * discarding stream when the CI env var is set, to keep CI logs readable.
+         */
+        [[nodiscard]] std::ostream &progressBarStream() {
+            static NullBuffer nullBuffer;
+            static std::ostream nullStream{&nullBuffer};
+            return std::getenv("CI") != nullptr ? nullStream : std::cout;
+        }
 
         /**
          * Computes the squared Euclidean distance between two vertices.
@@ -283,7 +307,8 @@ namespace kdtree {
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
                 indicators::option::End{"]"},
-                indicators::option::MaxProgress{points.size()}};
+                indicators::option::MaxProgress{points.size()},
+                indicators::option::Stream{progressBarStream()}};
         KDTree tree{vertices, faces, algorithm};
         constexpr Vertex origin{200, 200, 200};
         auto pointTest = [&tree, &origin](const Vertex &point) {
@@ -312,7 +337,8 @@ namespace kdtree {
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
                 indicators::option::End{"]"},
-                indicators::option::MaxProgress{points.size()}};
+                indicators::option::MaxProgress{points.size()},
+                indicators::option::Stream{progressBarStream()}};
         auto rng = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
         tree.prebuildTree();
