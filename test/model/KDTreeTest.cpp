@@ -130,50 +130,41 @@ namespace kdtree {
          */
         using PolyhedronSource = std::tuple<std::vector<std::array<double, 3>>, std::vector<IndexVector>>;
 
-        // Names of the two-file (.node/.face) meshes, and the shared size suffix used to build big instantiations.
-        constexpr auto EROS_MESH_NAME = "Eros_scaled";
-        constexpr auto SPHERE_MESH_NAME = "sphere_scaled";
-        constexpr size_t BIG_POLYHEDRON_SIZE = 27000;
-
-        // Names of the single-file (.ply) meshes, also used by the benchmark suite.
-        constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
-        constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
-        constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
-        constexpr auto ITOKAWA_MESH_FILE = "Object 25143_Itokawa_200k.ply";
-        constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart.ply";
-        constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804.ply";
-        constexpr auto MU69_MESH_FILE = "MU69_Merged.ply";
-
         /**
          * Lazy loads and caches a two-file (.node/.face) polyhedron mesh to avoid expensive global
          * initialization at translation time and redundant reloading across test instantiations that
          * reference the same mesh. The files should be located in the resources directory and named
          * "<meshName>-<size>.node" and "<meshName>-<size>.face".
-         * @param meshName Base name of the mesh, e.g. "Eros_scaled".
+         * @param meshName Base name of the mesh, e.g. "Eros" for "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
          * @param size Size suffix used in the mesh's file names, e.g. 27000 for "Eros_scaled-27000".
          * @return A tuple containing the vertices and faces of the polyhedron.
          */
         const PolyhedronSource &getNodePolyhedron(const std::string &meshName, const size_t size) {
             static std::map<std::string, PolyhedronSource> cache;
-            const std::string key = std::format("{}-{}", meshName, size);
-            auto [entry, inserted] = cache.try_emplace(key);
-            if (inserted) {
-                const std::vector<std::string> filePaths = {
-                        std::format("resources/{}.node", key),
-                        std::format("resources/{}.face", key)};
-                entry->second = TetgenAdapter{filePaths}.getPolyhedralSource();
+            const std::string key = std::format("{}_scaled-{}", meshName, size);
+
+            // Check if the mesh is already cached; if so, return it. Otherwise, load it from the files and cache it.
+            auto it = cache.find(key);
+            if (it != cache.end()) {
+                return it->second;
             }
-            return entry->second;
+            const std::vector<std::string> filePaths = {
+                    std::format("resources/{}.node", key),
+                    std::format("resources/{}.face", key)};
+            PolyhedronSource nodeSource = TetgenAdapter{filePaths}.getPolyhedralSource();
+            cache[key] = nodeSource;
+            return cache[key];
         }
 
         /**
          * Lazy loads and caches a single-file (.ply) polyhedron mesh to avoid expensive global
          * initialization at translation time and redundant reloading across test instantiations that
          * reference the same mesh. The file should be located in the resources directory.
-         * @param fileName Name of the .ply file, including extension, e.g. "a8567.tab.ply".
+         * @param fileName Base name of the .ply file, excluding the extension, e.g. "a8567.tab".
+         * @param size Size suffix used in the mesh's file names, e.g. 27000 for "a8567.tab_scaled-27000.ply".
          * @return A tuple containing the vertices and faces of the polyhedron.
          */
-        const PolyhedronSource &getPlyPolyhedron(const std::string &fileName) {
+        const PolyhedronSource &getPlyPolyhedron(const std::string &fileName, const size_t size) {
             static std::map<std::string, PolyhedronSource> cache;
             auto [entry, inserted] = cache.try_emplace(fileName);
             if (inserted) {
@@ -543,6 +534,21 @@ namespace kdtree {
     constexpr size_t numberOfPoints = 10;
     constexpr size_t bigNumberOfPoints = 1000;
 
+    // the shared size suffix used to build big instantiations.
+    constexpr size_t SMALL_POLYHEDRON_SIZE = 1000;
+    constexpr size_t BIG_POLYHEDRON_SIZE = 27000;
+
+    // Names of the meshes, also used by the benchmark suite.
+    constexpr auto EROS_MESH_NAME = "Eros";
+    constexpr auto SPHERE_MESH_NAME = "Sphere";
+    constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
+    constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
+    constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
+    constexpr auto ITOKAWA_MESH_FILE = "Object 25143_Itokawa_200k.ply";
+    constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart.ply";
+    constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804.ply";
+    constexpr auto MU69_MESH_FILE = "MU69_Merged.ply";
+
     /**
      * Instantiates a single KDTreeTest suite for one plane selection algorithm.
      * @param suiteName Suffix appended after the algorithm label to form the instantiation name (e.g. "PointsBig" -> "LogPointsBig").
@@ -561,36 +567,41 @@ namespace kdtree {
                                      }()))
 
 
-    /**
-     * Same as INSTANTIATE_KDTREE_MESH_TESTS but omits the Quadratic variant, which becomes prohibitively slow at large point counts.
-     */
 #define INSTANTIATE_KDTREE_MESH_TESTS(suiteName, polyhedronExpr, pointCount)               \
     KDTREE_INSTANTIATE_ONE(suiteName, NoTree, NOTREE, polyhedronExpr, pointCount);         \
     KDTREE_INSTANTIATE_ONE(suiteName, LogSquared, LOGSQUARED, polyhedronExpr, pointCount); \
     KDTREE_INSTANTIATE_ONE(suiteName, Log, LOG, polyhedronExpr, pointCount)
 
-    // Eros big polyhedron instantiations
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsBig, getNodePolyhedron(EROS_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    // Same as INSTANTIATE_KDTREE_MESH_TESTS but also covers Algorithm::QUADRATIC. Quadratic plane
+    // selection is O(faces^2) per split, so this is only used for the small cube mesh; the big
+    // polyhedron and .ply meshes below would make it prohibitively slow.
+#define INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(suiteName, polyhedronExpr, pointCount) \
+    INSTANTIATE_KDTREE_MESH_TESTS(suiteName, polyhedronExpr, pointCount);                   \
+    KDTREE_INSTANTIATE_ONE(suiteName, Quadratic, QUADRATIC, polyhedronExpr, pointCount)
+
+
+    // Eros small polyhedron instantiations
+    INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(PointsErosSmall, getNodePolyhedron(EROS_MESH_NAME, SMALL_POLYHEDRON_SIZE), numberOfPoints);
 
     // Cube-based instantiations
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsCube, std::tie(cube_vertices, cube_faces), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(PointsCube, std::tie(cube_vertices, cube_faces), numberOfPoints);
 
     // Large point-count instantiations
-    INSTANTIATE_KDTREE_MESH_TESTS(GreatNumberOfPointsBig, getNodePolyhedron(EROS_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsErosBig, getNodePolyhedron(EROS_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
 
     // Sphere-based instantiations
     INSTANTIATE_KDTREE_MESH_TESTS(PointsSphere, getNodePolyhedron(SPHERE_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
 
     // Single-file (.ply)
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsA8567, getPlyPolyhedron(A8567_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsComet67P, getPlyPolyhedron(COMET_67P_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsToutatis, getPlyPolyhedron(TOUTATIS_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsItokawa, getPlyPolyhedron(ITOKAWA_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsHartley2, getPlyPolyhedron(HARTLEY2_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsShapeSfm, getPlyPolyhedron(SHAPE_SFM_MESH_FILE), bigNumberOfPoints);
-    INSTANTIATE_KDTREE_MESH_TESTS(PointsMu69, getPlyPolyhedron(MU69_MESH_FILE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsA8567, getPlyPolyhedron(A8567_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsComet67P, getPlyPolyhedron(COMET_67P_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsToutatis, getPlyPolyhedron(TOUTATIS_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsItokawa, getPlyPolyhedron(ITOKAWA_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsHartley2, getPlyPolyhedron(HARTLEY2_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsShapeSfm, getPlyPolyhedron(SHAPE_SFM_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsMu69, getPlyPolyhedron(MU69_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
 
-#undef INSTANTIATE_KDTREE_MESH_TESTS_NO_QUADRATIC
+#undef INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC
 #undef INSTANTIATE_KDTREE_MESH_TESTS
 #undef KDTREE_INSTANTIATE_ONE
 
