@@ -49,8 +49,8 @@ namespace kdtree {
         delegates.reserve(2);
         //calculate entry and exit points of the ray hitting the bounding box
         auto [t_enter, t_exit] = _boundingBox.rayBoxIntersection(origin, inverseRay);
-        // bounding box was not hit because the ray passed the box or is moving into the opposite direction of it,
-        if (t_exit < t_enter || t_exit < 0) {
+        // bounding box was not hit because the ray passed the box or is moving into the opposite direction of it. Tolerance is used to avoid numerical issues when the ray is very close to the box but not hitting it. Negliecting the tolerance would lead to a situation where the ray is very close to the box but not hitting it, which would result in an empty intersection set. This is not desired behavior, as it would lead to missing potential intersections with shapes contained in the box.
+        if (t_exit < t_enter - constants::EPSILON_NUMERICAL_TOLERANCE || t_exit < 0) {
             LOG_DEBUG("SplitNode: Ray missed bounding box for nodeId ", std::to_string(this->nodeId));
             //empty
             return delegates;
@@ -66,28 +66,30 @@ namespace kdtree {
             delegates.push_back(getChildNode(1));
             return delegates;
         }
-        // the split plane is behind the ray origin
-        if (t_split < 0) {
-            LOG_DEBUG("SplitNode: Split plane behind ray origin for nodeId ", std::to_string(this->nodeId));
-            //check in which point the origin lies in order to continue intersection in that box
-            delegates.push_back(origin[static_cast<int>(_plane.orientation)] < _plane.axisCoordinate
-                                        ? getChildNode(0)
-                                        : getChildNode(1));
+        // getChildNode(0) is the lesser child, getChildNode(1) the greater one, so originIsBigger
+        // maps directly to the child index without needing to invert it.
+        const bool originIsBigger = origin[static_cast<int>(_plane.orientation)] >= _plane.axisCoordinate;
+        // The ray never reaches the split plane - either it is parallel to it (t_split is +-inf, isParallel) or the plane lies behind the ray's origin (t_split < 0). Take the box closer to the origin
+        if (isParallel || t_split < 0) {
+            LOG_DEBUG("SplitNode: Ray parallel to or split plane behind ray origin for nodeId ", std::to_string(this->nodeId));
+            delegates.push_back(getChildNode(static_cast<size_t>(originIsBigger)));
             return delegates;
         }
-        //intersection point of the ray and the bounding box
-        const double intersectionCoord{
-                ray[static_cast<int>(_plane.orientation)] * t_enter + origin[static_cast<int>(_plane.orientation)]};
-        // the entry point of the ray to the bounding box is nearer to the origin than the split plane -> ray hits lesser box
-        if (intersectionCoord < _plane.axisCoordinate) {
-            LOG_DEBUG("SplitNode: Ray hits lesser box for nodeId ", std::to_string(this->nodeId));
-            delegates.push_back(getChildNode(0));
+        // At this point only one box is hit and the split plane is crossed by the ray somewhere in this space: either the one entered before the split plane is
+        // reached (t_split > t_exit) or the one entered after (t_split < t_enter). Normally boxOnOriginSide in combination with originIsBigger would be enough to determine which box is hit. However the origin could lie on the split plane which would make the determination ambiguous.
+        // Check if the origin lies on the split plane and if so, return the box that is hit by the ray. The box that is hit by the ray is determined by the direction of the ray and the position of the box relative to the origin.
+        if (std::abs(origin[static_cast<int>(_plane.orientation)] - _plane.axisCoordinate) < constants::EPSILON_NUMERICAL_TOLERANCE) {
+            LOG_DEBUG("SplitNode: Ray origin lies on split plane for nodeId ", std::to_string(this->nodeId));
+            const bool rayIncreasesOnAxis = ray[static_cast<int>(_plane.orientation)] > 0;
+            // if the ray is increasing on the axis of the split plane, the box that is hit is the one that is greater than the split plane. Return box with index 1.
+            delegates.push_back(getChildNode(static_cast<size_t>(rayIncreasesOnAxis)));
+            return delegates;
         }
-        // only the greater box is hit by the ray
-        else {
-            LOG_DEBUG("SplitNode: Ray hits greater box for nodeId ", std::to_string(this->nodeId));
-            delegates.push_back(getChildNode(1));
-        }
+        const bool boxOnOriginSide = t_split > t_exit;
+        const bool boxIsGreater = boxOnOriginSide ? originIsBigger : !originIsBigger;
+        const size_t childIndex = static_cast<size_t>(boxIsGreater);
+        LOG_DEBUG("SplitNode: Ray hits ", childIndex == 0 ? "lesser" : "greater", " box for nodeId ", std::to_string(this->nodeId));
+        delegates.push_back(getChildNode(childIndex));
         return delegates;
     }
 
