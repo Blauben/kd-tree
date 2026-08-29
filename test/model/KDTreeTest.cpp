@@ -544,7 +544,7 @@ namespace kdtree {
     constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
     constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
     constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
-    constexpr auto ITOKAWA_MESH_FILE = "Object 25143_Itokawa_200k.ply";
+    constexpr auto ITOKAWA_MESH_FILE = "Object_25143_Itokawa_200k.ply";
     constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart.ply";
     constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804.ply";
     constexpr auto MU69_MESH_FILE = "MU69_Merged.ply";
