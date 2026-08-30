@@ -5,7 +5,6 @@ nanobind_add_module(scikdtree
 target_link_libraries(scikdtree PUBLIC ${PROJECT_NAME}_lib)
 
 target_include_directories(scikdtree PUBLIC ${KD_TREE_SOURCE_DIR}/src)
-kd_tree_copy_runtime_dlls(scikdtree)
 
 set(KD_TREE_PYTHON_SOURCE_DIR "${KD_TREE_SOURCE_DIR}/src/KDTreePython")
 

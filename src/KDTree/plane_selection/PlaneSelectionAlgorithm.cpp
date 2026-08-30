@@ -24,7 +24,7 @@ namespace kdtree {
         // shapesMax == 0) on almost every split, so the discount would apply nearly always instead of only
         // for genuine empty-space gaps, which previously produced a skewed tree by favoring splits that shave
         // off one particle at a time.
-        const double factor = particleMode && (shapesMin == 0 || shapesMax == 0) ? 0.8 : 1;
+        const double factor = !particleMode && (shapesMin == 0 || shapesMax == 0) ? 0.8 : 1;
         if (costLesser <= costGreater) {
             return {factor * costLesser, true};
         }

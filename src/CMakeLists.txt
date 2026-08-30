@@ -36,7 +36,6 @@ if (BUILD_KD_TREE_EXECUTABLE AND NOT TARGET ${PROJECT_NAME})
 
     # Link executable with library
     target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_lib CLI11::CLI11)
-    kd_tree_copy_runtime_dlls(${PROJECT_NAME})
 
     # Place the executable in the top level directory
     set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -96,8 +95,6 @@ if (BUILD_KD_TREE_TIME_MEASUREMENT AND NOT TARGET ${PROJECT_NAME}_time)
         target_link_libraries(${PROJECT_NAME}_time PUBLIC ittapi::ittnotify)
         target_compile_definitions(${PROJECT_NAME}_time PRIVATE ENABLE_ITT_INSTRUMENTATION)
     endif ()
-
-    kd_tree_copy_runtime_dlls(${PROJECT_NAME}_time)
 
     # Place the executable in the top level directory
     set_target_properties(${PROJECT_NAME}_time PROPERTIES
