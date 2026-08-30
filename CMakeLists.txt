@@ -159,24 +159,6 @@ endif ()
 thrust_create_target(thrust::thrust_kdtree HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
 message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}")
 
-# Copies runtime DLLs next to a target on Windows so executables and modules run directly from
-# the build folder without PATH changes.
-function(kd_tree_copy_runtime_dlls target_name)
-    if (NOT WIN32)
-        return()
-    endif ()
-
-    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
-        add_custom_command(TARGET ${target_name} POST_BUILD
-                COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                $<TARGET_RUNTIME_DLLS:${target_name}>
-                $<TARGET_FILE_DIR:${target_name}>
-                COMMAND_EXPAND_LISTS
-                VERBATIM
-        )
-    endif ()
-endfunction()
-
 
 ############################################################
 # KD Tree Library & Executable & Python Interface

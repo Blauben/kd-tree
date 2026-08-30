@@ -29,7 +29,6 @@ target_link_libraries(${PROJECT_NAME}_test
         GTest::gmock
         ${PROJECT_NAME}_lib
 )
-kd_tree_copy_runtime_dlls(${PROJECT_NAME}_test)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${KD_TREE_SOURCE_DIR}/src)
 
