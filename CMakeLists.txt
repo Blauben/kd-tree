@@ -30,8 +30,8 @@ message(STATUS "CMAKE_BUILD_TYPE set to ${CMAKE_BUILD_TYPE}")
 #####################################
 # Parallelization on the HOST
 set(KD_TREE_PARALLELIZATION "CPP" CACHE STRING "Host parallelization chosen by the user
- (CPP= Serial, OMP = OpenMP, TBB = Intel Threading Building Blocks")
-set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP TBB)
+ (CPP= Serial, OMP = OpenMP")
+set_property(CACHE KD_TREE_PARALLELIZATION PROPERTY STRINGS CPP OMP)
 
 # Log level options used in cmake/spdlog.cmake, unless the parent project already defines SPDLOG_ACTIVE_LEVEL
 set(KD_TREE_LOGGING_LEVEL_LIST "TRACE" "DEBUG" "INFO" "WARN" "ERROR" "CRITICAL" "OFF")
@@ -149,14 +149,7 @@ endif ()
 ###############################
 # Thrust Parallelization Set-Up
 ###############################
-# Get a version of tbb from the github repository, simplifies compilation for the user since tbb does not need to be
-# preinstalled but rather gets automatically set up via CMake
-# Nevertheless, there is still the option to enforce to use a local installation if one exists
-if (${KD_TREE_PARALLELIZATION} STREQUAL "TBB")
-    include(${KD_TREE_SOURCE_DIR}/cmake/tbb.cmake)
-    thrust_set_TBB_target(TBB::tbb)
-    add_compile_definitions(KD_TREE_TBB)
-elseif (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
+if (${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
     add_compile_definitions(KD_TREE_OMP)
 elseif (${KD_TREE_PARALLELIZATION} STREQUAL "CPP")
     add_compile_definitions(KD_TREE_CPP)
@@ -166,11 +159,23 @@ endif ()
 thrust_create_target(thrust::thrust_kdtree HOST CPP DEVICE ${KD_TREE_PARALLELIZATION})
 message(STATUS "Set Parallelization: HOST CPP DEVICE ${KD_TREE_PARALLELIZATION}")
 
-# Fallback for non-TBB builds: tbb.cmake defines the real implementation.
-if (NOT COMMAND kd_tree_copy_runtime_dlls)
-    function(kd_tree_copy_runtime_dlls target_name)
-    endfunction()
-endif ()
+# Copies runtime DLLs next to a target on Windows so executables and modules run directly from
+# the build folder without PATH changes.
+function(kd_tree_copy_runtime_dlls target_name)
+    if (NOT WIN32)
+        return()
+    endif ()
+
+    if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.21")
+        add_custom_command(TARGET ${target_name} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_RUNTIME_DLLS:${target_name}>
+                $<TARGET_FILE_DIR:${target_name}>
+                COMMAND_EXPAND_LISTS
+                VERBATIM
+        )
+    endif ()
+endfunction()
 
 
 ############################################################
