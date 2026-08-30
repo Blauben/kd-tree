@@ -16,7 +16,6 @@ configure/build/test sequence and reduce manual flag drift.
 
    # Release builds
    cmake --workflow --preset build-release-default
-   cmake --workflow --preset build-release-tbb
    cmake --workflow --preset build-release-omp
 
    # Test, Python interface, and docs
@@ -54,8 +53,7 @@ Project Options
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
 | ``ENABLE_IWYU``                      | ``OFF``                                                | Enable include-what-you-use integration during compilation. |
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
-|| ``KD_TREE_PARALLELIZATION``         || ``CPP``                                               || Backend for Thrust host/device path: ``CPP``, ``OMP``,     |
-||                                     ||                                                       || ``TBB``.                                                   |
+| ``KD_TREE_PARALLELIZATION``          | ``CPP``                                                | Backend for Thrust host/device path: ``CPP``, ``OMP``.      |
 +--------------------------------------+--------------------------------------------------------+-------------------------------------------------------------+
 || ``KD_TREE_LOGGING_LEVEL``           || Active logging level: ``TRACE``, ``DEBUG``, ``INFO``, ||                                                            |
 ||                                     ||                                                       || ``WARN``, ``ERROR``, ``CRITICAL``, ``OFF``.                |
@@ -94,15 +92,11 @@ Configure presets (from ``CMakePresets.json``):
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``release-omp``| ``release``                   | Release build with OpenMP backend.                        |
 +----------------+-------------------------------+-----------------------------------------------------------+
-| ``release-tbb``| ``release``                   | Release build with TBB backend.                           |
-+----------------+-------------------------------+-----------------------------------------------------------+
-| ``test-release``| ``release-tbb``              | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``.    |
+| ``test-release``| ``release-omp``              | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``.    |
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``test-debug`` | ``debug``                     | Test build in Debug with ``BUILD_KD_TREE_TESTS=ON``.      |
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``python``     | ``release``                   | Python interface (CPP backend), CLI off.                  |
-+----------------+-------------------------------+-----------------------------------------------------------+
-| ``python-tbb`` | ``python``                    | Python interface with TBB backend.                        |
 +----------------+-------------------------------+-----------------------------------------------------------+
 | ``python-omp`` | ``python``                    | Python interface with OpenMP backend.                     |
 +----------------+-------------------------------+-----------------------------------------------------------+
@@ -114,9 +108,9 @@ Configure presets (from ``CMakePresets.json``):
 
 Build presets:
 
-- ``release``, ``debug``, ``release-omp``, ``release-tbb``
+- ``release``, ``debug``, ``release-omp``
 - ``test-release``, ``test-debug``
-- ``python-cpp``, ``python-omp``, ``python-tbb``
+- ``python-cpp``, ``python-omp``
 - ``docs-build`` (build target: ``Sphinx``)
 - ``release-debug-symbols``
 
@@ -130,7 +124,6 @@ Workflow presets:
 
 - ``build-release-default``
 - ``build-release-omp``
-- ``build-release-tbb``
 - ``build-and-test-release``
 - ``build-and-test-debug``
 - ``build-and-test-benchmarks``
@@ -146,7 +139,6 @@ Preferred: run workflows directly:
 
    # cmake --workflow --preset <preset-name>
    cmake --workflow --preset build-release-default
-   cmake --workflow --preset build-release-tbb
    cmake --workflow --preset build-release-omp
    cmake --workflow --preset build-and-test-release
    cmake --workflow --preset build-and-test-debug

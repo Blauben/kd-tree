@@ -688,8 +688,6 @@ and users must comply to its license terms.
   https://github.com/jbeder/yaml-cpp/blob/b8882652fcbeba4c00dec019a39da91e702e474e/LICENSE
 - thrust (Apache License Version 2.0)
   https://github.com/NVIDIA/thrust/blob/24486a169a62a58ef8f824d3dc9613c006b6f5a7/LICENSE
-- oneTBB (Apache License Version 2.0)
-  https://github.com/oneapi-src/oneTBB/blob/37a89d47f2bca3700f9777732c41f08ac44d2d0a/LICENSE.txt
 - Tetgen (GNU AGPL v3)
   https://github.com/libigl/tetgen/blob/4f3bfba3997f20aa1f96cfaff604313a8c2c85b6/LICENSE
 - nanobind (BSD 3 License)
