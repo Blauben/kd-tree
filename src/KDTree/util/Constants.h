@@ -60,9 +60,9 @@ namespace kdtree::constants {
     // ============================================================================
 
     /**
-     * Constant that describes the cost of traversing the KDTree by one step.
+     * Constant that describes the cost of traversing the KDTree by one step. To avoid skewed trees when building the tree on particles, this cost has to be larger than SHAPE_INTERSECTION_COST.
      */
-    constexpr double TRAVERSE_STEP_COST = 1.0;
+    constexpr double TRAVERSE_STEP_COST = 1.5;
 
     /**
      * Constant that describes the cost of intersecting a ray and a single object.
