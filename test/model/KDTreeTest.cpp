@@ -361,6 +361,21 @@ namespace kdtree {
             const auto split = std::dynamic_pointer_cast<SplitNode>(node);
             return countParticlesInSubtree(split->getChildNode(0)) + countParticlesInSubtree(split->getChildNode(1));
         }
+
+        /**
+         * Recursively counts the SplitNodes in the subtree rooted at the given node by directly walking the tree,
+         * independently of PlaneIterator. Used as a ground truth for how many planes PlaneIterator should visit,
+         * so the expectation tracks however the plane selection algorithm happens to shape the tree.
+         * @param node Root of the subtree to count SplitNodes in.
+         * @return the number of SplitNodes contained in the subtree.
+         */
+        size_t countSplitNodes(const std::shared_ptr<TreeNode> &node) {
+            const auto split = std::dynamic_pointer_cast<SplitNode>(node);
+            if (!split) {
+                return 0;
+            }
+            return 1 + countSplitNodes(split->getChildNode(0)) + countSplitNodes(split->getChildNode(1));
+        }
     }// namespace
 
     /**
@@ -421,11 +436,13 @@ namespace kdtree {
     }
 
     /**
-     * Tests the functionality of the plane iterator of the KDTree. The test builds a KDTree from a specified mesh and then uses the plane iterator to traverse the tree and print out the planes and their corresponding bounding boxes. The test checks if the iterator correctly iterates over all planes in the tree by counting the number of iterations and asserting that it is greater than zero.
+     * Tests the functionality of the plane iterator of the KDTree. The test builds a KDTree from a specified mesh and then uses the plane iterator to traverse the tree and print out the planes and their corresponding bounding boxes. The test checks that the iterator visits every SplitNode in the tree exactly once by comparing the iteration count against an independent tree walk (see countSplitNodes), rather than a hardcoded plane count, since the exact tree shape depends on plane selection/cost constants that are expected to be tuned over time.
      */
     TEST_F(KDTreeTest, IteratorTest) {
         const std::string meshPath = "resources/Eros_scaled-1000";
         KDTree tree{meshPath + ".node", meshPath + ".face"};
+        const size_t expectedPlaneCount = countSplitNodes(tree.getRootNode());
+        ASSERT_GT(expectedPlaneCount, 0) << "Test tree did not produce any SplitNodes to iterate over!";
         auto [begin, end] = tree.planeIterator();
         unsigned long iteration = 0;
         std::for_each(begin, end, [&](const auto &entry) {
@@ -433,7 +450,7 @@ namespace kdtree {
             iteration++;
             std::cout << "Plane: " << plane << ", Box: " << box << std::endl;
         });
-        ASSERT_EQ(iteration, 30) << "Plane iterator did not iterate over all planes!";
+        ASSERT_EQ(iteration, expectedPlaneCount) << "Plane iterator did not iterate over all SplitNodes in the tree!";
     };
 
     /**
