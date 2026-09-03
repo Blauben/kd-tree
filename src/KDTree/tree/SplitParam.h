@@ -12,11 +12,11 @@ namespace kdtree {
     class PlaneSelectionAlgorithm;
 
     /**
-     * Helper struct to bundle important parameters required for splitting a Polyhedron for better readability.
+     * Helper struct to bundle important parameters required for splitting a KDTree node for better readability.
      */
     struct SplitParam {
         /**
-         * The vertices that compose the Polyhedron.
+         * The geometry objects (particles or shapes) that the KDTree clusters.
          */
         const std::vector<GeometryObject> &geometryObjects;
 

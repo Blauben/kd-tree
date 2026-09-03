@@ -170,16 +170,16 @@ endif ()
 ############################################################
 add_subdirectory(${KD_TREE_SOURCE_DIR}/src)
 
-##############################
-# Building the Polyhedral Docs
-##############################
+#####################
+# Building the Docs
+#####################
 if (BUILD_KD_TREE_DOCS)
     add_subdirectory(${KD_TREE_SOURCE_DIR}/docs)
 endif ()
 
-###############################
-# Building the Polyhedral Tests
-###############################
+#############################
+# Building the KD Tree Tests
+#############################
 if (BUILD_KD_TREE_TESTS)
     message(STATUS "Building the KD Tree Tests")
     # Enables CTest, must be in the top-level CMakeList.txt, otherwise it won't work

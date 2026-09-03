@@ -33,7 +33,7 @@ namespace kdtree {
 #endif
     }// namespace
 
-    //on initialization of the tree a single bounding box which includes all the shapes of the polyhedron is generated. Both the list of included shapes and the parameters of the box are written to the split parameters
+    //on initialization of the tree a single bounding box which includes all the geometry objects is generated. Both the list of included objects and the parameters of the box are written to the split parameters
     KDTree::KDTree(const std::vector<Vertex> &vertices, const std::vector<IndexVector> &shapes,
                    const PlaneSelectionAlgorithm::Algorithm algorithm, const bool copyVertices, const bool particleMode)
         : _algorithm{algorithm}, _particleMode{particleMode} {

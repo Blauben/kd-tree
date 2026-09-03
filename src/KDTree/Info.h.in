@@ -10,13 +10,13 @@
 namespace kdtree {
 
     /**
-     * The API's version of the polyhedral gravity model's interface.
+     * The API's version of the kd-tree's interface.
      * The value is set by the CMake configuration.
      */
     constexpr std::string_view KD_TREE_VERSION = "@KD_TREE_VERSION@";
 
     /**
-     * The API's parallelization backend of the polyhedral gravity model's interface.
+     * The API's parallelization backend of the kd-tree's interface.
      * The value is set by the CMake configuration.
      */
     constexpr std::string_view KD_TREE_PARALLELIZATION = "@KD_TREE_PARALLELIZATION@";

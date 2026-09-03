@@ -37,16 +37,16 @@ namespace kdtree {
 
         /**
         * Finds the optimal split plane to split a provided rectangle section optimally.
-        * @param splitParam specifies the polyhedron section to be split @link SplitParam.
+        * @param splitParam specifies the space section to be split @link SplitParam.
         * @return Tuple of the optimal plane to split the specified bounding box, its cost as double and a list of shape sets with respective positions to the found plane. Refer to {@link ObjectIndexVectors<2>} for more information.
         */
         std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(
                 const SplitParam &splitParam) override;
 
         /**
-        * Splits a section of a polyhedron into two bounding boxes and calculates the shape shape sets contained in the new bounding boxes.
-        * @param splitParam specifies the polyhedron section to be split.
-        * @param split the plane by which to split the polyhedron section.
+        * Splits a space section into two bounding boxes and calculates the shape shape sets contained in the new bounding boxes.
+        * @param splitParam specifies the space section to be split.
+        * @param split the plane by which to split the space section.
         * @return Three shape lists contained in an array. Those being the set of shapes with non-zero area in the bounding box closer to the origin with respect to the split plane,
         * the set of shapes with non-zero area in the bounding box further away from the origin with respect to the split plane.
         * The set of shapes that lies on the plane.

@@ -48,12 +48,12 @@ namespace kdtree {
         std::shared_ptr<TreeNode> _rootNode;
 
         /**
-         * The polyhedron's vertices.
+         * The tree's vertices.
          */
         std::shared_ptr<std::vector<VertexHandle>> _vertices;
 
         /**
-         * The polyhedron's geometry objects.
+         * The tree's geometry objects (particles or shapes).
          */
         std::vector<GeometryObject> _geometryObjects;
 
@@ -84,9 +84,9 @@ namespace kdtree {
 
     public:
         /**
-        * Call to build a KDTree to speed up intersections of rays with a polyhedron's shapes.
-        * @param vertices The vertex coordinates of the polyhedron
-        * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
+        * Call to build a KDTree to speed up intersections of rays with a set of shapes.
+        * @param vertices The vertex coordinates
+        * @param shapes The shapes, with a shape being a triplet of vertex indices
         * @param algorithm Specifies which algorithm to use for finding optimal split planes.
         * @param copyVertices If true, the vertices are copied and stored internally (static). If false the tree will only store pointers to the vertices, allowing the user to modify vertices and have the changes reflected in the tree, but also requiring the user to ensure that the vertices outlive the tree (dynamic).
         * @return the lazily built KDTree.
@@ -98,8 +98,8 @@ namespace kdtree {
         /**
          * Constructor overload that allows passing the vertices as a different type than Vertex, as long as they are VertexLike. The constructor will convert the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a different type.
          * @tparam V The vertex type, which must be VertexLike.
-         * @param vertices The vertex coordinates of the polyhedron
-         * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
+         * @param vertices The vertex coordinates
+         * @param shapes The shapes, with a shape being a triplet of vertex indices
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
@@ -113,8 +113,8 @@ namespace kdtree {
         /**
          * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a different type.
          * @tparam V The vertex type, which must be VertexLike.
-         * @param vertices The vertex coordinates of the polyhedron
-         * @param shapes The shapes of the polyhedron with a shape being a triplet of vertex indices
+         * @param vertices The vertex coordinates
+         * @param shapes The shapes, with a shape being a triplet of vertex indices
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
@@ -172,7 +172,7 @@ namespace kdtree {
 
         /**
          * Constructor overload that takes a tuple of vertices and shapes as input. This allows for example to pass the output of a TetgenAdapter directly to the KDTree constructor without having to unpack the tuple first. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
-         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
+         * @param polySource A tuple containing the vertices and shapes. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          **/
@@ -182,7 +182,7 @@ namespace kdtree {
         /**
          * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
          * @tparam V The vertex type, which must be VertexLike.
-         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
+         * @param polySource A tuple containing the vertices and shapes. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
@@ -196,7 +196,7 @@ namespace kdtree {
         /**
          * Constructor overload for VertexLike vertex types that are not Vertex. Converts the vertices to Vertex by static_casting the coordinates to double. This allows for example to pass vertices with single precision (e.g. std::array<float, 3>) without having to convert them to double precision beforehand. The copyVertices parameter is not available in this overload and defaults to true, as it is not possible to guarantee that the original vertex type outlives the tree when passing a tuple.
          * @tparam V The vertex type, which must be VertexLike.
-         * @param polySource A tuple containing the vertices and shapes of the polyhedron. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
+         * @param polySource A tuple containing the vertices and shapes. The vertices are expected to be in the first element of the tuple and the shapes in the second element.
          * @param algorithm Specifies which algorithm to use for finding optimal split planes.
          * @return the lazily built KDTree.
          */
@@ -225,7 +225,7 @@ namespace kdtree {
         void rebuildTree();
 
         /**
-        * Used to calculate intersections of a ray and the polyhedron's shapes contained in this node.
+        * Used to calculate intersections of a ray and the shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
         * @param intersections The set found intersection points are added to.
@@ -243,7 +243,7 @@ namespace kdtree {
         }
 
         /**
-         * Calculates the number of intersections of a ray with the polyhedron.
+         * Calculates the number of intersections of a ray with the tree's shapes.
          * @param origin The origin point of the ray.
          * @param ray The ray direction vector.
          * @return the number of intersections.

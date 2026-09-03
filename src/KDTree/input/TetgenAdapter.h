@@ -26,8 +26,8 @@ namespace kdtree {
 
     /**
  * An adapter to the Tetgen Library. This is the interface between tetgen's data structures and I/O
- * capabilities and the here implemented polyhedral gravity model.
- * The adapter always converts tetgen's datastructure into the structure utilized by the Polyhedral Gravity Model.
+ * capabilities and the polyhedron structure used by the KDTree.
+ * The adapter always converts tetgen's datastructure into that polyhedron structure.
  *
  * The Adapter further keeps en eye on the already read in files in order to give feedback if data is in conflict.
  */

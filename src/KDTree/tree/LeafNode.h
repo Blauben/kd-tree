@@ -56,7 +56,7 @@ namespace kdtree {
 
 
         /**
-        * Used to calculated intersections of a ray and the polyhedron's shapes contained in this node.
+        * Used to calculated intersections of a ray and the shapes contained in this node.
         * @param origin The point where the ray originates from.
         * @param ray Specifies the ray direction.
         * @param intersections The set intersection points are added to.

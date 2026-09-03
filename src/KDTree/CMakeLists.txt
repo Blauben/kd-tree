@@ -1,4 +1,4 @@
-# Including the actual Polyhedral source files
+# Including the actual KD Tree source files
 file(GLOB_RECURSE SRC
         "${CMAKE_CURRENT_SOURCE_DIR}/*.h"
         "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")

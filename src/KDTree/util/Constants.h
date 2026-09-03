@@ -10,7 +10,7 @@ namespace kdtree::constants {
     // ============================================================================
 
     /**
-     * The EPSILON used in the polyhedral gravity model to determine a radius around zero/ to use as slight offset.
+     * The EPSILON used to determine a radius around zero to use as a slight offset.
      * @related Used to determine if a floating point number is equal to zero as threshold for rounding errors
      * @related Used for the sgn() function to determine the sign of a double value. Different compilers
      * produce different results if no EPSILON is applied for the comparison!
@@ -41,7 +41,7 @@ namespace kdtree::constants {
     // ============================================================================
 
     /**
-     * Number of dimensions for the polyhedron. Also corresponds to the number of elements of the {@link Direction} enum.
+     * Number of spatial dimensions the KDTree operates in. Also corresponds to the number of elements of the {@link Direction} enum.
      */
     constexpr int DIMENSIONS = 3;
 

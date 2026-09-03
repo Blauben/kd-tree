@@ -23,7 +23,7 @@ namespace kdtree {
         virtual ~PlaneSelectionAlgorithm() = default;
         /**
         * Finds the optimal split plane to split a provided rectangle section optimally.
-        * @param splitParam specifies the polyhedron section to be split @link SplitParam.
+        * @param splitParam specifies the space section to be split @link SplitParam.
         * @return Tuple of the optimal plane to split the specified bounding box, its cost as double and a list of shape sets with respective positions to the found plane. Refer to {@link ObjectIndexVectors<2>} for more information.
         */
         virtual std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> findPlane(const SplitParam &splitParam) = 0;
