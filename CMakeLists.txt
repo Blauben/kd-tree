@@ -4,7 +4,7 @@
 # Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
 # License: GPL-3.0
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.18)
 # This project can be included with FetchContent or find_package(KDTree) and linked via the KDTree::KDTree_lib target.
 project(KDTree)
 
@@ -184,6 +184,8 @@ if (BUILD_KD_TREE_TESTS)
     message(STATUS "Building the KD Tree Tests")
     # Enables CTest, must be in the top-level CMakeList.txt, otherwise it won't work
     enable_testing()
+
+    include(scale_test_meshes)
 
     # Subdirectory where the tests are located
     add_subdirectory(${KD_TREE_SOURCE_DIR}/test)

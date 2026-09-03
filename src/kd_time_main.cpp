@@ -1,6 +1,8 @@
 #include "KDTree/input/TetgenAdapter.h"
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/tree/KDTree.h"
+#include "KDTree/tree/KdDefinitions.h"
+#include "ScaledMeshAmounts.h"
 
 #include <algorithm>
 #include <benchmark/benchmark.h>
@@ -59,27 +61,28 @@ namespace kdtree {
         std::vector<std::vector<Vertex>> vertices{};
         std::vector<std::vector<IndexVector>> faces{};
         std::vector<std::vector<Vertex>> centroids{};
+        const std::string basename;
+        const std::string mesh_format;
+        const std::optional<std::vector<long long>> nodeCounts;
 
-        /**
-         * If true, basename is a complete path to a single mesh file (e.g. a .ply) and nodeCounts is ignored - exactly one
-         * mesh is loaded from it directly. If false, basename is the shared prefix of a series of variants distinguished by
-         * their node count (e.g. "resources/Eros_scaled" with nodeCount 1000 -> "resources/Eros_scaled-1000.node"/".face"),
-         * one mesh loaded per entry in nodeCounts.
-         */
-        const bool singleFileMesh;
-
-        Meshes(const std::string &basename, const std::vector<long long> &nodeCounts, const bool singleFileMesh)
-            : singleFileMesh{singleFileMesh} {
-            if (nodeCounts.empty()) {
-                loadMesh(basename, std::nullopt);
-            } else {
-                std::ranges::for_each(nodeCounts, [this, &basename](const long long nodeCount) {
-                    loadMesh(basename, nodeCount);
-                });
-            }
+        // Loading every mesh variant eagerly at static-init time was slow and wasteful for
+        // benchmarks that only ever touch a handful of variants, so loading is deferred to the
+        // first operator[] access of a given index instead (see the emptiness check below).
+        Meshes(const std::string &basename, const std::string &mesh_format, const std::optional<std::vector<long long>> &nodeCounts)
+            : basename{basename}, mesh_format{mesh_format}, nodeCounts{nodeCounts} {
+            const size_t count = nodeCounts.has_value() ? nodeCounts->size() : 1;
+            vertices.resize(count);
+            faces.resize(count);
+            centroids.resize(count);
         }
 
-        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) const {
+        std::tuple<const std::vector<Vertex> &, const std::vector<IndexVector> &, const std::vector<Vertex> &> operator[](const size_t index) {
+            if (index >= vertices.size()) {
+                throw std::out_of_range("Meshes index out of range");
+            }
+            if (vertices[index].empty() || faces[index].empty() || centroids[index].empty()) {
+                loadMesh(nodeCounts.has_value() ? std::optional<long long>{(*nodeCounts)[index]} : std::nullopt, index);
+            }
             return {vertices[index], faces[index], centroids[index]};
         }
 
@@ -88,44 +91,38 @@ namespace kdtree {
         }
 
     private:
-        void loadMesh(const std::string &filePath, const std::optional<long long> &nodeCount) {
-            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(filePath, nodeCount)}.getPolyhedralSource();
-            centroids.push_back(getPolyhedralFaceCentroids(fileVertices, fileFaces));
-            vertices.push_back(fileVertices);
-            faces.push_back(fileFaces);
+        void loadMesh(const std::optional<long long> &nodeCount, const size_t index) {
+            const auto [fileVertices, fileFaces] = TetgenAdapter{buildCompleteFilePaths(basename, nodeCount, mesh_format)}.getPolyhedralSource();
+            centroids[index] = getPolyhedralFaceCentroids(fileVertices, fileFaces);
+            vertices[index] = fileVertices;
+            faces[index] = fileFaces;
         }
 
-        // Builds the file path(s) to load a mesh variant from. filePath is the basename shared across all variants;
-        // nodeCount, if present, identifies which variant. For a single mesh file, the count (if any) is spliced in
-        // before the extension (e.g. "resources/a8567.tab.ply" + 1000 -> "resources/a8567.tab-1000.ply"); with no count
-        // the path is used as-is. For a .node/.face pair, the count (if any) is appended before the extensions are added.
-        // PR #60 will introduce scaled .ply variants, so this function will be updated to handle that case as well.
-        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<long long> &nodeCount) const {
-            if (singleFileMesh) {
-                if (!nodeCount.has_value()) {
-                    return {filePath};
-                }
-                const std::filesystem::path path{filePath};
-                return {(path.parent_path() / (path.stem().string() + "-" + std::to_string(*nodeCount) + path.extension().string())).string()};
+        /**
+         * This function builds the complete file paths for the mesh files based on the provided base file path, optional node count, and mesh format. If the mesh is a single file mesh, it constructs the file path accordingly. Otherwise, it appends the node count to the base file path and adds the appropriate file extensions for node and face files.
+         */
+        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<unsigned> &nodeCount, const std::string &mesh_format) const {
+            std::string appendedFilePath = filePath + (nodeCount.has_value() ? "_scaled-" + std::to_string(nodeCount.value()) : "");
+
+            if (mesh_format == "ply") {
+                return {appendedFilePath + ".ply"};
             }
-            const std::string suffixedPath = nodeCount.has_value() ? filePath + "-" + std::to_string(*nodeCount) : filePath;
-            return {suffixedPath + ".node", suffixedPath + ".face"};
+            if (mesh_format == "node-face") {
+                return {appendedFilePath + ".node", appendedFilePath + ".face"};
+            }
+            throw std::invalid_argument("Unsupported mesh format: " + mesh_format);
         }
     };
 
-    const std::vector<long long> scaledMeshNodeCounts{1000, 1732, 3000, 5196, 9000, 15588, 27000, 46765, 81000, 140296};
-
-    Meshes erosMeshes{"resources/Eros_scaled", scaledMeshNodeCounts, false};
-
-    Meshes sphereMeshes{"resources/sphere_scaled", scaledMeshNodeCounts, false};
-
-    Meshes a8567Mesh{"resources/a8567.tab.ply", {}, true};
-    Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k.ply", {}, true};
-    Meshes toutatisMesh{"resources/4179toutatis.tab.ply", {}, true};
-    Meshes itokawaObjectMesh{"resources/Object 25143_Itokawa_200k.ply", {}, true};
-    Meshes hartley2Mesh{"resources/hartley2_2012_cart.ply", {}, true};
-    Meshes shapeSfmMesh{"resources/SHAPE_SFM_3M_v20180804.ply", {}, true};
-    Meshes mu69Mesh{"resources/MU69_Merged.ply", {}, true};
+    Meshes erosMeshes{"resources/Eros", "node-face", scaledMeshFaceAmounts};
+    Meshes sphereMeshes{"resources/sphere", "node-face", scaledMeshFaceAmounts};
+    Meshes a8567Mesh{"resources/a8567.tab", "ply", scaledMeshFaceAmounts};
+    Meshes comet67PMesh{"resources/67P_ESA_NAVCAM_Jul2015data_256k", "ply", scaledMeshFaceAmounts};
+    Meshes toutatisMesh{"resources/4179toutatis.tab", "ply", scaledMeshFaceAmounts};
+    Meshes itokawaObjectMesh{"resources/Object_25143_Itokawa_200k", "ply", scaledMeshFaceAmounts};
+    Meshes hartley2Mesh{"resources/hartley2_2012_cart", "ply", scaledMeshFaceAmounts};
+    Meshes shapeSfmMesh{"resources/SHAPE_SFM_3M_v20180804", "ply", scaledMeshFaceAmounts};
+    Meshes mu69Mesh{"resources/MU69_Merged", "ply", scaledMeshFaceAmounts};
 
     static __itt_domain *kdTreeIttDomain = __itt_domain_create("KDTree");
 
@@ -141,7 +138,7 @@ namespace kdtree {
         return it->second;
     }
 
-    void BM_Intersection_Tree(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+    void BM_Intersection_Tree(benchmark::State &state, Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
@@ -165,7 +162,7 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Intersection_Tree_Twice(benchmark::State &state, const Meshes &mesh) {
+    void BM_Intersection_Tree_Twice(benchmark::State &state, Meshes &mesh) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         auto queryHandle = getIttStringHandle("query_" + state.name());
         using namespace kdtree::util;
@@ -190,7 +187,7 @@ namespace kdtree {
         state.SetComplexityN(static_cast<benchmark::ComplexityN>(faces.size()));
     }
 
-    void BM_Intersection_Tree_Build(benchmark::State &state, const Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
+    void BM_Intersection_Tree_Build(benchmark::State &state, Meshes &mesh, const PlaneSelectionAlgorithm::Algorithm &algorithm) {
         auto buildHandle = getIttStringHandle("build_" + state.name());
         using namespace kdtree::util;
         const auto [vertices, faces, centroids] = mesh[state.range(0)];
