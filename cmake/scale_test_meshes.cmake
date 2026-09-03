@@ -15,29 +15,40 @@ set(KD_TREE_SCALED_MESH_AMOUNTS 1000 1732 3000 5196 9000 15588 27000 46765 81000
 ##########################################################
 # Generating the scaled benchmark meshes via Python
 ##########################################################
-# Prefers the project's local virtualenv (./.venv), since that is where open3d is expected
-# to be installed; falls back to whatever Python3 CMake finds on the system otherwise.
-find_program(MESH_SCALING_PYTHON_EXECUTABLE
-        NAMES python3 python
-        HINTS "${KD_TREE_SOURCE_DIR}/.venv/bin" "${KD_TREE_SOURCE_DIR}/.venv/Scripts"
-        NO_DEFAULT_PATH
-)
-if(NOT MESH_SCALING_PYTHON_EXECUTABLE)
-    find_package(Python3 COMPONENTS Interpreter QUIET)
-    set(MESH_SCALING_PYTHON_EXECUTABLE ${Python3_EXECUTABLE})
-endif()
+# Creates ./.venv on demand (see cmake/pyvenv.cmake) and installs the "mesh-gen" dependency
+# group (open3d, numpy - see pyproject.toml) into it if open3d isn't importable yet.
+# Pinned to the Python version in .python-version (also what CI installs before running
+# scale_mesh.py) since open3d doesn't reliably ship wheels for the newest Python right away.
+file(STRINGS "${KD_TREE_SOURCE_DIR}/.python-version" PYVENV_PYTHON_VERSION LIMIT_COUNT 1)
+include(pyvenv)
+unset(PYVENV_PYTHON_VERSION)
 
-if(MESH_SCALING_PYTHON_EXECUTABLE)
+function(kd_tree_install_mesh_gen_dependencies)
+    message(STATUS "Installing mesh-gen dependency group (open3d, numpy) into ${VENV_DIR}...")
     execute_process(
-            COMMAND ${MESH_SCALING_PYTHON_EXECUTABLE} -c "import open3d"
-            RESULT_VARIABLE MESH_SCALING_OPEN3D_MISSING
-            OUTPUT_QUIET ERROR_QUIET
+            COMMAND "${VENV_PYTHON}" -m pip install --group "${KD_TREE_SOURCE_DIR}/pyproject.toml:mesh-gen"
+            RESULT_VARIABLE PIP_INSTALL_RESULT
+            OUTPUT_VARIABLE PIP_INSTALL_OUTPUT
+            ERROR_VARIABLE PIP_INSTALL_ERROR
     )
-endif()
+    if(NOT PIP_INSTALL_RESULT EQUAL 0)
+        message(STATUS "pip install output: ${PIP_INSTALL_OUTPUT}")
+        message(STATUS "pip install error: ${PIP_INSTALL_ERROR}")
+        message(FATAL_ERROR "Failed to install the mesh-gen dependency group into ${VENV_DIR}. Skipping generation of scaled benchmark meshes (see script/scale_mesh.py).")
+    endif()
+endfunction()
 
-if(MESH_SCALING_PYTHON_EXECUTABLE AND NOT MESH_SCALING_OPEN3D_MISSING EQUAL 0)
-    message(FATAL_ERROR "Python3 with open3d not found (checked ${KD_TREE_SOURCE_DIR}/.venv and the system Python3). Skipping generation of scaled benchmark meshes (see script/scale_mesh.py).")
-    return()
+set(MESH_SCALING_PYTHON_EXECUTABLE "${VENV_PYTHON}")
+
+execute_process(
+        COMMAND "${MESH_SCALING_PYTHON_EXECUTABLE}" -c "import open3d"
+        RESULT_VARIABLE MESH_SCALING_OPEN3D_MISSING
+        OUTPUT_QUIET ERROR_QUIET
+)
+
+if(NOT MESH_SCALING_OPEN3D_MISSING EQUAL 0)
+    message(STATUS "open3d not found in ${VENV_DIR}, installing the mesh-gen dependency group...")
+    kd_tree_install_mesh_gen_dependencies()
 endif()
 
 # Generate scaled meshes logic
