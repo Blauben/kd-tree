@@ -33,6 +33,11 @@ kd_tree_copy_runtime_dlls(${PROJECT_NAME}_test)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${KD_TREE_SOURCE_DIR}/src)
 
+# Copies the static test resources (e.g. TetgenAdapterTestReadSimple.*) next to the test
+# executable. The dynamically generated scaled meshes (see cmake/scale_test_meshes.cmake) are
+# written into the same resources directory by scale_test_meshes at build time.
+file(COPY "${KD_TREE_SOURCE_DIR}/resources" DESTINATION "${KD_TREE_BINARY_DIR}")
+
 include(GoogleTest)
 
 # Adds the Tests to CTest by querying the test target executable

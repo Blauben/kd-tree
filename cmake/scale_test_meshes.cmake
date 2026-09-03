@@ -120,7 +120,7 @@ endfunction()
 # Base names of the source meshes in resources/ to generate scaled versions of, grouped by the
 # format scale_mesh.py expects them in: node/face pairs (tetgen format) vs single .ply files.
 set(MESH_SCALING_BASE_NAMES_NODE_FACE "Eros" "sphere")
-set(MESH_SCALING_BASE_NAMES_PLY "4179toutatis.tab" "67P_ESA_NAVCAM_Jul2015data_256k" "CubeXDivided" "MU69_Merged" "Object_25143_Itokawa_200k" "SHAPE_SFM_3M_v20180804" "TetgenAdapterTestReadSimple" "a8567.tab" "hartley2_2012_cart")
+set(MESH_SCALING_BASE_NAMES_PLY "4179toutatis.tab" "67P_ESA_NAVCAM_Jul2015data_256k" "CubeXDivided" "MU69_Merged" "Object_25143_Itokawa_200k" "SHAPE_SFM_3M_v20180804" "a8567.tab" "hartley2_2012_cart")
 
 message(STATUS "Generating scaled test mesh targets")
 foreach(mesh_name ${MESH_SCALING_BASE_NAMES_NODE_FACE})
