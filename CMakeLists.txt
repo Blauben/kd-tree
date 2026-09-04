@@ -104,6 +104,14 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin" AND ${KD_TREE_PARALLELIZATION} STREQU
     endif ()
 endif ()
 
+# MSVC's default /openmp flag only implements OpenMP 2.0, which doesn't support constructs this
+# codebase relies on (#pragma omp task, and unsigned loop counters in #pragma omp for).
+# /openmp:llvm switches MSVC to its LLVM-based OpenMP frontend, which supports the OpenMP 3.0+
+# subset this code needs.
+if (MSVC AND ${KD_TREE_PARALLELIZATION} STREQUAL "OMP")
+    set(OpenMP_CXX_FLAGS "/openmp:llvm" CACHE STRING "" FORCE)
+endif ()
+
 # Resolves missing fmt symbols when working with spdlog (bundled via brew/ conda on Arm architecture)
 # Refer to https://github.com/gabime/spdlog/issues/660
 add_compile_definitions(FMT_HEADER_ONLY)
