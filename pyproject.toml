@@ -59,7 +59,7 @@ build-dir = "build/{wheel_tag}"
 # Read package version from Git tags/metadata via setuptools_scm
 cmake.version = ">=3.15"
 cmake.verbose = true
-cmake.args = ["--preset", "python-tbb"]
+cmake.args = ["--preset", "python-omp"]
 wheel.packages = ["scikdtree"]
 
 [tool.scikit-build.metadata.version]

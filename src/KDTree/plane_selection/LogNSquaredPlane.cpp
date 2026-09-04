@@ -27,7 +27,6 @@ namespace kdtree {
         traversePlaneEvents(optPlane, events, shapeCounter);
     }
 
-#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
     ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(
             const std::shared_ptr<PlaneEventVector> &planeEvents,
             const Plane &plane, const bool minSide) {
@@ -105,76 +104,4 @@ namespace kdtree {
 
         return {std::move(geometryMin), std::move(geometryMax)};
     }
-#endif
-
-#if defined(KD_TREE_TBB)
-    ObjectIndexVectors<2> LogNSquaredPlane::generateGeometrySubsets(
-            const std::shared_ptr<PlaneEventVector> &planeEvents,
-            const Plane &plane, const bool minSide) {
-
-        struct LocalBuckets {
-            ObjectIndexVector min, max;
-            std::unordered_set<size_t> minLookup, maxLookup;
-        };
-
-        // combinable<> lazily default-constructs one LocalBuckets per worker thread
-        tbb::combinable<LocalBuckets> localData;
-
-        tbb::parallel_for(tbb::blocked_range<size_t>(0, planeEvents->size()),
-                          [&](const tbb::blocked_range<size_t> &range) {
-                              auto &local = localData.local();// thread-local reference, no lock
-
-                              auto insertIfAbsent = [&](const size_t geoIndex, const uint8_t index) {
-                                  auto &vector = index == 0 ? local.min : local.max;
-                                  auto &lookup = index == 0 ? local.minLookup : local.maxLookup;
-                                  if (!lookup.contains(geoIndex)) {
-                                      lookup.insert(geoIndex);
-                                      vector.push_back(geoIndex);
-                                  } else {
-                                      lookup.erase(geoIndex);
-                                  }
-                              };
-
-                              for (size_t i = range.begin(); i != range.end(); ++i) {
-                                  const auto &event = (*planeEvents)[i];
-                                  if (event.plane.axisCoordinate != plane.axisCoordinate) {
-                                      insertIfAbsent(event.objIndex, event.plane.axisCoordinate < plane.axisCoordinate ? 0 : 1);
-                                  } else if (event.type == PlaneEventType::planar) {
-                                      insertIfAbsent(event.objIndex, minSide ? 0 : 1);
-                                  } else if (event.type == PlaneEventType::starting) {
-                                      insertIfAbsent(event.objIndex, 1);
-                                  } else {
-                                      insertIfAbsent(event.objIndex, 0);
-                                  }
-                              }
-                          });
-
-        // Sequential merge
-        auto geometryMin = std::make_unique<ObjectIndexVector>();
-        auto geometryMax = std::make_unique<ObjectIndexVector>();
-        std::unordered_set<size_t> geometryMinLookup, geometryMaxLookup;
-        geometryMin->reserve(planeEvents->size() / 4);
-        geometryMax->reserve(planeEvents->size() / 4);
-
-        auto mergeBucket = [](const ObjectIndexVector &local, ObjectIndexVector &out,
-                              std::unordered_set<size_t> &seen) {
-            for (size_t geoIndex: local) {
-                if (!seen.contains(geoIndex)) {
-                    seen.insert(geoIndex);
-                    out.push_back(geoIndex);
-                } else {
-                    seen.erase(geoIndex);
-                }
-            }
-        };
-
-        // combine_each visits every thread's local instance sequentially
-        localData.combine_each([&](const LocalBuckets &local) {
-            mergeBucket(local.min, *geometryMin, geometryMinLookup);
-            mergeBucket(local.max, *geometryMax, geometryMaxLookup);
-        });
-
-        return {std::move(geometryMin), std::move(geometryMax)};
-    }
-#endif
 }// namespace kdtree

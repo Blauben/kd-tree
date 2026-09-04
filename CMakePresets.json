@@ -56,15 +56,6 @@
             }
         },
         {
-            "name": "release-tbb",
-            "displayName": "Release (TBB)",
-            "inherits": "release",
-            "binaryDir": "${sourceDir}/build/release-tbb",
-            "cacheVariables": {
-                "KD_TREE_PARALLELIZATION": "TBB"
-            }
-        },
-        {
             "name": "test-release",
             "displayName": "Test (Release)",
             "inherits": "release-omp",
@@ -95,15 +86,6 @@
                 "BUILD_KD_TREE_PYTHON_INTERFACE": "ON",
                 "INSTALL_KD_TREE_PYTHON_INTERFACE": "ON",
                 "BUILD_KD_TREE_EXECUTABLE": "OFF"
-            }
-        },
-        {
-            "name": "python-tbb",
-            "displayName": "Python Interface (TBB)",
-            "inherits": "python",
-            "binaryDir": "${sourceDir}/build/python-tbb",
-            "cacheVariables": {
-                "KD_TREE_PARALLELIZATION": "TBB"
             }
         },
         {
@@ -152,11 +134,6 @@
             "configurePreset": "release-omp"
         },
         {
-            "name": "release-tbb",
-            "displayName": "Release (TBB)",
-            "configurePreset": "release-tbb"
-        },
-        {
             "name": "debug",
             "displayName": "Debug",
             "configurePreset": "debug"
@@ -177,11 +154,6 @@
             "name": "python-cpp",
             "displayName": "Python Interface - C++",
             "configurePreset": "python"
-        },
-        {
-            "name": "python-tbb",
-            "displayName": "Python Interface - TBB",
-            "configurePreset": "python-tbb"
         },
         {
             "name": "python-omp",
@@ -250,20 +222,6 @@
                 {
                     "type": "build",
                     "name": "release"
-                }
-            ]
-        },
-        {
-            "name": "build-release-tbb",
-            "displayName": "Build Release - TBB Parallelization Backend",
-            "steps": [
-                {
-                    "type": "configure",
-                    "name": "release-tbb"
-                },
-                {
-                    "type": "build",
-                    "name": "release-tbb"
                 }
             ]
         },
@@ -341,11 +299,11 @@
             "steps": [
                 {
                     "type": "configure",
-                    "name": "python-tbb"
+                    "name": "python-omp"
                 },
                 {
                     "type": "build",
-                    "name": "python-tbb"
+                    "name": "python-omp"
                 }
             ]
         },

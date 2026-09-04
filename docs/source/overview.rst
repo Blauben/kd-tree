@@ -16,7 +16,6 @@ Features
 
   - Serial C++ (CPP)
   - OpenMP (OMP)
-  - Intel Threading Building Blocks (TBB)
 
 - **Thread-Safe**: Safe for concurrent ray intersection queries
 - **Python Bindings**: Full Python interface via nanobind
@@ -36,7 +35,7 @@ C++ Library
   - spdlog (logging)
   - Thrust (parallel algorithms)
   - xsimd (SIMD operations)
-  - TBB/OpenMP (optional, for parallelization)
+  - OpenMP (optional, for parallelization)
   - Google Test (for testing)
 
 Python Interface
@@ -62,14 +61,13 @@ Building the C++ Library
    cmake --workflow --preset build-release-default
 
    # Optional variants
-   cmake --workflow --preset build-release-tbb
    cmake --workflow --preset build-release-omp
    cmake --workflow --preset build-and-test-release
    cmake --workflow --preset build-and-test-debug
 
    # Optional manual preset path
-   cmake --preset release-tbb
-   cmake --build --preset release-tbb
+   cmake --preset release-omp
+   cmake --build --preset release-omp
 
 Installing the Python Package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -227,7 +225,7 @@ Performance Tips
 
 1. **Use the LOG algorithm**: Best balance of build time and query performance
 2. **Prebuild for multiple queries**: Call ``prebuildTree()`` if you'll perform many intersection tests
-3. **Enable parallelization**: Use TBB or OpenMP for large meshes
+3. **Enable parallelization**: Use OpenMP for large meshes
 4. **Reduce logging in production**: Set ``KD_TREE_LOGGING_LEVEL`` to ERROR or OFF for maximum performance
 
 Benchmarking
