@@ -5,9 +5,13 @@
 #include "gtest/gtest.h"
 
 #include <array>
+#include <cstdlib>
 #include <indicators/progress_bar.hpp>
+#include <iostream>
+#include <map>
 #include <random>
 #include <sstream>
+#include <streambuf>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -37,6 +41,27 @@ namespace kdtree {
          * seed for random number generation to ensure reproducibility in tests
          */
         auto gen = std::mt19937(SEED);
+
+        /**
+         * Discards everything written to it; used to silence indicators::ProgressBar output on CI,
+         * where its carriage-return-based redraws would otherwise flood the log with noise.
+         */
+        class NullBuffer final : public std::streambuf {
+        protected:
+            int overflow(int character) override {
+                return character;
+            }
+        };
+
+        /**
+         * Returns the stream indicators::ProgressBar should render to: stdout normally, or a
+         * discarding stream when the CI env var is set, to keep CI logs readable.
+         */
+        [[nodiscard]] std::ostream &progressBarStream() {
+            static NullBuffer nullBuffer;
+            static std::ostream nullStream{&nullBuffer};
+            return std::getenv("CI") != nullptr ? nullStream : std::cout;
+        }
 
         /**
          * Computes the squared Euclidean distance between two vertices.
@@ -125,16 +150,51 @@ namespace kdtree {
                 {4, 6, 7}};
 
         /**
-         * Lazy load big polyhedron to avoid expensive global initialization at translation time
-         * The polyhedron is loaded from files using the TetgenAdapter and stored in a static variable to ensure it is only loaded once. The files should be located in the resources directory and named "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
-         * @return A tuple containing the vertices and faces of the big polyhedron.
+         * The (vertices, faces) source data of a loaded polyhedron mesh.
          */
-        const std::tuple<std::vector<std::array<double, 3>>, const std::vector<IndexVector>> &getBigPolyhedron() {
-            static const std::vector<std::string> polyhedronNodeFilePath = {
-                    std::format("resources/Eros_scaled-{}.node", 27000),
-                    std::format("resources/Eros_scaled-{}.face", 27000)};
-            static const auto poly = TetgenAdapter{polyhedronNodeFilePath}.getPolyhedralSource();
-            return poly;
+        using PolyhedronSource = std::tuple<std::vector<std::array<double, 3>>, std::vector<IndexVector>>;
+
+        /**
+         * Lazy loads and caches a two-file (.node/.face) polyhedron mesh to avoid expensive global
+         * initialization at translation time and redundant reloading across test instantiations that
+         * reference the same mesh. The files should be located in the resources directory and named
+         * "<meshName>-<size>.node" and "<meshName>-<size>.face".
+         * @param meshName Base name of the mesh, e.g. "Eros" for "Eros_scaled-27000.node" and "Eros_scaled-27000.face".
+         * @param size Size suffix used in the mesh's file names, e.g. 27000 for "Eros_scaled-27000".
+         * @return A tuple containing the vertices and faces of the polyhedron.
+         */
+        const PolyhedronSource &getNodePolyhedron(const std::string &meshName, const size_t size) {
+            static std::map<std::string, PolyhedronSource> cache;
+            const std::string key = std::format("{}_scaled-{}", meshName, size);
+
+            // Check if the mesh is already cached; if so, return it. Otherwise, load it from the files and cache it.
+            auto it = cache.find(key);
+            if (it != cache.end()) {
+                return it->second;
+            }
+            const std::vector<std::string> filePaths = {
+                    std::format("resources/{}.node", key),
+                    std::format("resources/{}.face", key)};
+            PolyhedronSource nodeSource = TetgenAdapter{filePaths}.getPolyhedralSource();
+            cache[key] = nodeSource;
+            return cache[key];
+        }
+
+        /**
+         * Lazy loads and caches a single-file (.ply) polyhedron mesh to avoid expensive global
+         * initialization at translation time and redundant reloading across test instantiations that
+         * reference the same mesh. The file should be located in the resources directory.
+         * @param fileName Base name of the .ply file, excluding the extension, e.g. "a8567.tab".
+         * @param size Size suffix used in the mesh's file names, e.g. 27000 for "a8567.tab_scaled-27000.ply".
+         * @return A tuple containing the vertices and faces of the polyhedron.
+         */
+        const PolyhedronSource &getPlyPolyhedron(const std::string &fileName, const size_t size) {
+            static std::map<std::string, PolyhedronSource> cache;
+            auto [entry, inserted] = cache.try_emplace(fileName);
+            if (inserted) {
+                entry->second = TetgenAdapter{{"resources/" + fileName}}.getPolyhedralSource();
+            }
+            return entry->second;
         }
 
         /**
@@ -247,7 +307,8 @@ namespace kdtree {
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
                 indicators::option::End{"]"},
-                indicators::option::MaxProgress{points.size()}};
+                indicators::option::MaxProgress{points.size()},
+                indicators::option::Stream{progressBarStream()}};
         KDTree tree{vertices, faces, algorithm};
         constexpr Vertex origin{200, 200, 200};
         auto pointTest = [&tree, &origin](const Vertex &point) {
@@ -276,10 +337,10 @@ namespace kdtree {
                 indicators::option::BarWidth{50},
                 indicators::option::Start{"["},
                 indicators::option::End{"]"},
-                indicators::option::MaxProgress{points.size()}};
+                indicators::option::MaxProgress{points.size()},
+                indicators::option::Stream{progressBarStream()}};
         auto rng = std::mt19937(SEED);
         KDTree tree{vertices, algorithm};
-        tree.prebuildTree();
         constexpr Vertex origin{200, 200, 200};
         auto pointTest = [&tree, &origin](const Vertex &point, const size_t pointIndex) {
             const auto ray = point - origin;
@@ -498,87 +559,75 @@ namespace kdtree {
     constexpr size_t numberOfPoints = 10;
     constexpr size_t bigNumberOfPoints = 1000;
 
-    // Instantiate tests using lazy-loaded big polyhedron
+    // the shared size suffix used to build big instantiations.
+    constexpr size_t SMALL_POLYHEDRON_SIZE = 1000;
+    constexpr size_t BIG_POLYHEDRON_SIZE = 27000;
 
-    // Instatiations for the big polyhedron with different plane selection algorithms and different amount of random points on the surface
-    INSTANTIATE_TEST_SUITE_P(NoTreePointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::NOTREE,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-                                     }()));
+    // Names of the meshes, also used by the benchmark suite.
+    constexpr auto EROS_MESH_NAME = "Eros";
+    constexpr auto SPHERE_MESH_NAME = "sphere";
+    constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
+    constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
+    constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
+    constexpr auto ITOKAWA_MESH_FILE = "Object_25143_Itokawa_200k.ply";
+    constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart.ply";
+    constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804.ply";
+    constexpr auto MU69_MESH_FILE = "MU69_Merged.ply";
 
-    INSTANTIATE_TEST_SUITE_P(QuadraticPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::QUADRATIC,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-                                     }()));
+    /**
+     * Instantiates a single KDTreeTest suite for one plane selection algorithm.
+     * @param suiteName Suffix appended after the algorithm label to form the instantiation name (e.g. "PointsBig" -> "LogPointsBig").
+     * @param label Human-readable algorithm label used to build the instantiation name (e.g. NoTree, Quadratic, LogSquared, Log).
+     * @param algoEnum The PlaneSelectionAlgorithm::Algorithm enumerator to test (e.g. NOTREE, QUADRATIC, LOGSQUARED, LOG).
+     * @param polyhedronExpr Expression yielding a (vertices, faces) tuple/pair, e.g. a call to getNodePolyhedron/getPlyPolyhedron.
+     * @param pointCount Number of random surface points to generate for the suite.
+     */
+#define KDTREE_INSTANTIATE_ONE(suiteName, label, algoEnum, polyhedronExpr, pointCount)                                          \
+    INSTANTIATE_TEST_SUITE_P(label##suiteName, KDTreeTest,                                                                      \
+                             ::testing::Values(                                                                                 \
+                                     []() -> ParamType {                                                                        \
+                                         const auto [vertices, faces] = polyhedronExpr;                                         \
+                                         return std::make_tuple(vertices, faces, Algorithm::algoEnum,                           \
+                                                                generateRandomPointsOnPolyhedron(vertices, faces, pointCount)); \
+                                     }()))
 
-    INSTANTIATE_TEST_SUITE_P(LogSquaredPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-                                     }()));
 
-    INSTANTIATE_TEST_SUITE_P(LogPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::LOG,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, numberOfPoints));
-                                     }()));
+#define INSTANTIATE_KDTREE_MESH_TESTS(suiteName, polyhedronExpr, pointCount)               \
+    KDTREE_INSTANTIATE_ONE(suiteName, NoTree, NOTREE, polyhedronExpr, pointCount);         \
+    KDTREE_INSTANTIATE_ONE(suiteName, LogSquared, LOGSQUARED, polyhedronExpr, pointCount); \
+    KDTREE_INSTANTIATE_ONE(suiteName, Log, LOG, polyhedronExpr, pointCount)
+
+    // Same as INSTANTIATE_KDTREE_MESH_TESTS but also covers Algorithm::QUADRATIC. Quadratic plane
+    // selection is O(faces^2) per split, so this is only used for the small cube mesh; the big
+    // polyhedron and .ply meshes below would make it prohibitively slow.
+#define INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(suiteName, polyhedronExpr, pointCount) \
+    INSTANTIATE_KDTREE_MESH_TESTS(suiteName, polyhedronExpr, pointCount);                   \
+    KDTREE_INSTANTIATE_ONE(suiteName, Quadratic, QUADRATIC, polyhedronExpr, pointCount)
+
+
+    // Eros small polyhedron instantiations
+    INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(PointsErosSmall, getNodePolyhedron(EROS_MESH_NAME, SMALL_POLYHEDRON_SIZE), numberOfPoints);
 
     // Cube-based instantiations
-    INSTANTIATE_TEST_SUITE_P(NoTreePointsCube, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         return std::make_tuple(cube_vertices, cube_faces, Algorithm::NOTREE,
-                                                                generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints));
-                                     }()));
-
-    INSTANTIATE_TEST_SUITE_P(QuadraticPointsCube, KDTreeTest,
-                             ::testing::Values(
-                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::QUADRATIC,
-                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
-
-    INSTANTIATE_TEST_SUITE_P(LogSquaredPointsCube, KDTreeTest,
-                             ::testing::Values(
-                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::LOGSQUARED,
-                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
-
-    INSTANTIATE_TEST_SUITE_P(LogPointsCube, KDTreeTest,
-                             ::testing::Values(
-                                     std::make_tuple(cube_vertices, cube_faces, Algorithm::LOG,
-                                                     generateRandomPointsOnPolyhedron(cube_vertices, cube_faces, numberOfPoints))));
+    INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC(PointsCube, std::tie(cube_vertices, cube_faces), numberOfPoints);
 
     // Large point-count instantiations
-    INSTANTIATE_TEST_SUITE_P(NoTreeGreatNumberOfPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::NOTREE,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-                                     }()));
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsErosBig, getNodePolyhedron(EROS_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
 
-    INSTANTIATE_TEST_SUITE_P(LogSquaredGreatNumberOfPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::LOGSQUARED,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-                                     }()));
+    // Sphere-based instantiations
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsSphere, getNodePolyhedron(SPHERE_MESH_NAME, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
 
-    INSTANTIATE_TEST_SUITE_P(LogGreatNumberOfPointsBig, KDTreeTest,
-                             ::testing::Values(
-                                     []() -> ParamType {
-                                         const auto [vertices, faces] = getBigPolyhedron();
-                                         return std::make_tuple(vertices, faces, Algorithm::LOG,
-                                                                generateRandomPointsOnPolyhedron(vertices, faces, bigNumberOfPoints));
-                                     }()));
+    // Single-file (.ply)
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsA8567, getPlyPolyhedron(A8567_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsComet67P, getPlyPolyhedron(COMET_67P_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsToutatis, getPlyPolyhedron(TOUTATIS_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsItokawa, getPlyPolyhedron(ITOKAWA_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsHartley2, getPlyPolyhedron(HARTLEY2_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsShapeSfm, getPlyPolyhedron(SHAPE_SFM_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+    INSTANTIATE_KDTREE_MESH_TESTS(PointsMu69, getPlyPolyhedron(MU69_MESH_FILE, BIG_POLYHEDRON_SIZE), bigNumberOfPoints);
+
+#undef INSTANTIATE_KDTREE_MESH_TESTS_WITH_QUADRATIC
+#undef INSTANTIATE_KDTREE_MESH_TESTS
+#undef KDTREE_INSTANTIATE_ONE
 
 }// namespace kdtree

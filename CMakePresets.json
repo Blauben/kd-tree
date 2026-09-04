@@ -67,7 +67,7 @@
         {
             "name": "test-release",
             "displayName": "Test (Release)",
-            "inherits": "release-tbb",
+            "inherits": "release-omp",
             "binaryDir": "${sourceDir}/build/test-release",
             "cacheVariables": {
                 "BUILD_KD_TREE_TESTS": "ON",
