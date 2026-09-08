@@ -195,10 +195,10 @@ namespace kdtree {
             static std::map<std::string, PolyhedronSource> cache;
             const std::string key = std::format("{}_scaled-{}", meshName, size);
             // Use try_emplace to avoid unnecessary construction of the PolyhedronSource if it already exists in the cache.
-            auto [entry, inserted] = cache.try_emplace(meshName);
+            auto [entry, inserted] = cache.try_emplace(key);
             if (inserted) {
                 try {
-                    entry->second = TetgenAdapter{{"resources/" + meshName}}.getPolyhedralSource();
+                    entry->second = TetgenAdapter{{std::format("resources/{}.ply", key)}}.getPolyhedralSource();
                 } catch (...) {
                     cache.erase(entry);
                     throw;
@@ -576,13 +576,13 @@ namespace kdtree {
     // Names of the meshes, also used by the benchmark suite.
     constexpr auto EROS_MESH_NAME = "Eros";
     constexpr auto SPHERE_MESH_NAME = "sphere";
-    constexpr auto A8567_MESH_FILE = "a8567.tab.ply";
-    constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k.ply";
-    constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab.ply";
-    constexpr auto ITOKAWA_MESH_FILE = "Object_25143_Itokawa_200k.ply";
-    constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart.ply";
-    constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804.ply";
-    constexpr auto MU69_MESH_FILE = "MU69_Merged.ply";
+    constexpr auto A8567_MESH_FILE = "a8567.tab";
+    constexpr auto COMET_67P_MESH_FILE = "67P_ESA_NAVCAM_Jul2015data_256k";
+    constexpr auto TOUTATIS_MESH_FILE = "4179toutatis.tab";
+    constexpr auto ITOKAWA_MESH_FILE = "Object_25143_Itokawa_200k";
+    constexpr auto HARTLEY2_MESH_FILE = "hartley2_2012_cart";
+    constexpr auto SHAPE_SFM_MESH_FILE = "SHAPE_SFM_3M_v20180804";
+    constexpr auto MU69_MESH_FILE = "MU69_Merged";
 
     /**
      * Instantiates a single KDTreeTest suite for one plane selection algorithm.
