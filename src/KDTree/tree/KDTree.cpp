@@ -4,7 +4,6 @@ namespace kdtree {
 
     namespace {
 
-#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
         void buildChildNodes(const std::shared_ptr<TreeNode> &treeNode) {
             if (auto splitNode = std::dynamic_pointer_cast<SplitNode>(treeNode)) {
 #pragma omp task
@@ -17,20 +16,6 @@ namespace kdtree {
                 }
             }
         }
-#endif
-
-#if defined(KD_TREE_TBB)
-        void buildChildNodes(const std::shared_ptr<TreeNode> &treeNode, tbb::task_group &tasks) {
-            if (auto splitNode = std::dynamic_pointer_cast<SplitNode>(treeNode)) {
-                tasks.run([splitNode, &tasks]() {
-                    buildChildNodes(splitNode->getChildNode(0), tasks);
-                });
-                tasks.run([splitNode, &tasks]() {
-                    buildChildNodes(splitNode->getChildNode(1), tasks);
-                });
-            }
-        }
-#endif
     }// namespace
 
     //on initialization of the tree a single bounding box which includes all the geometry objects is generated. Both the list of included objects and the parameters of the box are written to the split parameters
@@ -152,8 +137,6 @@ namespace kdtree {
         LOG_DEBUG("KDTree: getIntersections finished");
     }
 
-#if defined(KD_TREE_OMP) or defined(KD_TREE_CPP)
-
     KDTree &KDTree::prebuildTree() {
         LOG_DEBUG("KDTree: prebuildTree called");
         //queue for children of processed nodes
@@ -167,20 +150,6 @@ namespace kdtree {
         LOG_DEBUG("KDTree: prebuildTree finished");
         return *this;
     }
-#endif
-
-#if defined(KD_TREE_TBB)
-
-    KDTree &KDTree::prebuildTree() {
-        LOG_INFO("KDTree: prebuildTree called");
-        tbb::task_group tasks;
-        buildChildNodes(getRootNode(), tasks);
-        tasks.wait();
-        LOG_INFO("KDTree: prebuildTree finished");
-        return *this;
-    }
-
-#endif
 
     std::pair<std::vector<GeometryObject>::iterator, std::vector<GeometryObject>::iterator>
     KDTree::geometryIterator() {

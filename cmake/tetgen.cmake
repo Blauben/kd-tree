@@ -10,7 +10,7 @@ if(NOT TARGET tetgen_lib)
 
         FetchContent_Declare(tetgen
                 URL ${KD_TREE_SOURCE_DIR}/lib/tetgen_lib.zip
-                URL_HASH SHA256=795c17c869b6e7cccabf31ac775304a7837c828a14d06173b25c5276ea65fbf8
+                URL_HASH SHA256=ab0fb45d9f824b5990e20747b10a24fd0c5c06c794e791fabe6241281f927dc7
                 DOWNLOAD_EXTRACT_TIMESTAMP TRUE
        )
 

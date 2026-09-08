@@ -11,8 +11,8 @@ A high-performance, lazily-built KD-Tree implementation for spatial partitioning
   - `QUADRATIC` - O(n²) complexity
   - `NOTREE` - No tree structure (brute force)
 - **Parallel Execution**: Support for multiple parallelization backends:
+  - Serial C++ (CPP)
   - OpenMP (OMP)
-  - Intel Threading Building Blocks (TBB)
 - **Thread-Safe**: Safe for concurrent ray intersection queries
 - **Python Bindings**: Full Python interface via nanobind
 - **Flexible Input**: Support for vertices/faces arrays, particle clouds, or Tetgen .node/.face files
@@ -26,7 +26,7 @@ A high-performance, lazily-built KD-Tree implementation for spatial partitioning
 - Dependencies (automatically fetched):
   - spdlog (logging)
   - Thrust (parallel algorithms)
-  - TBB/OpenMP (optional, for parallelization)
+  - OpenMP (optional, for parallelization)
   - Google Test (for testing)
 
 ### Python Interface
@@ -170,7 +170,7 @@ kd-tree/
 
 1. **Use the LOG algorithm**: Best balance of build time and query performance
 2. **Prebuild for multiple queries**: Call `prebuildTree()` if you'll perform many intersection tests
-3. **Enable parallelization**: Use TBB or OpenMP for large meshes
+3. **Enable parallelization**: Use OpenMP for large meshes
 4. **Reduce logging in production**: Set `KD_TREE_LOGGING_LEVEL` to ERROR or OFF for maximum performance
 
 ## Testing and Benchmarking

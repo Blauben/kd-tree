@@ -12,7 +12,7 @@ file(GLOB_RECURSE TEST_SRC
 
 # Creates the Test Target
 add_executable(${PROJECT_NAME}_test ${TEST_SRC})
-# Builds the meshes used for the tests via script/scale_mesh.py (see cmake/scale_test_meshes.cmake): Currently only the Eros mesh is used in tests, so only that one is generated.
+# Builds the meshes used for the tests via script/scale_mesh.py (see cmake/scale_test_meshes.cmake)
 add_dependencies(${PROJECT_NAME}_test scale_test_meshes)
 
 set_target_properties(${PROJECT_NAME}_test PROPERTIES
@@ -29,7 +29,6 @@ target_link_libraries(${PROJECT_NAME}_test
         GTest::gmock
         ${PROJECT_NAME}_lib
 )
-kd_tree_copy_runtime_dlls(${PROJECT_NAME}_test)
 
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${KD_TREE_SOURCE_DIR}/src)
 
