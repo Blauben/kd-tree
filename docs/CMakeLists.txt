@@ -60,5 +60,5 @@ execute_process(
 
 if(NOT INSTALL_RESULT EQUAL 0)
     message(STATUS "pip install error: ${INSTALL_ERROR}")
-    message(WARNING "Failed to install KDTree package in virtual environment. Python documentation may not work correctly.")
+    message(FATAL_ERROR "Failed to install KDTree package in virtual environment. Python documentation (autodoc) would fail to import 'scikdtree' later in the Sphinx build, so failing fast here instead.")
 endif()
