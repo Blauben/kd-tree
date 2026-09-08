@@ -167,17 +167,20 @@ namespace kdtree {
             static std::map<std::string, PolyhedronSource> cache;
             const std::string key = std::format("{}_scaled-{}", meshName, size);
 
-            // Check if the mesh is already cached; if so, return it. Otherwise, load it from the files and cache it.
-            auto it = cache.find(key);
-            if (it != cache.end()) {
-                return it->second;
+            // Use try_emplace to avoid unnecessary construction of the PolyhedronSource if it already exists in the cache
+            auto [entry, inserted] = cache.try_emplace(key);
+            if (inserted) {
+                try {
+                    const std::vector<std::string> filePaths = {
+                            std::format("resources/{}.node", key),
+                            std::format("resources/{}.face", key)};
+                    entry->second = TetgenAdapter{filePaths}.getPolyhedralSource();
+                } catch (...) {
+                    cache.erase(entry);
+                    throw;
+                }
             }
-            const std::vector<std::string> filePaths = {
-                    std::format("resources/{}.node", key),
-                    std::format("resources/{}.face", key)};
-            PolyhedronSource nodeSource = TetgenAdapter{filePaths}.getPolyhedralSource();
-            cache[key] = nodeSource;
-            return cache[key];
+            return entry->second;
         }
 
         /**
@@ -188,11 +191,18 @@ namespace kdtree {
          * @param size Size suffix used in the mesh's file names, e.g. 27000 for "a8567.tab_scaled-27000.ply".
          * @return A tuple containing the vertices and faces of the polyhedron.
          */
-        const PolyhedronSource &getPlyPolyhedron(const std::string &fileName, const size_t size) {
+        const PolyhedronSource &getPlyPolyhedron(const std::string &meshName, const size_t size) {
             static std::map<std::string, PolyhedronSource> cache;
-            auto [entry, inserted] = cache.try_emplace(fileName);
+            const std::string key = std::format("{}_scaled-{}", meshName, size);
+            // Use try_emplace to avoid unnecessary construction of the PolyhedronSource if it already exists in the cache.
+            auto [entry, inserted] = cache.try_emplace(meshName);
             if (inserted) {
-                entry->second = TetgenAdapter{{"resources/" + fileName}}.getPolyhedralSource();
+                try {
+                    entry->second = TetgenAdapter{{"resources/" + meshName}}.getPolyhedralSource();
+                } catch (...) {
+                    cache.erase(entry);
+                    throw;
+                }
             }
             return entry->second;
         }
