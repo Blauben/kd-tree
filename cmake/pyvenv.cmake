@@ -13,7 +13,14 @@ endif()
 
 if(NOT EXISTS "${VENV_DIR}")
     message(STATUS "Creating Python virtual environment at ${VENV_DIR}")
-    find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    # Set PYVENV_PYTHON_VERSION (e.g. "3.11") before include(pyvenv) to pin the interpreter used
+    # to create the venv, e.g. to match a dependency that doesn't yet ship wheels for the newest
+    # Python. Left unset, whatever Python3 CMake finds by default is used.
+    if(PYVENV_PYTHON_VERSION)
+        find_package(Python3 ${PYVENV_PYTHON_VERSION} EXACT COMPONENTS Interpreter REQUIRED)
+    else()
+        find_package(Python3 COMPONENTS Interpreter REQUIRED)
+    endif()
     execute_process(
         COMMAND "${Python3_EXECUTABLE}" -m venv "${VENV_DIR}"
         RESULT_VARIABLE VENV_CREATE_RESULT

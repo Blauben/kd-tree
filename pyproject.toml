@@ -38,6 +38,14 @@ test = [
     "pytest >= 6.0",
 ]
 
+[dependency-groups]
+# Deps for script/scale_mesh.py, installable standalone (pip/uv install --group mesh-gen) without
+# building or installing the scikdtree package itself
+mesh-gen = [
+    "numpy",
+    "open3d == 0.19.0",
+]
+
 [project.urls]
 Homepage = "https://github.com/Blauben/kd-tree"
 
