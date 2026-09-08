@@ -21,7 +21,7 @@
 #include "thrust/system/detail/sequential/for_each.h"
 
 #if defined(KD_TREE_OMP)
-#include <omp.h>
+    #include <omp.h>
 #endif
 
 namespace kdtree {

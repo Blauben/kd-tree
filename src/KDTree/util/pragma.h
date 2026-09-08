@@ -1,6 +1,6 @@
 #pragma once
 #ifdef _OPENMP
-#include <omp.h>
+    #include <omp.h>
 #else
 inline void omp_set_num_threads(int) {
 }

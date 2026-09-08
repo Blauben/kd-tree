@@ -13,7 +13,7 @@
 #include <vector>
 
 #ifdef ENABLE_ITT_INSTRUMENTATION
-#include <ittnotify.h>
+    #include <ittnotify.h>
 #else
 // No-op shims for the Intel ITT API calls below, so the benchmark bodies stay instrumented and
 // readable without requiring the ittapi dependency unless VTune profiling is enabled.
