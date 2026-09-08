@@ -3,6 +3,7 @@ include(FetchContent)
 message(STATUS "Setting up thrust")
 # NVIDIA/thrust was archived in favor of the NVIDIA/cccl monorepo (which still ships thrust's
 # own CMakeLists.txt/find_package(Thrust) API unchanged under its "thrust" subdirectory), so it is fetched from there instead.
+# Switching to cccl drops THRUST_ENABLE_HEADER_TESTING/THRUST_ENABLE_TESTING/THRUST_ENABLE_EXAMPLES/THRUST_CPP_DIALECT options
 
 set(THRUST_VERSION 3.4.2)
 

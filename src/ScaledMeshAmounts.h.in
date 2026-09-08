@@ -4,7 +4,7 @@
 
 // ##########################################################################################
 // Please note! The content of this file is automatically modified by the CMake build system
-// which replaces the variables. Generated from cmake/scaled_mesh_amounts.cmake's
+// which replaces the variables. Generated from cmake/scale_test_meshes.cmake's
 // KD_TREE_SCALED_MESH_AMOUNTS - the single source of truth also consumed by
 // script/scale_mesh.py (via test/CMakeLists.txt) to generate the scaled benchmark meshes on disk.
 // ##########################################################################################
@@ -13,7 +13,7 @@ namespace kdtree {
 
     /**
      * The face/node counts of the progressively larger scaled mesh variants (of the Eros and
-     * sphere base meshes) generated for benchmarking. See cmake/scaled_mesh_amounts.cmake.
+     * sphere base meshes) generated for benchmarking. See cmake/scale_test_meshes.cmake.
      * The value is set by the CMake configuration.
      */
     inline const std::vector<long long> scaledMeshFaceAmounts{@KD_TREE_SCALED_MESH_AMOUNTS_CPP@};

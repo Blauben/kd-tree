@@ -99,9 +99,13 @@ namespace kdtree {
         }
 
         /**
-         * This function builds the complete file paths for the mesh files based on the provided base file path, optional node count, and mesh format. If the mesh is a single file mesh, it constructs the file path accordingly. Otherwise, it appends the node count to the base file path and adds the appropriate file extensions for node and face files.
+         * Builds the file path(s) to load a mesh variant from. filePath is the basename shared across all variants;
+         * nodeCount, if present, identifies which variant and is appended as "_scaled-<nodeCount>" before the
+         * extension(s) are added (e.g. "resources/Eros" with nodeCount 1000 -> "resources/Eros_scaled-1000.ply").
+         * This naming convention must match scale_mesh.py's write_to_file()/mesh-writing logic, which generates the
+         * scaled mesh files under that same "<basename>_scaled-<count>" scheme.
          */
-        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<unsigned> &nodeCount, const std::string &mesh_format) const {
+        [[nodiscard]] std::vector<std::string> buildCompleteFilePaths(const std::string &filePath, const std::optional<long long> &nodeCount, const std::string &mesh_format) const {
             std::string appendedFilePath = filePath + (nodeCount.has_value() ? "_scaled-" + std::to_string(nodeCount.value()) : "");
 
             if (mesh_format == "ply") {

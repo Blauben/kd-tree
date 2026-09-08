@@ -63,9 +63,6 @@ set(MESH_SCALE_SCRIPT "${KD_TREE_SOURCE_DIR}/script/scale_mesh.py")
 # command's steps, so creating it as one of those steps is too late.
 file(MAKE_DIRECTORY "${SCALED_MESH_DIR}")
 
-# Matches the face amounts hardcoded in script/scale_mesh.py: round(1000 * sqrt(3)^k) for k in range(10)
-set(MESH_FACE_AMOUNTS 1000 1732 3000 5196 9000 15588 27000 46765 81000 140296)
-
 add_custom_target(scale_test_meshes
         COMMENT "Generating scaled benchmark meshes for tests via scale_mesh.py"
 )
@@ -85,14 +82,14 @@ function(kd_tree_add_scaled_mesh_target mesh_name mesh_file_format)
     if (${mesh_file_format} STREQUAL "node-face")
         set(script_args --node-face ${mesh_name}.node ${mesh_name}.face)
         list(APPEND source_files "${mesh_name}.node" "${mesh_name}.face")
-        foreach(face_amount ${MESH_FACE_AMOUNTS})
+        foreach(face_amount ${KD_TREE_SCALED_MESH_AMOUNTS})
             list(APPEND scaled_mesh_output_files "${SCALED_MESH_DIR}/${mesh_name}_scaled-${face_amount}.node")
             list(APPEND scaled_mesh_output_files "${SCALED_MESH_DIR}/${mesh_name}_scaled-${face_amount}.face")
         endforeach()
     elseif(${mesh_file_format} STREQUAL "ply")
         set(script_args --ply ${mesh_name}.ply)
         list(APPEND source_files "${mesh_name}.ply")
-        foreach(face_amount ${MESH_FACE_AMOUNTS})
+        foreach(face_amount ${KD_TREE_SCALED_MESH_AMOUNTS})
             list(APPEND scaled_mesh_output_files "${SCALED_MESH_DIR}/${mesh_name}_scaled-${face_amount}.ply")
         endforeach()
     else()
@@ -105,7 +102,7 @@ function(kd_tree_add_scaled_mesh_target mesh_name mesh_file_format)
             # scale_mesh.py resolves its input filenames relative to WORKING_DIRECTORY, so the
             # source mesh has to be copied there first.
             COMMAND ${CMAKE_COMMAND} -E copy ${source_file_paths} "${SCALED_MESH_DIR}"
-            COMMAND ${MESH_SCALING_PYTHON_EXECUTABLE} "${MESH_SCALE_SCRIPT}" ${script_args} --face-amounts ${MESH_FACE_AMOUNTS}
+            COMMAND ${MESH_SCALING_PYTHON_EXECUTABLE} "${MESH_SCALE_SCRIPT}" ${script_args} --face-amounts ${KD_TREE_SCALED_MESH_AMOUNTS}
             WORKING_DIRECTORY "${SCALED_MESH_DIR}"
             DEPENDS ${source_file_paths} "${MESH_SCALE_SCRIPT}"
             COMMENT "Generating scaled meshes for ${mesh_name} via scale_mesh.py"
@@ -120,7 +117,7 @@ endfunction()
 # Base names of the source meshes in resources/ to generate scaled versions of, grouped by the
 # format scale_mesh.py expects them in: node/face pairs (tetgen format) vs single .ply files.
 set(MESH_SCALING_BASE_NAMES_NODE_FACE "Eros" "sphere")
-set(MESH_SCALING_BASE_NAMES_PLY "4179toutatis.tab" "67P_ESA_NAVCAM_Jul2015data_256k" "CubeXDivided" "MU69_Merged" "Object_25143_Itokawa_200k" "SHAPE_SFM_3M_v20180804" "a8567.tab" "hartley2_2012_cart")
+set(MESH_SCALING_BASE_NAMES_PLY "4179toutatis.tab" "67P_ESA_NAVCAM_Jul2015data_256k" "MU69_Merged" "Object_25143_Itokawa_200k" "SHAPE_SFM_3M_v20180804" "a8567.tab" "hartley2_2012_cart")
 
 message(STATUS "Generating scaled test mesh targets")
 foreach(mesh_name ${MESH_SCALING_BASE_NAMES_NODE_FACE})
@@ -130,3 +127,12 @@ endforeach()
 foreach(mesh_name ${MESH_SCALING_BASE_NAMES_PLY})
     kd_tree_add_scaled_mesh_target("${mesh_name}" "ply")
 endforeach()
+
+# Configure the generated header exposing scaledMeshFaceAmounts (see
+# cmake/scale_test_meshes.cmake) to kd_time_main.cpp, keeping the benchmark's mesh
+# sizes in sync with what test/CMakeLists.txt generates via script/scale_mesh.py.
+list(JOIN KD_TREE_SCALED_MESH_AMOUNTS ", " KD_TREE_SCALED_MESH_AMOUNTS_CPP)
+configure_file(
+        "${KD_TREE_SOURCE_DIR}/src/ScaledMeshAmounts.h.in"
+        "${KD_TREE_BINARY_DIR}/src/ScaledMeshAmounts.h"
+)
