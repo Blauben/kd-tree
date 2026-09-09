@@ -45,12 +45,23 @@ add_custom_target(Sphinx ALL
         COMMENT "Generating documentation with Sphinx"
 )
 
+# Build the scikdtree wheel outside the checked-out source tree. Not doing so might trip Ninja's regenerate-on-change detection into an
+# infinite "manifest still dirty" retry loops. RUNNER_TEMP (set by GitHub Actions) is used when
+# available since it is guaranteed to live outside the checkout; otherwise fall back to a
+# dedicated directory under this preset's own binary dir.
+if(DEFINED ENV{RUNNER_TEMP} AND NOT "$ENV{RUNNER_TEMP}" STREQUAL "")
+    set(SCIKDTREE_DOCS_WHEEL_BUILD_DIR "$ENV{RUNNER_TEMP}/scikdtree-docs-build")
+else()
+    set(SCIKDTREE_DOCS_WHEEL_BUILD_DIR "${KD_TREE_BINARY_DIR}/_scikdtree_wheel_build")
+endif()
+
 message(STATUS "Installing KDTree package in virtual environment for Sphinx documentation. This may take a moment...")
 
 execute_process(
     COMMAND ${VENV_PYTHON} -m pip install ${KD_TREE_SOURCE_DIR}
             --config-settings=cmake.args=--preset
             --config-settings=cmake.args=python
+            --config-settings=build-dir=${SCIKDTREE_DOCS_WHEEL_BUILD_DIR}
             -v
     RESULT_VARIABLE INSTALL_RESULT
     OUTPUT_VARIABLE INSTALL_OUTPUT
