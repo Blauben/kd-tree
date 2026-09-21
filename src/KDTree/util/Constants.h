@@ -69,6 +69,15 @@ namespace kdtree::constants {
      */
     constexpr double SHAPE_INTERSECTION_COST = 1.0;
 
+    /**
+     * Threshold for the number of candidate vertices in a node below which SquaredPlane::findPlane
+     * evaluates candidate planes sequentially instead of via OpenMP. Most tree nodes are small (near
+     * the leaves), where the fixed cost of OMP dispatch - thread-team spin-up plus a heap-allocated
+     * OptimalPlane and dedup set per thread - is not amortized by the small amount of work available.
+     * Not empirically tuned; revisit via benchmarking if this turns out to be miscalibrated.
+     */
+    constexpr size_t SQUARED_PLANE_PARALLEL_THRESHOLD = 64;
+
     // ============================================================================
     // Ray-Geometry Intersection Constants
     // ============================================================================

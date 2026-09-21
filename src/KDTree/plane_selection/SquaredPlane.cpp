@@ -1,5 +1,6 @@
 #include "KDTree/plane_selection/SquaredPlane.h"
 
+#include <iterator>
 #include <utility>
 
 namespace kdtree {
@@ -14,49 +15,83 @@ namespace kdtree {
         const std::function geoSubsetCallback = [this](const OptimalPlaneSquared &, ObjectIndexVectors<3> indexVectors, const bool minSideChosen) {
             return addEqualPointsToSubset<ObjectIndexVectors>(std::move(indexVectors), minSideChosen);
         };
-        //init the OptPlane to evaluate generated planes
-        OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback};
-        //each vertex proposes a split plane candidate: test for each of them, store them in buffer set to avoid duplicate testing
-        std::unordered_set<double> testedPlaneCoordinates{};
+        //each vertex proposes a split plane candidate: test for each of them, store them in a per-thread
+        //buffer set to avoid duplicate testing. The set is kept per-thread (rather than shared behind a
+        //lock) since duplicate testing across threads is harmless.
         auto [vertex_begin, vertex_end] = transformIterator(boundObjects.cbegin(), boundObjects.cend(),
                                                             splitParam.geometryObjects);
-        thrust::for_each(thrust::host, vertex_begin, vertex_end,
-                         [&splitParam, &optPlane, &testedPlaneCoordinates](
-                                 const auto &indexAndVertices) {
-                             const auto [index, vertices] = indexAndVertices;
-                             //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
-                             const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
-                             const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(clippedVertices);
-                             for (const auto planeSurfacePoint: {minPoint, maxPoint}) {
-                                 //constructs the plane that goes through a vertex lying on the bounding box of the shape to be checked and spans in a specified direction.
-                                 Plane candidatePlane{
-                                         planeSurfacePoint[static_cast<int>(splitParam.splitDirection)],
-                                         splitParam.splitDirection};
-                                 {
-                                     if (testedPlaneCoordinates.contains(candidatePlane.axisCoordinate)) {
-                                         continue;
-                                     }
-                                     testedPlaneCoordinates.emplace(candidatePlane.axisCoordinate);
-                                 }
+        const std::ptrdiff_t vertexCount = std::distance(vertex_begin, vertex_end);
 
-                                 auto shapeIndexLists = containedShapes(splitParam, candidatePlane);
+        //Evaluates both candidate planes proposed by a single vertex against optPlane, deduplicating
+        //against testedPlaneCoordinates. Shared between the sequential and parallel paths below so the
+        //per-vertex logic only exists once.
+        const auto evaluateVertexCandidates = [&splitParam, this](const std::pair<size_t, std::vector<Vertex>> &indexAndVertices,
+                                                                  std::unordered_set<double> &testedPlaneCoordinates,
+                                                                  OptimalPlaneSquared &optPlane) {
+            const auto &vertices = indexAndVertices.second;
+            //first clip the shapes vertices to the current bounding box and then get the bounding box of the clipped shape -> use the box edges as split plane candidates
+            const auto clippedVertices = splitParam.boundingBox.clipToVoxel(vertices);
+            const auto [minPoint, maxPoint] = Box::getBoundingBox<std::vector<Vertex>>(clippedVertices);
+            for (const auto planeSurfacePoint: {minPoint, maxPoint}) {
+                //constructs the plane that goes through a vertex lying on the bounding box of the shape to be checked and spans in a specified direction.
+                Plane candidatePlane{
+                        planeSurfacePoint[static_cast<int>(splitParam.splitDirection)],
+                        splitParam.splitDirection};
+                if (testedPlaneCoordinates.contains(candidatePlane.axisCoordinate)) {
+                    continue;
+                }
+                testedPlaneCoordinates.emplace(candidatePlane.axisCoordinate);
 
-                                 //evaluate the candidate plane and store if it is better than the currently stored result
-                                 auto [candidateCost, minSideChosen] = costForPlane(
-                                         splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
-                                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
-                                 {
-                                     // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
-                                     // this is not important for functionality but for testing purposes
-                                     if (candidateCost == optPlane.getCost() && optPlane.getOptimalPlane().axisCoordinate < candidatePlane.axisCoordinate) {
-                                         continue;
-                                     }
-                                     optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
-                                 }
-                             }
-                         });
+                auto shapeIndexLists = containedShapes(splitParam, candidatePlane);
+
+                //evaluate the candidate plane against the current best so far.
+                auto [candidateCost, minSideChosen] = costForPlane(
+                        splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
+                        shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
+                if (optPlane.isWorseThanCurrent(candidatePlane, candidateCost)) {
+                    continue;
+                }
+                optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
+            }
+        };
+
+        if (vertexCount <= static_cast<std::ptrdiff_t>(constants::SQUARED_PLANE_PARALLEL_THRESHOLD)) {
+            //nodes this small are common (most tree nodes are near the leaves, where bounding boxes
+            //contain few shapes) and not worth the OMP dispatch overhead - thread-team spin-up plus a
+            //heap-allocated OptimalPlaneSquared and unordered_set per thread - which isn't amortized by
+            //this little work. Mirrors LeafNode.cpp's LEAF_THRUST_PARALLEL_THRESHOLD guard.
+            OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback, /*useLocking=*/false};
+            std::unordered_set<double> testedPlaneCoordinates;
+            for (auto it = vertex_begin; it != vertex_end; ++it) {
+                evaluateVertexCandidates(*it, testedPlaneCoordinates, optPlane);
+            }
+            return std::make_tuple(optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit());
+        }
+
+        const int numThreads = omp_get_max_threads();
+        std::vector<std::unordered_set<double>> testedPlaneCoordinatesPerThread(numThreads);
+
+        std::vector<std::unique_ptr<OptimalPlaneSquared>> localOptPlanesPerThread;
+        localOptPlanesPerThread.reserve(numThreads);
+        for (int t = 0; t < numThreads; ++t) {
+            // disable locking for thread-local instances, since they are never touched by any other thread during the parallel loop below.
+            localOptPlanesPerThread.push_back(std::make_unique<OptimalPlaneSquared>(splitParam, geoSubsetCallback, false));
+        }
+
+#pragma omp parallel for schedule(dynamic)
+        for (std::ptrdiff_t i = 0; i < vertexCount; i++) {
+            const int threadId = omp_get_thread_num();
+            auto &testedPlaneCoordinates = testedPlaneCoordinatesPerThread[threadId];
+            auto &localOptPlane = *localOptPlanesPerThread[threadId];
+            evaluateVertexCandidates(*(vertex_begin + i), testedPlaneCoordinates, localOptPlane);
+        }
+        //sequential merge: at most numThreads candidates
+        OptimalPlaneSquared *bestOptPlane = localOptPlanesPerThread[0].get();
+        for (std::size_t t = 1; t < localOptPlanesPerThread.size(); ++t) {
+            bestOptPlane = &planeWithLesserCost(*bestOptPlane, *localOptPlanesPerThread[t]);
+        }
         //generate the shape index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
-        return std::make_tuple(optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit());
+        return std::make_tuple(bestOptPlane->getOptimalPlane(), bestOptPlane->getCost(), bestOptPlane->getPointsSplit());
     }
 
     ObjectIndexVectors<3> SquaredPlane::containedShapes(const SplitParam &splitParam, const Plane &split) {

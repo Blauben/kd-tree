@@ -58,9 +58,18 @@ namespace kdtree {
          */
         template<typename... CallbackArgs>
         class OptimalPlane final {
-            /** Mutex to synchronize access to the optimal plane data.
+            /** Mutex to synchronize access to the optimal plane data. Unused (and never locked) when
+             * _useLocking is false.
             */
             std::shared_mutex _planeMutex{};
+
+            /** Whether evaluatePlane() guards its accesses with _planeMutex. Set to false for
+             * short-lived, thread-local instances (one per thread, never touched by any other thread)
+             * that get combined into a single shared instance afterwards via planeWithLesserCost() - avoids
+             * mutex overhead on every candidate evaluation, which otherwise dominates runtime under
+             * heavy parallel use (e.g. SquaredPlane::findPlane's O(n^2) candidate search).
+            */
+            const bool _useLocking;
 
             /** The cost of the optimal plane found so far.
             */
@@ -85,8 +94,40 @@ namespace kdtree {
 
             ~OptimalPlane() = default;
 
-            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit)
-                : _optPlane(0, splitParam.splitDirection), _boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
+            /**
+             * Constructs an OptimalPlane instance.
+             * @param splitParam The parameters of the scene to find the optimal plane for.
+             * @param boundPointsSplit The callback function to generate the geometry split for the optimal plane.
+             * @param useLocking Whether to use locking when updating the optimal plane.
+             */
+            explicit OptimalPlane(const SplitParam &splitParam, const std::function<std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>(const OptimalPlane &, CallbackArgs...)> &boundPointsSplit, const bool useLocking = true)
+                : _useLocking(useLocking), _optPlane(0, splitParam.splitDirection), _boundGeometrySplit(boundPointsSplit), splitParam(splitParam) {
+            }
+
+            /**
+             * Whether a candidate should be rejected in favor of the currently stored best: either it's
+             * strictly worse, or it ties on cost but loses the axis-coordinate tie-break (used to
+             * consistently build the same KDTree by eliminating indeterministic behavior should the cost
+             * be equal - not important for functionality, but for testing purposes).
+             * @param candidatePlane The candidate split plane to evaluate.
+             * @param candidateCost The cost of the candidate split plane.
+             */
+            [[nodiscard]] bool isWorseThanCurrent(const Plane &candidatePlane, const double candidateCost) const {
+                return (candidateCost == _cost && _optPlane.axisCoordinate < candidatePlane.axisCoordinate) || candidateCost > _cost;
+            }
+
+            /**
+             * Overwrites the stored best plane/cost/callback-args with a new candidate. The caller is
+             * responsible for holding whatever lock (if any) evaluatePlane()'s current mode requires.
+             * @param candidatePlane The candidate split plane to store.
+             * @param candidateCost The cost of the candidate split plane.
+             * @param args The arguments to be passed to the callback function when retrieving the geometry split.
+             */
+            void setBest(const Plane &candidatePlane, const double candidateCost, CallbackArgs... args) {
+                _cost = candidateCost;
+                _optPlane = candidatePlane;
+                //store the callback arguments for later use
+                _callbackArgs = std::tuple<std::decay_t<CallbackArgs>...>(std::forward<CallbackArgs>(args)...);
             }
 
             /**
@@ -96,21 +137,36 @@ namespace kdtree {
              * @param args The arguments to be passed to the callback function when retrieving the geometry split (should the candidate be optimal).
              */
             void evaluatePlane(const Plane &candidatePlane, const double candidateCost, CallbackArgs... args) {
+                if (!_useLocking) {
+                    if (isWorseThanCurrent(candidatePlane, candidateCost)) {
+                        return;
+                    }
+                    setBest(candidatePlane, candidateCost, std::forward<CallbackArgs>(args)...);
+                    return;
+                }
                 {
                     std::shared_lock readLock(_planeMutex);
-                    // this if-clause exists to consistently build the same KDTree (choose plane with lower coordinate) by eliminating indeterministic behavior should the cost be equal.
-                    // this is not important for functionality but for testing purposes
-                    if ((candidateCost == _cost && _optPlane.axisCoordinate < candidatePlane.axisCoordinate) || candidateCost > _cost) {
+                    if (isWorseThanCurrent(candidatePlane, candidateCost)) {
                         return;
                     }
                 }
                 std::unique_lock writeLock(_planeMutex);
-                if (candidateCost <= _cost) {
-                    _cost = candidateCost;
-                    _optPlane = candidatePlane;
-                    //store the callback arguments for later use
-                    _callbackArgs = std::tuple<std::decay_t<CallbackArgs>...>(std::forward<CallbackArgs>(args)...);
+                //re-checked since another thread may have updated _cost between the read lock above and this write lock.
+                if (isWorseThanCurrent(candidatePlane, candidateCost)) {
+                    setBest(candidatePlane, candidateCost, std::forward<CallbackArgs>(args)...);
                 }
+            }
+
+            /**
+                * Compares this OptimalPlane with another and returns the one with the lesser cost. If the costs are equal, the plane with the lesser axis coordinate is returned. Used to compare thread-local OptimalPlane instances and merge them into a single shared instance.
+                * @param other The other OptimalPlane to compare with.
+                * @return The OptimalPlane with the lesser cost.
+             */
+            friend OptimalPlane &planeWithLesserCost(OptimalPlane &one, OptimalPlane &two) {
+                if (one._cost < two._cost || (one._cost == two._cost && one._optPlane.axisCoordinate < two._optPlane.axisCoordinate)) {
+                    return one;
+                }
+                return two;
             }
 
             /** Retrieves the optimal split plane found so far.
