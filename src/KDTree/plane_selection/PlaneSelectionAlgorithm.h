@@ -152,7 +152,7 @@ namespace kdtree {
                 }
                 std::unique_lock writeLock(_planeMutex);
                 //re-checked since another thread may have updated _cost between the read lock above and this write lock.
-                if (isWorseThanCurrent(candidatePlane, candidateCost)) {
+                if (!isWorseThanCurrent(candidatePlane, candidateCost)) {
                     setBest(candidatePlane, candidateCost, std::forward<CallbackArgs>(args)...);
                 }
             }
