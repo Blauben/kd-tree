@@ -18,8 +18,11 @@ namespace kdtree {
         //each vertex proposes a split plane candidate: test for each of them, store them in a per-thread
         //buffer set to avoid duplicate testing. The set is kept per-thread (rather than shared behind a
         //lock) since duplicate testing across threads is harmless.
-        auto [vertex_begin, vertex_end] = transformIterator(boundObjects.cbegin(), boundObjects.cend(),
-                                                            splitParam.geometryObjects);
+        //no structured binding here - clang can't capture those in OMP regions
+        const auto vertexRange = transformIterator(boundObjects.cbegin(), boundObjects.cend(),
+                                                   splitParam.geometryObjects);
+        const auto vertex_begin = vertexRange.first;
+        const auto vertex_end = vertexRange.second;
         const std::ptrdiff_t vertexCount = std::distance(vertex_begin, vertex_end);
 
         //Evaluates both candidate planes proposed by a single vertex against optPlane, deduplicating
