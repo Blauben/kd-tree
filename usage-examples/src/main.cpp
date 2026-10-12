@@ -53,6 +53,18 @@ namespace {
         throw std::invalid_argument("Unknown algorithm '" + value + "'. Use LOG, LOGSQUARED, QUADRATIC or NOTREE.");
     }
 
+    [[nodiscard]] std::string forceModeName(const gravity_demo::SimulationConfig &config) {
+        if (!config.useKdTree) {
+            return "brute-force O(n^2)";
+        }
+        if (config.barnesHut) {
+            std::ostringstream name;
+            name << "KDTree Barnes-Hut (theta=" << config.barnesHutTheta << ")";
+            return name.str();
+        }
+        return "KDTree leaf-cluster approximation";
+    }
+
     void writeFrame(const std::filesystem::path &outputDir, const std::size_t step, const gravity_demo::Simulation &simulation) {
         std::filesystem::create_directories(outputDir);
         std::ostringstream fileName;
@@ -92,7 +104,7 @@ namespace {
 
         std::cout << "Comparing accuracy: " << options.simulation.particleCount << " particles, "
                   << options.steps << " steps, dt=" << options.simulation.timeStep
-                  << " (KDTree leaf-cluster approximation vs. brute-force O(n^2), identical initial conditions)\n";
+                  << " (" << forceModeName(kdTreeConfig) << " vs. brute-force O(n^2), identical initial conditions)\n";
 
         std::cout << "step,rms_position_error,max_position_error,kinetic_energy_kdtree,kinetic_energy_brute_force,relative_energy_error\n";
         double peakRmsError = 0.0;
@@ -155,6 +167,12 @@ int main(int argc, char **argv) {
     auto *kdTreeFlag = app.add_flag("--kd-tree,!--brute-force", options.simulation.useKdTree,
                                     "Use the KDTree leaf-cluster approximation (default) to compute forces, "
                                     "or a brute-force O(n^2) pairwise sum with --brute-force, to compare performance");
+    app.add_flag("--barnes-hut", options.simulation.barnesHut,
+                 "Use a Barnes-Hut traversal over the whole KDTree hierarchy instead of the flat "
+                 "leaf-cluster approximation (only with --kd-tree)");
+    app.add_option("--theta", options.simulation.barnesHutTheta,
+                   "Barnes-Hut opening angle, a node is approximated once size / distance < theta")
+            ->check(CLI::NonNegativeNumber);
     app.add_option("--output-dir", options.outputDir, "Directory CSV frames are written to");
     app.add_option("--output-interval", options.outputInterval, "Steps between CSV frame dumps, 0 disables output");
     app.add_flag("--debug", debug, "Enables debug mode");
@@ -176,7 +194,7 @@ int main(int argc, char **argv) {
 
         std::cout << "Gravity simulation: " << options.simulation.particleCount << " particles, "
                   << options.steps << " steps, dt=" << options.simulation.timeStep << ", force mode="
-                  << (options.simulation.useKdTree ? "KDTree leaf-cluster approximation" : "brute-force O(n^2)") << '\n';
+                  << forceModeName(options.simulation) << '\n';
         if (options.outputInterval > 0) {
             std::cout << "Writing CSV frames every " << options.outputInterval << " step(s) to '"
                       << options.outputDir << "'\n";

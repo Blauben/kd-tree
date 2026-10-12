@@ -1,10 +1,17 @@
 #include "Simulation.h"
 
+#include "KDTree/tree/LeafNode.h"
+#include "KDTree/tree/SplitNode.h"
 #include "KDTree/util/UtilityContainer.h"
 
+#include <algorithm>
 #include <cmath>
+#include <limits>
+#include <memory>
 #include <random>
 #include <shared_mutex>
+#include <tuple>
+#include <utility>
 
 namespace gravity_demo {
 
@@ -67,6 +74,11 @@ namespace gravity_demo {
           // mutating _positions in step() and calling rebuildTree() keeps the tree in sync
           // without having to reconstruct it (and re-hand every vertex) each step.
           _tree(_positions, config.algorithm, false) {
+        // tree is lazy and rebuildTreeIfNeeded() only asks existing leaves, so build it once up front
+        // otherwise adaptive mode never builds anything and all forces are zero
+        if (config.useKdTree) {
+            _tree.prebuildTree();
+        }
         _accelerations = computeNextAccelerations();
     }
 
@@ -82,12 +94,15 @@ namespace gravity_demo {
             _lastRebuildOccurred = false;
             return computeAccelerationsBruteForce();
         }
+        if (_config.barnesHut) {
+            return computeAccelerationsBarnesHut();
+        }
         const auto clusters = buildClusters();
         _lastClusterCount = clusters.size();
         return computeAccelerations(clusters);
     }
 
-    std::vector<Simulation::Cluster> Simulation::buildClusters() {
+    bool Simulation::updateTree() {
         if (!_config.adaptiveRebuild) {
             // Always rebuild the tree unconditionally every step, so the clusters are
             // always up to date with the current particle positions.
@@ -102,6 +117,11 @@ namespace gravity_demo {
             // The tree was not rebuilt, so the clusters are still valid from the previous step.
             _lastRebuildOccurred = false;
         }
+        return _lastRebuildOccurred;
+    }
+
+    std::vector<Simulation::Cluster> Simulation::buildClusters() {
+        updateTree();
 
         std::vector<Cluster> clusters{};
         std::shared_lock lock(_tree.nodeRegister.leafNodeMutex);
@@ -128,11 +148,133 @@ namespace gravity_demo {
     }
 
     kdtree::Vertex Simulation::accelerationTowardsCluster(const Vertex &position, const Cluster &cluster) const {
-        const Vertex delta = cluster.centerOfMass - position;
+        return pairAcceleration(position, cluster.centerOfMass, cluster.totalMass);
+    }
+
+    kdtree::Vertex Simulation::pairAcceleration(const Vertex &position, const Vertex &source, const double sourceMass) const {
+        const Vertex delta = source - position;
         const double distanceSquared = dot(delta, delta) + _config.softening * _config.softening;
         const double inverseDistance = 1.0 / std::sqrt(distanceSquared);
         const double inverseDistanceCubed = inverseDistance * inverseDistance * inverseDistance;
-        return delta * (_config.gravitationalConstant * cluster.totalMass * inverseDistanceCubed);
+        return delta * (_config.gravitationalConstant * sourceMass * inverseDistanceCubed);
+    }
+
+    void Simulation::flattenTree() {
+        using kdtree::LeafNode;
+        using kdtree::SplitNode;
+        using kdtree::TreeNode;
+
+        _barnesHutNodes.clear();
+        // (node, parent index, which child slot of the parent)
+        std::vector<std::tuple<std::shared_ptr<TreeNode>, int, int>> stack{{_tree.getRootNode(), -1, 0}};
+        std::size_t leafCount = 0;
+        while (!stack.empty()) {
+            auto [node, parent, slot] = std::move(stack.back());
+            stack.pop_back();
+            const int index = static_cast<int>(_barnesHutNodes.size());
+            _barnesHutNodes.emplace_back();
+            if (parent >= 0) {
+                _barnesHutNodes[parent].children[slot] = index;
+            }
+            if (const auto split = std::dynamic_pointer_cast<SplitNode>(node)) {
+                // greater first so lesser gets popped (and numbered) first, order doesn't really matter though
+                stack.emplace_back(split->getChildNode(1), index, 1);
+                stack.emplace_back(split->getChildNode(0), index, 0);
+            } else if (const auto leaf = std::dynamic_pointer_cast<LeafNode>(node)) {
+                for (const auto &[particleIndex, position]: leaf->getContainedParticles()) {
+                    _barnesHutNodes[index].members.push_back(particleIndex);
+                }
+                ++leafCount;
+            }
+        }
+        _lastClusterCount = leafCount;
+    }
+
+    void Simulation::updateBarnesHutNodes() {
+        constexpr double inf = std::numeric_limits<double>::infinity();
+        // pre-order -> walking backwards always sees both children before their parent
+        for (auto it = _barnesHutNodes.rbegin(); it != _barnesHutNodes.rend(); ++it) {
+            auto &node = *it;
+            node.totalMass = 0.0;
+            node.boxMin = {inf, inf, inf};
+            node.boxMax = {-inf, -inf, -inf};
+            Vertex weightedSum{0.0, 0.0, 0.0};
+            const auto include = [&node, &weightedSum](const Vertex &point, const Vertex &boxMin, const Vertex &boxMax, const double mass) {
+                weightedSum = weightedSum + point * mass;
+                node.totalMass += mass;
+                for (int d = 0; d < 3; ++d) {
+                    node.boxMin[d] = std::min(node.boxMin[d], boxMin[d]);
+                    node.boxMax[d] = std::max(node.boxMax[d], boxMax[d]);
+                }
+            };
+            if (node.children[0] < 0) {
+                for (const auto particleIndex: node.members) {
+                    include(_positions[particleIndex], _positions[particleIndex], _positions[particleIndex], _masses[particleIndex]);
+                }
+            } else {
+                for (const auto childIndex: node.children) {
+                    if (childIndex < 0) {
+                        continue;
+                    }
+                    const auto &child = _barnesHutNodes[childIndex];
+                    if (child.totalMass > 0.0) {
+                        include(child.centerOfMass, child.boxMin, child.boxMax, child.totalMass);
+                    }
+                }
+            }
+            node.centerOfMass = node.totalMass > 0.0 ? weightedSum / node.totalMass : Vertex{0.0, 0.0, 0.0};
+            node.size = 0.0;
+            for (int d = 0; d < 3 && node.totalMass > 0.0; ++d) {
+                node.size = std::max(node.size, node.boxMax[d] - node.boxMin[d]);
+            }
+        }
+    }
+
+    std::vector<kdtree::Vertex> Simulation::computeAccelerationsBarnesHut() {
+        // topology only changes on a rebuild, mass/com/boxes change every step
+        if (updateTree() || _barnesHutNodes.empty()) {
+            flattenTree();
+        }
+        updateBarnesHutNodes();
+
+        const double thetaSquared = _config.barnesHutTheta * _config.barnesHutTheta;
+        std::vector<Vertex> accelerations(_positions.size(), Vertex{0.0, 0.0, 0.0});
+        std::vector<int> stack{};
+        for (std::size_t i = 0; i < _positions.size(); ++i) {
+            const Vertex &position = _positions[i];
+            Vertex acceleration{0.0, 0.0, 0.0};
+            stack.assign(1, 0);
+            while (!stack.empty()) {
+                const auto &node = _barnesHutNodes[stack.back()];
+                stack.pop_back();
+                if (node.totalMass <= 0.0) {
+                    continue;
+                }
+                if (node.children[0] < 0) {
+                    // leaf: few particles, just sum them directly (skipping ourselves)
+                    for (const auto other: node.members) {
+                        if (other != i) {
+                            acceleration = acceleration + pairAcceleration(position, _positions[other], _masses[other]);
+                        }
+                    }
+                    continue;
+                }
+                const Vertex delta = node.centerOfMass - position;
+                const double distanceSquared = dot(delta, delta);
+                // opening criterion size / distance < theta, squared to skip the sqrt
+                if (node.size * node.size < thetaSquared * distanceSquared) {
+                    acceleration = acceleration + pairAcceleration(position, node.centerOfMass, node.totalMass);
+                    continue;
+                }
+                for (const auto childIndex: node.children) {
+                    if (childIndex >= 0) {
+                        stack.push_back(childIndex);
+                    }
+                }
+            }
+            accelerations[i] = acceleration;
+        }
+        return accelerations;
     }
 
     std::vector<kdtree::Vertex> Simulation::computeAccelerations(const std::vector<Cluster> &clusters) const {
