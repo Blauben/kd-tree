@@ -88,16 +88,20 @@ namespace kdtree {
         };
 
         if (nested) {
-#pragma omp taskloop grainsize(1) shared(processChunk)
             for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
+#pragma omp task shared(processChunk) firstprivate(chunk)
                 processChunk(chunk);
             }
+#pragma omp taskwait
         } else {
 #pragma omp parallel shared(processChunk)
 #pragma omp single
-#pragma omp taskloop grainsize(1) shared(processChunk)
-            for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
-                processChunk(chunk);
+            {
+                for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
+#pragma omp task shared(processChunk) firstprivate(chunk)
+                    processChunk(chunk);
+                }
+#pragma omp taskwait
             }
         }
         //sequential merge: at most chunkCount candidates, tie-break keeps it deterministic
