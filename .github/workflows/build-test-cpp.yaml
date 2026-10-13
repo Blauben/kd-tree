@@ -14,10 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # windows pinned to the VS 2022 image: windows-latest moved to VS 2026 (MSVC 19.51), whose
-        # /openmp:llvm backend crashes (c2 access violation) on the omp task code in SquaredPlane.cpp.
-        # MSVC 19.44 builds it fine, bump back to windows-latest once that's fixed upstream.
-        os: [windows-2025, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -49,6 +46,13 @@ jobs:
           pip install --group mesh-gen
       - uses: ilammy/msvc-dev-cmd@v1
         if: startsWith(matrix.os, 'windows')
+      # MSVC 19.51 (VS 2026 default toolset) crashes in its /openmp:llvm backend (c2 access violation)
+      # on the omp task code in SquaredPlane.cpp, 19.44 builds it fine. The VS 2026 image still ships
+      # the 14.44 toolset, so make the VS generator use that. Drop this once MSVC is fixed upstream.
+      - name: Pin MSVC toolset (Windows)
+        if: startsWith(matrix.os, 'windows')
+        shell: bash
+        run: echo "CMAKE_GENERATOR_TOOLSET=v143,version=14.44" >> "$GITHUB_ENV"
       - name: Install libomp (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install libomp
