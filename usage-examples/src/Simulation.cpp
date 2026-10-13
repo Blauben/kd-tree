@@ -261,8 +261,14 @@ namespace gravity_demo {
                 }
                 const Vertex delta = node.centerOfMass - position;
                 const double distanceSquared = dot(delta, delta);
+                // never approximate a node we're inside of, its com contains our own mass
+                // (otherwise happens for theta >= 1/sqrt(3) and we'd pull on ourselves)
+                bool containsPosition = true;
+                for (int d = 0; d < 3 && containsPosition; ++d) {
+                    containsPosition = node.boxMin[d] <= position[d] && position[d] <= node.boxMax[d];
+                }
                 // opening criterion size / distance < theta, squared to skip the sqrt
-                if (node.size * node.size < thetaSquared * distanceSquared) {
+                if (!containsPosition && node.size * node.size < thetaSquared * distanceSquared) {
                     acceleration = acceleration + pairAcceleration(position, node.centerOfMass, node.totalMass);
                     continue;
                 }

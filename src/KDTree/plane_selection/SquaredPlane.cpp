@@ -1,8 +1,5 @@
 #include "KDTree/plane_selection/SquaredPlane.h"
 
-#include <iterator>
-#include <utility>
-
 namespace kdtree {
     // O(N^2) implementation
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> SquaredPlane::findPlane(
@@ -51,9 +48,6 @@ namespace kdtree {
                 auto [candidateCost, minSideChosen] = costForPlane(
                         splitParam.boundingBox, candidatePlane, shapeIndexLists[0]->size(),
                         shapeIndexLists[1]->size(), shapeIndexLists[2]->size(), splitParam.particleMode);
-                if (optPlane.isWorseThanCurrent(candidatePlane, candidateCost)) {
-                    continue;
-                }
                 optPlane.evaluatePlane(candidatePlane, candidateCost, std::move(shapeIndexLists), minSideChosen);
             }
         };
@@ -71,27 +65,45 @@ namespace kdtree {
             return std::make_tuple(optPlane.getOptimalPlane(), optPlane.getCost(), optPlane.getPointsSplit());
         }
 
-        const int numThreads = omp_get_max_threads();
-        std::vector<std::unordered_set<double>> testedPlaneCoordinatesPerThread(numThreads);
+        //per-chunk buffers instead of per-thread ones, so it doesn't matter which thread runs which chunk.
+        //prebuildTree() calls us from inside its omp parallel/task tree, where a nested parallel for would
+        //just get a team of 1 -> hand out tasks to the existing team instead.
+        const bool nested = omp_in_parallel();
+        const int teamSize = nested ? omp_get_num_threads() : omp_get_max_threads();
+        //a few chunks per thread for load balancing, but not more than the work is worth
+        const std::ptrdiff_t chunkCount = std::clamp<std::ptrdiff_t>(
+                vertexCount / static_cast<std::ptrdiff_t>(constants::SQUARED_PLANE_PARALLEL_THRESHOLD),
+                1, static_cast<std::ptrdiff_t>(teamSize) * 4);
 
-        std::vector<std::unique_ptr<OptimalPlaneSquared>> localOptPlanesPerThread;
-        localOptPlanesPerThread.reserve(numThreads);
-        for (int t = 0; t < numThreads; ++t) {
-            // disable locking for thread-local instances, since they are never touched by any other thread during the parallel loop below.
-            localOptPlanesPerThread.push_back(std::make_unique<OptimalPlaneSquared>(splitParam, geoSubsetCallback, false));
-        }
+        std::vector<std::unique_ptr<OptimalPlaneSquared>> chunkOptPlanes(chunkCount);
+        const auto processChunk = [&](const std::ptrdiff_t chunk) {
+            const std::ptrdiff_t begin = vertexCount * chunk / chunkCount;
+            const std::ptrdiff_t end = vertexCount * (chunk + 1) / chunkCount;
+            //no locking needed, each chunk owns its plane
+            chunkOptPlanes[chunk] = std::make_unique<OptimalPlaneSquared>(splitParam, geoSubsetCallback, false);
+            std::unordered_set<double> testedPlaneCoordinates;
+            for (std::ptrdiff_t i = begin; i < end; ++i) {
+                evaluateVertexCandidates(*(vertex_begin + i), testedPlaneCoordinates, *chunkOptPlanes[chunk]);
+            }
+        };
 
-#pragma omp parallel for schedule(dynamic)
-        for (std::ptrdiff_t i = 0; i < vertexCount; i++) {
-            const int threadId = omp_get_thread_num();
-            auto &testedPlaneCoordinates = testedPlaneCoordinatesPerThread[threadId];
-            auto &localOptPlane = *localOptPlanesPerThread[threadId];
-            evaluateVertexCandidates(*(vertex_begin + i), testedPlaneCoordinates, localOptPlane);
+        if (nested) {
+#pragma omp taskloop grainsize(1) shared(processChunk)
+            for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
+                processChunk(chunk);
+            }
+        } else {
+#pragma omp parallel shared(processChunk)
+#pragma omp single
+#pragma omp taskloop grainsize(1) shared(processChunk)
+            for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
+                processChunk(chunk);
+            }
         }
-        //sequential merge: at most numThreads candidates
-        OptimalPlaneSquared *bestOptPlane = localOptPlanesPerThread[0].get();
-        for (std::size_t t = 1; t < localOptPlanesPerThread.size(); ++t) {
-            bestOptPlane = &planeWithLesserCost(*bestOptPlane, *localOptPlanesPerThread[t]);
+        //sequential merge: at most chunkCount candidates, tie-break keeps it deterministic
+        OptimalPlaneSquared *bestOptPlane = chunkOptPlanes[0].get();
+        for (std::size_t chunk = 1; chunk < chunkOptPlanes.size(); ++chunk) {
+            bestOptPlane = &planeWithLesserCost(*bestOptPlane, *chunkOptPlanes[chunk]);
         }
         //generate the shape index lists for the child bounding boxes and return them along with the optimal plane and the plane's cost.
         return std::make_tuple(bestOptPlane->getOptimalPlane(), bestOptPlane->getCost(), bestOptPlane->getPointsSplit());
