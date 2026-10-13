@@ -18,4 +18,12 @@ namespace kdtree {
      */
     inline const std::vector<long long> scaledMeshFaceAmounts{@KD_TREE_SCALED_MESH_AMOUNTS_CPP@};
 
+    /**
+     * Number of leading entries in scaledMeshFaceAmounts that are benchmarked with every
+     * plane-selection algorithm (see REGISTER_MESH_BENCHMARKS in kd_time_main.cpp). Entries beyond
+     * this count are only benchmarked with the LOG/LOGSQUARED algorithms, since NOTREE/QUADRATIC
+     * don't scale to larger mesh sizes. The value is set by the CMake configuration.
+     */
+    inline constexpr long long scaledMeshFullAlgorithmCount = @KD_TREE_SCALED_MESH_FULL_ALGORITHM_COUNT@;
+
 }// namespace kdtree

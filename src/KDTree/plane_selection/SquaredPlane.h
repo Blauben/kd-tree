@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <mutex>
