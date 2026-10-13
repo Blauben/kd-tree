@@ -14,7 +14,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        # windows pinned to the VS 2022 image: windows-latest moved to VS 2026 (MSVC 19.51), whose
+        # /openmp:llvm backend crashes (c2 access violation) on the omp task code in SquaredPlane.cpp.
+        # MSVC 19.44 builds it fine, bump back to windows-latest once that's fixed upstream.
+        os: [windows-2025, ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -45,7 +48,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --group mesh-gen
       - uses: ilammy/msvc-dev-cmd@v1
-        if: matrix.os == 'windows-latest'
+        if: startsWith(matrix.os, 'windows')
       - name: Install libomp (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install libomp
