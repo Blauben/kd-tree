@@ -25,6 +25,8 @@ CLUSTER="${CLUSTER:-inter}"
 PARTITION="${PARTITION:-cm4_inter}"
 CPUS="${CPUS:-112}"           # whole cm4 node, nodes are shared otherwise and neighbours mess with the timings
 TIME="${TIME:-04:00:00}"      # cm4_inter max
+ACCOUNT="${ACCOUNT:-}"        # only if your default account has no access to the partition, see 'sacctmgr' hint in run()
+QOS="${QOS:-}"
 OMP_THREADS="${OMP_THREADS:-$CPUS}"
 
 # benchmark settings
@@ -36,7 +38,7 @@ OUT_NAME_cpp="${OUT_NAME_cpp:-after-optimization-cpp.json}"
 OUT_NAME_omp="${OUT_NAME_omp:-after-optimization-omp.json}"
 
 # module names differ between cluster updates, check with `module avail gcc cmake python`
-MODULES="${MODULES:-cmake}"
+MODULES="${MODULES:-cmake gcc/15.2.0}"
 
 load_modules() {
     # non-interactive shells (srun) don't always have the module function, so pull it in
@@ -183,7 +185,13 @@ run() {
     logfile="$RESULTS_DIR/run-$(date +%Y%m%d-%H%M%S).log"
     log "requesting $CPUS cpus on $CLUSTER/$PARTITION for $TIME, log: $logfile"
     # srun doesn't inherit -c from salloc anymore, so pass it again
-    salloc -M "$CLUSTER" -p "$PARTITION" -N 1 -n 1 -c "$CPUS" -t "$TIME" --mail-user=ben.frauenknecht@tum.de --mail-type=END,FAIL \
+    local extra=()
+    [[ -n "$ACCOUNT" ]] && extra+=(-A "$ACCOUNT")
+    [[ -n "$QOS" ]] && extra+=(--qos "$QOS")
+    # on "Invalid account or account/partition combination": list yours with
+    #   sacctmgr show assoc user=$USER cluster="$CLUSTER" format=cluster,account,partition,qos%30
+    # and rerun with ACCOUNT=<account> (and QOS=<qos> if one is listed)
+    salloc -M "$CLUSTER" -p "$PARTITION" ${extra[@]+"${extra[@]}"} -N 1 -n 1 -c "$CPUS" -t "$TIME" --mail-user=ben.frauenknecht@tum.de --mail-type=END,FAIL \
         srun -n 1 -c "$CPUS" --cpu-bind=none \
         env CPUS="$CPUS" OMP_THREADS="$OMP_THREADS" REPETITIONS="$REPETITIONS" FILTER="$FILTER" \
             KDTREE_DIR="$KDTREE_DIR" BUILD_ROOT="$BUILD_ROOT" RESULTS_DIR="$RESULTS_DIR" MODULES="$MODULES" \
