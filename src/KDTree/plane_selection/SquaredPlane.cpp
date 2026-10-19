@@ -53,10 +53,6 @@ namespace kdtree {
         };
 
         if (vertexCount <= static_cast<std::ptrdiff_t>(constants::SQUARED_PLANE_PARALLEL_THRESHOLD)) {
-            //nodes this small are common (most tree nodes are near the leaves, where bounding boxes
-            //contain few shapes) and not worth the OMP dispatch overhead - thread-team spin-up plus a
-            //heap-allocated OptimalPlaneSquared and unordered_set per thread - which isn't amortized by
-            //this little work. Mirrors LeafNode.cpp's LEAF_THRUST_PARALLEL_THRESHOLD guard.
             OptimalPlaneSquared optPlane{splitParam, geoSubsetCallback, /*useLocking=*/false};
             std::unordered_set<double> testedPlaneCoordinates;
             for (auto it = vertex_begin; it != vertex_end; ++it) {
@@ -67,9 +63,9 @@ namespace kdtree {
 
         //per-chunk buffers instead of per-thread ones, so it doesn't matter which thread runs which chunk.
         //prebuildTree() calls us from inside its omp parallel/task tree, where a nested parallel for would
-        //just get a team of 1 -> hand out tasks to the existing team instead.
+        //just get a team of 1 -> process serially there, the tree-build tasks already keep the team busy.
         const bool nested = omp_in_parallel();
-        const int teamSize = nested ? omp_get_num_threads() : omp_get_max_threads();
+        const int teamSize = nested ? 1 : omp_get_max_threads();
         //a few chunks per thread for load balancing, but not more than the work is worth
         const std::ptrdiff_t chunkCount = std::clamp<std::ptrdiff_t>(
                 vertexCount / static_cast<std::ptrdiff_t>(constants::SQUARED_PLANE_PARALLEL_THRESHOLD),
@@ -89,19 +85,13 @@ namespace kdtree {
 
         if (nested) {
             for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
-#pragma omp task shared(processChunk) firstprivate(chunk)
                 processChunk(chunk);
             }
-#pragma omp taskwait
         } else {
-#pragma omp parallel shared(processChunk)
-#pragma omp single
-            {
-                for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
-#pragma omp task shared(processChunk) firstprivate(chunk)
-                    processChunk(chunk);
-                }
-#pragma omp taskwait
+            const int signedChunkCount = static_cast<int>(chunkCount);
+#pragma omp parallel for schedule(dynamic)
+            for (int chunk = 0; chunk < signedChunkCount; ++chunk) {
+                processChunk(chunk);
             }
         }
         //sequential merge: at most chunkCount candidates, tie-break keeps it deterministic
