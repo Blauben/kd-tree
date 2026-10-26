@@ -56,7 +56,7 @@ namespace kdtree {
         /**
          * Checks if a vertex lies in this box. Used for testing purposes. Useful for moving vertices to determine whether they are still contained in the same box after movement.
          * @param vertex The vertex to be checked.
-         * @param tolerance A tolerance value interpreted as a 1D distance. As some vertices might lie exactly on the box boundary (some even by construction!), this tolerance is used to still consider vertices that are close enough to the box as contained in the box. This is necessary to avoid unnecessary tree rebuilds when vertices move slightly outside of their original bounding boxes.
+         * @param tolerance The tolerance is interpreted as a fraction of the box's diagonal length. As some vertices might lie exactly on the box boundary (some even by construction!), this tolerance is used to still consider vertices that are close enough to the box as contained in the box.
          * @return whether the vertex is contained in the box within the given tolerance.
          */
         bool isVertexInBox(const Vertex &vertex, double tolerance) const;
