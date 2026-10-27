@@ -45,7 +45,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install --group mesh-gen
       - uses: ilammy/msvc-dev-cmd@v1
-        if: matrix.os == 'windows-latest'
+        if: startsWith(matrix.os, 'windows')
       - name: Install libomp (macOS)
         if: matrix.os == 'macos-latest'
         run: brew install libomp

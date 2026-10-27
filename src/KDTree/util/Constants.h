@@ -69,6 +69,15 @@ namespace kdtree::constants {
      */
     constexpr double SHAPE_INTERSECTION_COST = 1.0;
 
+    /**
+     * Threshold for the number of candidate vertices in a node below which SquaredPlane::findPlane
+     * evaluates candidate planes sequentially instead of via OpenMP. Most tree nodes are small (near
+     * the leaves), where the fixed cost of OMP dispatch - thread-team spin-up plus a heap-allocated
+     * OptimalPlane and dedup set per thread - is not amortized by the small amount of work available.
+     * Not empirically tuned; revisit via benchmarking if this turns out to be miscalibrated.
+     */
+    constexpr size_t SQUARED_PLANE_PARALLEL_THRESHOLD = 64;
+
     // ============================================================================
     // Ray-Geometry Intersection Constants
     // ============================================================================
@@ -80,10 +89,10 @@ namespace kdtree::constants {
     constexpr double EPSILON_RAY_POINT_OFFSET = 1e-2;
 
     /**
-     * Tolerance offset for vertex containment checks in bounding boxes.
+     * Tolerance offset for vertex containment checks in bounding boxes. The tolerance is interpreted as a fraction of the box's diagonal length. This is used to determine whether a vertex is considered to be contained within a bounding box, accounting for numerical inaccuracies and slight movements of vertices.
      * Used in needTreeRebuild() to check if vertices are within their expected bounding box.
      */
-    constexpr double EPSILON_VERTEX_BOX_TOLERANCE = 0.5;
+    constexpr double EPSILON_VERTEX_BOX_TOLERANCE = 0.1;
 
     /**
      * Threshold for the number of objects in a leaf node to determine whether to use Thrust on the device or host for intersection computations.

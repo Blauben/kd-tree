@@ -29,6 +29,26 @@ Integration uses kick-drift-kick leapfrog, a standard symplectic method for
 gravitational N-body systems, with Plummer softening to avoid singular forces
 between particles that pass very close to each other.
 
+### Barnes-Hut
+
+The leaf-cluster approximation only uses the leaves of the tree. Since the SAH tends to
+produce very small leaves (around two particles each), the number of clusters grows
+linearly with the particle count and the force calculation stays O(n²), just with a
+smaller constant. Pass `--barnes-hut` to use the whole tree hierarchy instead: after
+each (re)build the tree is flattened into an array, and every step an upward pass
+computes each node's combined mass, center of mass and tight bounding box from the
+current particle positions. Forces are then computed per particle by traversing the
+tree from the root and treating a node as a single point mass once
+`size / distance < theta` (`--theta`, default 0.5), recursing into its children
+otherwise. Leaves are summed directly. This brings the force calculation down to
+roughly O(n log n). `--theta 0` opens every node and reproduces the brute-force result
+exactly (up to floating point rounding), which is handy as a correctness check.
+
+```bash
+./usage-examples/build/gravity_sim --particles 8000 --steps 20 --barnes-hut --theta 0.5
+./usage-examples/build/gravity_sim --particles 1000 --steps 50 --barnes-hut --compare-accuracy
+```
+
 ### Comparing against brute force
 
 Pass `--brute-force` to disable the `KDTree` entirely: it is never built or queried,

@@ -18,7 +18,6 @@ namespace kdtree {
         for (const auto &handle: std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
             const GeometryObject &object = _splitParam->geometryObjects[handle];
             for (const auto &vertex: object.getVertices()) {
-                // TODO: set tolerance in relation to whole tree
                 if (!_splitParam->boundingBox.isVertexInBox(vertex, constants::EPSILON_VERTEX_BOX_TOLERANCE)) {
                     return true;
                 }
