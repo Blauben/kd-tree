@@ -15,7 +15,8 @@
 #SBATCH --time=08:00:00
 
 # Usage:
-#   sbatch script/slurm_benchmark.sh   # compute node: cmake configure + build, then run all missing chunks
+#   script/slurm_benchmark.sh setup    # login node: cmake configure, fetches deps so it needs internet
+#   sbatch script/slurm_benchmark.sh   # compute node: run mode (default), build + run all missing chunks
 #                                      # rerun after a timeout to continue with the missing chunks
 #   script/slurm_benchmark.sh status   # show which chunks are done
 #   script/slurm_benchmark.sh merge    # merge chunks into one json per build
@@ -41,38 +42,16 @@ MODULES="${MODULES:-cmake gcc/15.2.0}"
 log() { echo "[$(date '+%F %T')] $*"; }
 
 load_modules() {
-    # non-interactive shells don't always have the module function, so pull it in
-    if ! command -v module >/dev/null 2>&1; then
-        for f in /etc/profile.d/lmod.sh /etc/profile.d/modules.sh; do
-            # shellcheck disable=SC1090
-            [[ -f "$f" ]] && source "$f" && break
-        done
-    fi
-    if command -v module >/dev/null 2>&1; then
-        # lmod scripts reference unset variables
-        set +u
-        # shellcheck disable=SC2086
-        module load $MODULES
-        set -u
-    else
-        echo "warning: no module command, using whatever is on PATH" >&2
-    fi
+    module load $MODULES
     export CC="${CC:-gcc}" CXX="${CXX:-g++}"
-    # python module ships an older libstdc++ that shadows gcc's (CXXABI not found), gcc libs first
-    local libstdcxx
-    libstdcxx="$("$CXX" -print-file-name=libstdc++.so.6)"
-    if [[ "$libstdcxx" == /* ]]; then
-        export LD_LIBRARY_PATH="$(dirname "$libstdcxx")${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    fi
 }
 
 build_dir() { echo "$BUILD_ROOT/benchmark-$1"; }
 
-setup() {
-    load_modules
+configure() {
     cd "$KDTREE_DIR"
     for b in "${BUILDS[@]}"; do
-        log "building $b"
+        log "configuring $b"
         cmake -S "$KDTREE_DIR" -B "$(build_dir "$b")" \
             -DCMAKE_BUILD_TYPE=Release \
             -DKD_TREE_PARALLELIZATION="${b^^}" \
@@ -81,6 +60,14 @@ setup() {
             -DBUILD_KD_TREE_TESTS=OFF \
             -DBUILD_KD_TREE_PYTHON_INTERFACE=OFF \
             -DBUILD_KD_TREE_DOCS=OFF
+    done
+}
+
+build() {
+    for b in "${BUILDS[@]}"; do
+        # CMakeCache.txt also survives a failed configure, this one is only written on success
+        [[ -f "$(build_dir "$b")/cmake_install.cmake" ]] || { echo "error: $b not configured, run setup first" >&2; exit 1; }
+        log "building $b"
         cmake --build "$(build_dir "$b")" --target KDTree_time -j "${SLURM_CPUS_ON_NODE:-$(nproc)}"
     done
 }
@@ -126,7 +113,6 @@ run() {
 }
 
 status() {
-    load_modules
     for b in "${BUILDS[@]}"; do
         if [[ ! -x "$(build_dir "$b")/KDTree_time" ]]; then
             echo "$b: not built yet"
@@ -167,9 +153,9 @@ EOF
 }
 
 case "${1:-}" in
-    "") setup; run ;;
-    setup) setup ;;
-    status) status ;;
+    ""|run) load_modules; build; run ;;
+    setup) load_modules; configure ;;
+    status) load_modules; status ;;
     merge) merge ;;
     *) sed -n '17,22p' "$0"; exit 1 ;;
 esac
