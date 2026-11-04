@@ -1,6 +1,14 @@
-find_package(Git QUIET REQUIRED)
+find_package(Git QUIET)
+if (NOT GIT_FOUND)
+    message(WARNING "Git not found, commit hash will be UNKNOWN and version 0.0.0")
+endif()
 
 function(get_git_commit_hash OUTPUT_VAR)
+    if (NOT GIT_FOUND)
+        set(${OUTPUT_VAR} "UNKNOWN" PARENT_SCOPE)
+        return()
+    endif()
+
     # Run a Git command to get the first 8 characters of the current commit hash
     execute_process(
             COMMAND ${GIT_EXECUTABLE} rev-parse --short=8 HEAD
@@ -22,6 +30,12 @@ function(get_git_commit_hash OUTPUT_VAR)
 endfunction()
 
 function(is_git_working_tree_clean OUTPUT_VAR)
+    # no git, no idea - just say clean so we don't get UNKNOWN+modified
+    if (NOT GIT_FOUND)
+        set(${OUTPUT_VAR} TRUE PARENT_SCOPE)
+        return()
+    endif()
+
     # Run a Git command to check if the working tree is clean
     execute_process(
             COMMAND ${GIT_EXECUTABLE} diff-index --quiet HEAD --
@@ -46,14 +60,20 @@ function(is_git_working_tree_clean OUTPUT_VAR)
 endfunction()
 
 function(get_git_version_tag OUTPUT_VAR)
+    if (NOT GIT_FOUND)
+        set(${OUTPUT_VAR} "0.0.0" PARENT_SCOPE)
+        return()
+    endif()
+
     execute_process(
-            COMMAND git describe --tags --match "v[0-9]*.[0-9]*.[0-9]*"
+            COMMAND ${GIT_EXECUTABLE} describe --tags --match "v[0-9]*.[0-9]*.[0-9]*"
             WORKING_DIRECTORY ${KD_TREE_SOURCE_DIR}
             OUTPUT_VARIABLE GIT_TAG
             OUTPUT_STRIP_TRAILING_WHITESPACE
             ERROR_VARIABLE GIT_ERROR
     )
-    if(GIT_ERROR)
+    if(GIT_ERROR OR NOT GIT_TAG)
+        message(WARNING "Failed to retrieve Git version tag, using 0.0.0: ${GIT_ERROR}")
         set(VERSION_NUMBER "0.0.0")
     else()
         string(LENGTH ${GIT_TAG} TAG_LENGTH)
