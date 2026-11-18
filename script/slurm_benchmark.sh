@@ -15,7 +15,8 @@
 #SBATCH --time=08:00:00
 
 # Usage:
-#   sbatch script/slurm_benchmark.sh   # compute node: cmake configure + build, then run all missing chunks
+#   script/slurm_benchmark.sh setup    # login node: cmake configure, fetches deps so it needs internet
+#   sbatch script/slurm_benchmark.sh   # compute node: run mode (default), build + run all missing chunks
 #                                      # rerun after a timeout to continue with the missing chunks
 #   script/slurm_benchmark.sh status   # show which chunks are done
 #   script/slurm_benchmark.sh merge    # merge chunks into one json per build
@@ -36,43 +37,35 @@ OUT_NAME_cpp="${OUT_NAME_cpp:-after-optimization-cpp.json}"
 OUT_NAME_omp="${OUT_NAME_omp:-after-optimization-omp.json}"
 
 # module names differ between cluster updates, check with `module avail gcc cmake python`
+# SETUP_MODULES: used by `setup` only (python is needed there for the open3d scaling).
+# MODULES: used by run/status. It must NOT contain python: that module puts its own (old)
+# libstdc++ on LD_LIBRARY_PATH, which breaks binaries built with a newer gcc
+# (CXXABI_1.3.15 not found). In MODULES gcc comes last so its libstdc++ wins; load_modules also
+# prepends the compiler's libstdc++ dir to LD_LIBRARY_PATH, so the order in SETUP_MODULES is safe.
+# The merge step uses the system python3.
+SETUP_MODULES="${SETUP_MODULES:-cmake gcc/15.2.0 python/3.10.12-extended}"
 MODULES="${MODULES:-cmake gcc/15.2.0}"
 
 log() { echo "[$(date '+%F %T')] $*"; }
 
+# usage: load_modules "<module list>"
 load_modules() {
-    # non-interactive shells don't always have the module function, so pull it in
-    if ! command -v module >/dev/null 2>&1; then
-        for f in /etc/profile.d/lmod.sh /etc/profile.d/modules.sh; do
-            # shellcheck disable=SC1090
-            [[ -f "$f" ]] && source "$f" && break
-        done
-    fi
-    if command -v module >/dev/null 2>&1; then
-        # lmod scripts reference unset variables
-        set +u
-        # shellcheck disable=SC2086
-        module load $MODULES
-        set -u
-    else
-        echo "warning: no module command, using whatever is on PATH" >&2
-    fi
+    module load $1
     export CC="${CC:-gcc}" CXX="${CXX:-g++}"
-    # python module ships an older libstdc++ that shadows gcc's (CXXABI not found), gcc libs first
-    local libstdcxx
-    libstdcxx="$("$CXX" -print-file-name=libstdc++.so.6)"
-    if [[ "$libstdcxx" == /* ]]; then
-        export LD_LIBRARY_PATH="$(dirname "$libstdcxx")${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
-    fi
+    # make sure the runtime libstdc++ is the one belonging to the compiler that built the binary,
+    # regardless of what other modules or the environment put on LD_LIBRARY_PATH
+    local libdir
+    libdir="$(dirname "$(readlink -f "$("$CXX" -print-file-name=libstdc++.so)")")"
+    export LD_LIBRARY_PATH="$libdir${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+    log "using $("$CXX" --version | head -n1), libstdc++ from $libdir"
 }
 
 build_dir() { echo "$BUILD_ROOT/benchmark-$1"; }
 
-setup() {
-    load_modules
+configure() {
     cd "$KDTREE_DIR"
     for b in "${BUILDS[@]}"; do
-        log "building $b"
+        log "configuring $b"
         cmake -S "$KDTREE_DIR" -B "$(build_dir "$b")" \
             -DCMAKE_BUILD_TYPE=Release \
             -DKD_TREE_PARALLELIZATION="${b^^}" \
@@ -81,6 +74,14 @@ setup() {
             -DBUILD_KD_TREE_TESTS=OFF \
             -DBUILD_KD_TREE_PYTHON_INTERFACE=OFF \
             -DBUILD_KD_TREE_DOCS=OFF
+    done
+}
+
+build() {
+    for b in "${BUILDS[@]}"; do
+        # CMakeCache.txt also survives a failed configure, this one is only written on success
+        [[ -f "$(build_dir "$b")/cmake_install.cmake" ]] || { echo "error: $b not configured, run setup first" >&2; exit 1; }
+        log "building $b"
         cmake --build "$(build_dir "$b")" --target KDTree_time -j "${SLURM_CPUS_ON_NODE:-$(nproc)}"
     done
 }
@@ -96,7 +97,12 @@ chunk_file() { echo "$RESULTS_DIR/$1/${2//\//__}.json"; }
 # runs the missing chunks, finished ones are skipped
 run() {
     export OMP_NUM_THREADS="${OMP_NUM_THREADS:-${SLURM_CPUS_ON_NODE:-$(nproc)}}" OMP_PROC_BIND=close OMP_PLACES=cores
-    log "host $(hostname), OMP_NUM_THREADS=$OMP_NUM_THREADS, kd-tree $(git -C "$KDTREE_DIR" rev-parse --short HEAD)"
+    # git is not on PATH on the compute nodes (--export=NONE), so the revision is optional
+    local rev=unknown
+    if command -v git >/dev/null 2>&1; then
+        rev="$(git -C "$KDTREE_DIR" rev-parse --short HEAD 2>/dev/null || echo unknown)"
+    fi
+    log "host $(hostname), OMP_NUM_THREADS=$OMP_NUM_THREADS, kd-tree $rev"
     for b in "${BUILDS[@]}"; do
         [[ -x "$(build_dir "$b")/KDTree_time" ]] || { echo "error: $b build is missing" >&2; exit 1; }
         mkdir -p "$RESULTS_DIR/$b"
@@ -126,7 +132,6 @@ run() {
 }
 
 status() {
-    load_modules
     for b in "${BUILDS[@]}"; do
         if [[ ! -x "$(build_dir "$b")/KDTree_time" ]]; then
             echo "$b: not built yet"
@@ -167,9 +172,9 @@ EOF
 }
 
 case "${1:-}" in
-    "") setup; run ;;
-    setup) setup ;;
-    status) status ;;
+    ""|run) load_modules "$MODULES"; build; run ;;
+    setup) load_modules "$SETUP_MODULES"; configure ;;
+    status) load_modules "$MODULES"; status ;;
     merge) merge ;;
     *) sed -n '17,22p' "$0"; exit 1 ;;
 esac
