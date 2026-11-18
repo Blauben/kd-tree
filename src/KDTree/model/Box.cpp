@@ -54,9 +54,11 @@ namespace kdtree {
     }
 
     bool Box::isVertexInBox(const Vertex &vertex, double tolerance) const {
+        using namespace util;
+        auto diagonalLength = euclideanNorm(maxPoint - minPoint);
         return std::ranges::all_of(ALL_DIRECTIONS.begin(), ALL_DIRECTIONS.end(), [&](const Direction direction) {
             const int index{static_cast<int>(direction)};
-            return !(vertex[index] <= minPoint[index] - tolerance || vertex[index] >= maxPoint[index] + tolerance);
+            return !(vertex[index] <= minPoint[index] - tolerance * diagonalLength || vertex[index] >= maxPoint[index] + tolerance * diagonalLength);
         });
     }
 

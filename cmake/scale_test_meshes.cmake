@@ -10,7 +10,12 @@ set_property(GLOBAL PROPERTY KD_TREE_SCALED_MESHES_GENERATED TRUE)
 
 # Canonical list of face/node counts for the scaled Eros/sphere benchmark mesh variants.
 # This is the source of truth for all scripts using the scaled meshes, and should only be updated here.
-set(KD_TREE_SCALED_MESH_AMOUNTS 1000 1732 3000 5196 9000 15588 27000 46765 81000 140296)
+# Each entry is round(1000 * sqrt(3)^k) for k = 0, 1, 2, ..., so data points are evenly spaced on a
+# log scale (matches scale_mesh.py's --face-amounts default, kept in sync by hand).
+set(KD_TREE_SCALED_MESH_AMOUNTS 1000 1732 3000 5196 9000 15588 27000 46765 81000 140296 243000 420888 729000 1262665)
+
+# less performant algorithms (e.g. brute force) are only run on the first 10 scaled meshes, to keep the test runtime reasonable
+set(KD_TREE_SCALED_MESH_FULL_ALGORITHM_COUNT 10)
 
 ##########################################################
 # Generating the scaled benchmark meshes via Python

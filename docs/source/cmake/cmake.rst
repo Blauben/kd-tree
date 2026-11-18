@@ -49,7 +49,9 @@ Project Options
 +--------------------------------------+--------------------------------------------------+---------------------------------------------------------------------------------------------------+
 | ``BUILD_KD_TREE_TIME_MEASUREMENT``   | ``OFF``                                          | Build benchmark executable ``KDTree_time``.                                                       |
 +--------------------------------------+--------------------------------------------------+---------------------------------------------------------------------------------------------------+
-| ``BUILD_KD_TREE_EXAMPLES``           | ``OFF``                                          | Build example executables for showing usage.                                                      |
+| ``ENABLE_ITT_INSTRUMENTATION``       | ``OFF``                                          | Add Intel ITT/VTune instrumentation to ``KDTree_time`` (fetches ``ittapi`` if not installed).     |
++--------------------------------------+--------------------------------------------------+---------------------------------------------------------------------------------------------------+
+| ``BUILD_KD_TREE_EXAMPLES``           | ``OFF``                                          | Build the example executables from ``usage-examples/`` showing how to use the library.            |
 +--------------------------------------+--------------------------------------------------+---------------------------------------------------------------------------------------------------+
 | ``ENABLE_IWYU``                      | ``OFF``                                          | Enable include-what-you-use integration during compilation.                                       |
 +--------------------------------------+--------------------------------------------------+---------------------------------------------------------------------------------------------------+
@@ -61,10 +63,22 @@ Project Options
 ``BUILD_KD_TREE_LIBRARY`` is a dependent option and is forced ``ON`` when
 the executable or tests are enabled.
 
+``ENABLE_ITT_INSTRUMENTATION`` is a dependent option and is only available
+when ``BUILD_KD_TREE_TIME_MEASUREMENT`` is ``ON``; otherwise it's forced ``OFF``.
+
 ``BUILD_KD_TREE_TIME_MEASUREMENT`` is ``OFF`` in ``test-release``/``test-debug``,
 so the default test workflows don't compile the benchmark executable on every
 push. It's built and exercised separately via ``release-debug-symbols`` /
 ``build-and-test-benchmarks``.
+
+``BUILD_KD_TREE_EXAMPLES`` is ``ON`` in ``test-release``/``test-debug``, so the
+usage examples get compiled alongside the tests and don't silently rot. To build
+them on their own, pass the switch manually:
+
+.. code-block:: bash
+
+   cmake -S . -B build/examples -DCMAKE_BUILD_TYPE=Release -DBUILD_KD_TREE_EXAMPLES=ON
+   cmake --build build/examples
 
 Standard CMake Variables
 ------------------------
@@ -91,9 +105,9 @@ Configure presets (from ``CMakePresets.json``):
 +---------------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
 | ``release-omp``           | ``release``     | Release build with OpenMP backend.                                                                        |
 +---------------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| ``test-release``          | ``release-omp`` | Test build in Release with ``BUILD_KD_TREE_TESTS=ON``.                                                    |
+| ``test-release``          | ``release-omp`` | Test build in Release with ``BUILD_KD_TREE_TESTS=ON`` and ``BUILD_KD_TREE_EXAMPLES=ON``.                  |
 +---------------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
-| ``test-debug``            | ``debug``       | Test build in Debug with ``BUILD_KD_TREE_TESTS=ON``.                                                      |
+| ``test-debug``            | ``debug``       | Test build in Debug with ``BUILD_KD_TREE_TESTS=ON`` and ``BUILD_KD_TREE_EXAMPLES=ON``.                    |
 +---------------------------+-----------------+-----------------------------------------------------------------------------------------------------------+
 | ``python``                | ``release``     | Python interface (CPP backend), CLI off.                                                                  |
 +---------------------------+-----------------+-----------------------------------------------------------------------------------------------------------+

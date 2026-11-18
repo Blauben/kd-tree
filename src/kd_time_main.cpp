@@ -208,14 +208,18 @@ namespace kdtree {
     }
 
 
-#define REGISTER_MESH_BENCHMARKS(prefix, mesh)                                                                                                                                                                          \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/NoTree", mesh, PlaneSelectionAlgorithm::Algorithm::NOTREE)->Name(prefix "/NoTree")->DenseRange(0, mesh.size() - 1, 1);                                             \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Quadratic", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/Quadratic")->DenseRange(0, std::max(mesh.size() - 3, 0LL), 1);                     \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/LogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/LogSquared")->DenseRange(0, mesh.size() - 1, 1);                                 \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Log", mesh, PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/Log")->DenseRange(0, mesh.size() - 1, 1);                                                      \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Twice, prefix "/SecondRun", mesh)->Name(prefix "/SecondRun")->DenseRange(0, mesh.size() - 1, 1);                                                                             \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeSquared", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/BuildTreeSquared")->DenseRange(0, std::max(mesh.size() - 3, 0LL), 1); \
-    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/BuildTreeLogSquared")->DenseRange(0, mesh.size() - 1, 1);         \
+// NoTree/Quadratic (and the Quadratic-based BuildTreeSquared) don't scale to larger mesh sizes, so
+// they're capped at scaledMeshFullAlgorithmCount regardless of how many sizes a mesh actually has;
+// appending new, larger sizes to scaledMeshFaceAmounts therefore only grows the Log/LogSquared (and
+// SecondRun, which always builds with LOG) benchmark ranges below, not these capped ones.
+#define REGISTER_MESH_BENCHMARKS(prefix, mesh)                                                                                                                                                                                                                  \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/NoTree", mesh, PlaneSelectionAlgorithm::Algorithm::NOTREE)->Name(prefix "/NoTree")->DenseRange(0, std::min(mesh.size(), scaledMeshFullAlgorithmCount) - 1, 1);                                             \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Quadratic", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/Quadratic")->DenseRange(0, std::max(std::min(mesh.size(), scaledMeshFullAlgorithmCount) - 3, 0LL), 1);                     \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/LogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/LogSquared")->DenseRange(0, mesh.size() - 1, 1);                                                                         \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree, prefix "/Log", mesh, PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/Log")->DenseRange(0, mesh.size() - 1, 1);                                                                                              \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Twice, prefix "/SecondRun", mesh)->Name(prefix "/SecondRun")->DenseRange(0, mesh.size() - 1, 1);                                                                                                                     \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeSquared", mesh, PlaneSelectionAlgorithm::Algorithm::QUADRATIC)->Name(prefix "/BuildTreeSquared")->DenseRange(0, std::max(std::min(mesh.size(), scaledMeshFullAlgorithmCount) - 3, 0LL), 1); \
+    BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLogSquared", mesh, PlaneSelectionAlgorithm::Algorithm::LOGSQUARED)->Name(prefix "/BuildTreeLogSquared")->DenseRange(0, mesh.size() - 1, 1);                                                 \
     BENCHMARK_CAPTURE(BM_Intersection_Tree_Build, prefix "/BuildTreeLog", mesh, PlaneSelectionAlgorithm::Algorithm::LOG)->Name(prefix "/BuildTreeLog")->DenseRange(0, mesh.size() - 1, 1);
 
     // eros mesh benchmarks

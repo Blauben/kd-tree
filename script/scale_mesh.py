@@ -19,10 +19,16 @@ class Node:
 
     @staticmethod
     def from_line(line):
-        index, *floats = line.split()
-        index = int(index)
-        floats = list(map(float, floats))
-        return Node(index, *floats)
+        try:
+            index, *floats = line.split()
+            index = int(index)
+            floats = list(map(float, floats))
+            if len(floats) != 3:
+                raise ValueError("Node line must contain exactly 3 coordinates.")
+            return Node(index, *floats)
+        except Exception as e:
+            print(f"Error parsing node line: {line}")
+            raise e
 
 
     def vertex(self):
@@ -83,46 +89,52 @@ def mesh_from_node_face(nodes, faces):
     return o3d.geometry.TriangleMesh(vertices=o3d.utility.Vector3dVector(vertices), triangles=o3d.utility.Vector3iVector(triangles))
 
 
-def node_face_from_mesh(mesh):
+class MeshScaler:
+    """Scales a base mesh to several face counts, sharing Loop subdivisions between targets.
+
+    Subdividing is the expensive step and its result only depends on the iteration count, so each
+    subdivision level is computed once (building on the previous level) and reused by every
+    target needing it. Every target is still decimated from a subdivided base mesh, never from
+    another decimated one, so output is identical to scaling each target independently.
+    """
+
+    def __init__(self, base_mesh):
+        if len(base_mesh.triangles) == 0:
+            raise ValueError("The mesh has no triangles. Cannot scale an empty mesh.")
+        self.base_triangles = len(base_mesh.triangles)
+        self.levels = {0: base_mesh}
+
+    def _subdivided(self, iterations):
+        if iterations not in self.levels:
+            closest = max(level for level in self.levels if level < iterations)
+            self.levels[iterations] = self.levels[closest].subdivide_loop(
+                number_of_iterations=iterations - closest)
+        return self.levels[iterations]
+
+    def scale(self, number_of_faces):
+        iterations = max(0, math.ceil(math.log(number_of_faces / self.base_triangles) / math.log(4)))
+        mesh = self._subdivided(iterations)
+        mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=number_of_faces)
+        return mesh.remove_unreferenced_vertices()
+
+
+def write_to_file(mesh, filename):
     vertices = np.asarray(mesh.vertices).tolist()
     triangles = np.asarray(mesh.triangles).tolist()
-    nodes = [Node(i, *vertex) for i, vertex in enumerate(vertices)]
-    faces = [Face(i, *triangle) for i, triangle in enumerate(triangles)]
-    return nodes, faces
 
-
-def scale_mesh(mesh, number_of_faces):
-    num_triangles = len(mesh.triangles)
-    if num_triangles == 0:
-        raise ValueError("The mesh has no triangles. Cannot scale an empty mesh.")
-    iterations = max(0, math.ceil(math.log(number_of_faces / num_triangles) / math.log(4)))
-    if iterations > 0:
-        mesh = mesh.subdivide_loop(number_of_iterations=iterations)
-    mesh = mesh.simplify_quadric_decimation(target_number_of_triangles=number_of_faces)
-    mesh = mesh.remove_unreferenced_vertices()
-    return mesh
-
-
-def write_to_file(nodes, faces, filename):
     with open(f"{filename}.node", "w") as f:
         f.write("# Adapted from https://github.com/darioizzo/geodesyNets/tree/master/3dmeshes\n")
         f.write("# Node count, 3 dimensions, no attribute, no boundary marker\n")
-        f.write(f"{len(nodes)} 3 0 0\n")
+        f.write(f"{len(vertices)} 3 0 0\n")
         f.write("# Node index, node coordinates\n")
-
-        for node in nodes:
-            line = f"{node.idx} {node.x} {node.y} {node.z}\n"
-            f.write(line)
+        f.write("".join(f"{i} {x} {y} {z}\n" for i, (x, y, z) in enumerate(vertices)))
 
     with open(f"{filename}.face", "w") as f:
         f.write("# Adapted from https://github.com/darioizzo/geodesyNets/tree/master/3dmeshes\n")
         f.write("# Number of faces, boundary marker off\n")
-        f.write(f"{len(faces)} 0\n")
+        f.write(f"{len(triangles)} 0\n")
         f.write("# Face index, nodes of face\n")
-
-        for face in faces:
-            line = f"{face.idx} {face.v_idx1} {face.v_idx2} {face.v_idx3}\n"
-            f.write(line)
+        f.write("".join(f"{i} {a} {b} {c}\n" for i, (a, b, c) in enumerate(triangles)))
 
 
 def main():
@@ -133,25 +145,26 @@ def main():
     input_group.add_argument("--ply", metavar="PLY_FILE",
                               help="Path to a single .ply mesh file to scale.")
     parser.add_argument("--face-amounts", type=int, nargs="+",
-                         default=[round(1000 * math.sqrt(3) ** k) for k in range(10)],
+                         default=[round(1000 * math.sqrt(3) ** k) for k in range(14)],
                          help="Target face counts to generate scaled variants for "
-                              "(default: round(1000 * sqrt(3)^k) for k in range(10)).")
+                              "(default: round(1000 * sqrt(3)^k) for k in range(14)).")
     args = parser.parse_args()
+    # Ascending order lets MeshScaler build each subdivision level on top of the previous one.
+    args.face_amounts = sorted(set(args.face_amounts))
 
     if args.node_face:
         node_file, face_file = args.node_face
         filename = os.path.splitext(node_file)[0]
         nodes, faces = fetch_data(node_file, face_file)
         base_mesh = mesh_from_node_face(nodes, faces)
+        scaler = MeshScaler(base_mesh)
         for amount in args.face_amounts:
-            scaled_mesh = scale_mesh(base_mesh, amount)
-            scaled_nodes, scaled_faces = node_face_from_mesh(scaled_mesh)
-            write_to_file(scaled_nodes, scaled_faces, f"{filename}_scaled-{amount}")
+            write_to_file(scaler.scale(amount), f"{filename}_scaled-{amount}")
     else:
         filename = os.path.splitext(args.ply)[0]
-        base_mesh = o3d.io.read_triangle_mesh(args.ply)
+        scaler = MeshScaler(o3d.io.read_triangle_mesh(args.ply))
         for amount in args.face_amounts:
-            scaled_mesh = scale_mesh(base_mesh, amount)
+            scaled_mesh = scaler.scale(amount)
             o3d.io.write_triangle_mesh(f"{filename}_scaled-{amount}.ply", scaled_mesh, write_ascii=True)
 
 

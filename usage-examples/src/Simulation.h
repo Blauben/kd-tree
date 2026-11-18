@@ -8,11 +8,16 @@
 // the tree is kept in sync via KDTree::rebuildTreeIfNeeded(), which only performs a
 // full rebuild once a particle has actually moved outside its leaf's bounding box
 // instead of unconditionally rebuilding every step.
+//
+// With SimulationConfig::barnesHut the whole tree hierarchy is used instead (Barnes-Hut):
+// every node carries its combined mass/center of mass and is approximated as one point
+// mass once it's far enough away, which gets the force calculation down to ~O(n log n).
 #pragma once
 
 #include "KDTree/plane_selection/PlaneSelectionAlgorithm.h"
 #include "KDTree/tree/KDTree.h"
 
+#include <array>
 #include <cstddef>
 #include <iostream>
 #include <vector>
@@ -43,6 +48,18 @@ namespace gravity_demo {
          * pair, so the two modes' timings can be compared directly.
          */
         bool useKdTree = true;
+        /**
+         * Only used with useKdTree. If true, forces are computed with a Barnes-Hut traversal
+         * over the whole KDTree hierarchy instead of the flat leaf-cluster approximation:
+         * every node (inner nodes too) carries its combined mass and center of mass, and a
+         * node is treated as a single point mass once size / distance < barnesHutTheta.
+         */
+        bool barnesHut = false;
+        /**
+         * Barnes-Hut opening angle. Smaller is more accurate and slower, 0 degenerates to an
+         * exact (but slower than brute force) traversal down to every leaf.
+         */
+        double barnesHutTheta = 0.5;
     };
 
     /**
@@ -97,7 +114,39 @@ namespace gravity_demo {
             std::vector<std::pair<size_t, kdtree::Vertex>> members{};
         };
 
+        /**
+         * A KDTree node flattened into an array for the Barnes-Hut traversal. The topology
+         * (children/members) only changes on a tree rebuild, mass/center of mass/size are
+         * refreshed every step since particles move.
+         */
+        struct BarnesHutNode {
+            std::array<int, 2> children{-1, -1};// -1 -> leaf
+            std::vector<std::size_t> members{}; // particle indices, only filled for leaves
+            double totalMass = 0.0;
+            kdtree::Vertex centerOfMass{};
+            double size = 0.0;// longest edge of the tight bounding box around the node's particles
+            kdtree::Vertex boxMin{};
+            kdtree::Vertex boxMax{};
+        };
+
+        /**
+         * Rebuilds the KDTree if needed (or always, without adaptive rebuilding) and updates
+         * _lastRebuildOccurred. Returns whether the tree changed.
+         */
+        bool updateTree();
         [[nodiscard]] std::vector<Cluster> buildClusters();
+        /**
+         * Copies the KDTree hierarchy into _barnesHutNodes in pre-order, so children always come
+         * after their parent and the upward pass is a simple reverse loop.
+         */
+        void flattenTree();
+        /**
+         * Upward pass: recomputes mass, center of mass and bounding box of every node from the
+         * current particle positions in O(n).
+         */
+        void updateBarnesHutNodes();
+        [[nodiscard]] std::vector<kdtree::Vertex> computeAccelerationsBarnesHut();
+        [[nodiscard]] kdtree::Vertex pairAcceleration(const kdtree::Vertex &position, const kdtree::Vertex &source, double sourceMass) const;
         [[nodiscard]] std::vector<kdtree::Vertex> computeAccelerations(const std::vector<Cluster> &clusters) const;
         [[nodiscard]] kdtree::Vertex accelerationTowardsCluster(const kdtree::Vertex &position, const Cluster &cluster) const;
         /**
@@ -114,6 +163,7 @@ namespace gravity_demo {
         std::vector<double> _masses;
         std::vector<kdtree::Vertex> _accelerations;
         kdtree::KDTree _tree;
+        std::vector<BarnesHutNode> _barnesHutNodes;
         std::size_t _lastClusterCount = 0;
         bool _lastRebuildOccurred = true;
     };
