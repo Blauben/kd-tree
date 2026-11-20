@@ -7,6 +7,13 @@ message(STATUS "Setting up thrust")
 
 set(THRUST_VERSION 3.4.2)
 
+# Parent project (e.g. via FetchContent) already set thrust up -> reuse it, otherwise both
+# end up fighting over the same "thrust" FetchContent name / _deps/thrust-src directory
+if (COMMAND thrust_create_target)
+    message(STATUS "Thrust already provided by the parent project. Using existing setup.")
+    return()
+endif ()
+
 find_package(Thrust ${THRUST_VERSION} QUIET)
 
 if (${Thrust_FOUND})
@@ -17,6 +24,8 @@ else()
             GIT_REPOSITORY https://github.com/NVIDIA/cccl.git
             GIT_TAG v${THRUST_VERSION}
             GIT_SHALLOW TRUE
+            # cccl has paths way past MAX_PATH, clone dies on Windows without this
+            GIT_CONFIG core.longpaths=true
             )
     FetchContent_MakeAvailable(thrust)
 endif()

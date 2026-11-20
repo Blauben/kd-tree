@@ -22,12 +22,15 @@ if(NOT TARGET tetgen_lib)
                 $<BUILD_INTERFACE:${tetgen_SOURCE_DIR}>
                 $<INSTALL_INTERFACE:include/tetgen>
         )
+        set(KD_TREE_TETGEN_TARGET tetgen)
 else()
         message(STATUS "tetgen library already exists in the project. Using existing target. CAUTION: library modifications may not be applied.")
+        # parent's tetgen_lib has the include dirs, its raw "tetgen" target doesn't
+        set(KD_TREE_TETGEN_TARGET tetgen_lib)
 endif()
 
 if(NOT TARGET tetgen::tetgen)
-        add_library(tetgen::tetgen ALIAS tetgen)
+        add_library(tetgen::tetgen ALIAS ${KD_TREE_TETGEN_TARGET})
 else()
         message(STATUS "tetgen::tetgen target already exists. Using existing target.")
 endif()

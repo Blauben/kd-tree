@@ -19,7 +19,7 @@ set_target_properties(${PROJECT_NAME}_lib PROPERTIES
 # Install targets, headers and exported target file for package config
 include(GNUInstallDirs)
 
-install(TARGETS ${PROJECT_NAME}_lib tetgen
+install(TARGETS ${PROJECT_NAME}_lib ${KD_TREE_TETGEN_TARGET}
     EXPORT KDTreeTargets
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
