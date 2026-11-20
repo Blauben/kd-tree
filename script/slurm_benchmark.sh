@@ -5,13 +5,13 @@
 #SBATCH -J Blauben-kd-tree-bench
 #SBATCH --get-user-env
 #SBATCH --clusters=cm4
-#SBATCH --partition=cm4_std
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=112
+#SBATCH --partition=cm4_tiny
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=112
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=ben.frauenknecht@tum.de
 #SBATCH --export=NONE
-#SBATCH --qos=cm4_std
+#SBATCH --qos=cm4_tiny
 #SBATCH --time=08:00:00
 
 # Usage:
@@ -20,6 +20,7 @@
 #                                      # rerun after a timeout to continue with the missing chunks
 #   script/slurm_benchmark.sh status   # show which chunks are done
 #   script/slurm_benchmark.sh merge    # merge chunks into one json per build
+#   sbatch --export=BENCH_THREADS=56 script/slurm_benchmark.sh   # other thread count, default is all allocated cpus
 
 set -euo pipefail
 
@@ -96,7 +97,8 @@ chunk_file() { echo "$RESULTS_DIR/$1/${2//\//__}.json"; }
 
 # runs the missing chunks, finished ones are skipped
 run() {
-    export OMP_NUM_THREADS="${OMP_NUM_THREADS:-${SLURM_CPUS_ON_NODE:-$(nproc)}}" OMP_PROC_BIND=close OMP_PLACES=cores
+    # don't inherit OMP_NUM_THREADS, the login env (--get-user-env) sets it to 1. override via BENCH_THREADS
+    export OMP_NUM_THREADS="${BENCH_THREADS:-${SLURM_CPUS_ON_NODE:-$(nproc)}}" OMP_PROC_BIND=close OMP_PLACES=cores
     # git is not on PATH on the compute nodes (--export=NONE), so the revision is optional
     local rev=unknown
     if command -v git >/dev/null 2>&1; then
@@ -176,5 +178,5 @@ case "${1:-}" in
     setup) load_modules "$SETUP_MODULES"; configure ;;
     status) load_modules "$MODULES"; status ;;
     merge) merge ;;
-    *) sed -n '17,22p' "$0"; exit 1 ;;
+    *) sed -n '17,23p' "$0"; exit 1 ;;
 esac
