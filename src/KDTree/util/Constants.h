@@ -74,9 +74,10 @@ namespace kdtree::constants {
      * evaluates candidate planes sequentially instead of via OpenMP. Most tree nodes are small (near
      * the leaves), where the fixed cost of OMP dispatch - thread-team spin-up plus a heap-allocated
      * OptimalPlane and dedup set per thread - is not amortized by the small amount of work available.
-     * Not empirically tuned; revisit via benchmarking if this turns out to be miscalibrated.
+     * Also sets the chunk count (vertexCount / threshold, capped at 4 * threads), so bigger values mean fewer chunks.
+     * Grid-searched over 1..1024 on Eros/67P meshes: 4 stays within ~13% of the best everywhere, 64 was up to 2.3x slower.
      */
-    constexpr size_t SQUARED_PLANE_PARALLEL_THRESHOLD = 64;
+    constexpr size_t SQUARED_PLANE_PARALLEL_THRESHOLD = 4;
 
     // ============================================================================
     // Ray-Geometry Intersection Constants
@@ -95,8 +96,9 @@ namespace kdtree::constants {
     constexpr double EPSILON_VERTEX_BOX_TOLERANCE = 0.1;
 
     /**
-     * Threshold for the number of objects in a leaf node to determine whether to use Thrust on the device or host for intersection computations.
-     * If the number of objects exceeds this threshold, Thrust will be used on the device (GPU) for parallel processing; otherwise, it will be used on the host (CPU).
+     * Threshold for the number of objects in a leaf node above which the ray intersection tests run in parallel via thrust::device (i.e. the OpenMP backend).
+     * Below it a plain sequential loop is used, since starting a thread team costs ~17us (2 threads) to ~70us (20 threads) vs ~42ns per object sequentially.
+     * Grid-searched: parallel only wins from ~1024 (2-4 threads) to ~2048-4096 (20 threads) objects.
      */
     constexpr size_t LEAF_THRUST_PARALLEL_THRESHOLD = 2048;
 
