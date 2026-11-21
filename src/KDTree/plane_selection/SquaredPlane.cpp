@@ -85,12 +85,14 @@ namespace kdtree {
         };
 
         if (nested) {
-            //implicit taskgroup, so all chunks are done after this. default(shared) since locals of the
-            //enclosing task would be firstprivate otherwise
-#pragma omp taskloop default(shared) grainsize(1)
+            //one task per chunk instead of taskloop, MSVC's /openmp:llvm only does OpenMP 3.x and has no taskloop.
+            //default(shared) since locals of the enclosing task would be firstprivate otherwise.
+            //chunks spawn no child tasks, so taskwait is enough to know they're all done
             for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
+#pragma omp task default(shared) firstprivate(chunk)
                 processChunk(chunk);
             }
+#pragma omp taskwait
         } else {
             const int signedChunkCount = static_cast<int>(chunkCount);
 #pragma omp parallel for schedule(dynamic)
