@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <memory>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <thrust/iterator/transform_iterator.h>
@@ -37,7 +38,15 @@ namespace kdtree {
          * @param index The n-th node which to return
          * @return a vertex
          */
-        Vertex operator[](size_t index) const;
+        // inline + get_if: hot path in every ray test, std::visit + out-of-line call cost too much here
+        // in the header so it can get inlined
+        Vertex operator[](const size_t index) const {
+            const VertexHandle &handle = (*_vertices)[objVertices[index]];
+            if (const auto *ptr = std::get_if<const Vertex *>(&handle)) {
+                return **ptr;
+            }
+            return std::get<Vertex>(handle);
+        }
 
         /**
          * Get the indices of the corner vertices.

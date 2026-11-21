@@ -92,7 +92,7 @@ namespace kdtree {
          * @return
          */
         static std::optional<Vertex> rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                           const std::vector<Vertex> &triangleVertices);
+                                                           const std::array<Vertex, 3> &triangleVertices);
 
         /**
          * Ray-Point intersection test. Also counts the intersection if the ray passes the point with distance smaller than a specified epsilon.

@@ -12,7 +12,7 @@
 #SBATCH --mail-user=ben.frauenknecht@tum.de
 #SBATCH --export=NONE
 #SBATCH --qos=cm4_tiny
-#SBATCH --time=08:00:00
+#SBATCH --time=12:00:00
 
 # Usage:
 #   script/slurm_benchmark.sh setup    # login node: cmake configure, fetches deps so it needs internet

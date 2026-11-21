@@ -17,8 +17,9 @@ namespace kdtree {
         convertPlaneEventsToGeometry();
         for (const auto &handle: std::get<ObjectIndexVector>(_splitParam->boundObjects)) {
             const GeometryObject &object = _splitParam->geometryObjects[handle];
-            for (const auto &vertex: object.getVertices()) {
-                if (!_splitParam->boundingBox.isVertexInBox(vertex, constants::EPSILON_VERTEX_BOX_TOLERANCE)) {
+            // index access instead of getVertices(), no vector alloc per object
+            for (size_t i = 0; i < object.getIndexVector().size(); ++i) {
+                if (!_splitParam->boundingBox.isVertexInBox(object[i], constants::EPSILON_VERTEX_BOX_TOLERANCE)) {
                     return true;
                 }
             }
@@ -46,7 +47,7 @@ namespace kdtree {
         particles.reserve(boundObjects.size());
         for (const auto &objIndex: boundObjects) {
             const GeometryObject &object = _splitParam->geometryObjects[objIndex];
-            particles.emplace_back(object.getIndexVector()[0], object.getVertices()[0]);
+            particles.emplace_back(object.getIndexVector()[0], object[0]);
         }
         return particles;
     }
@@ -84,17 +85,18 @@ namespace kdtree {
     std::optional<Vertex> LeafNode::rayIntersectsObject(const Vertex &rayOrigin, const Vertex &rayVector,
                                                         const GeometryObject &object) {
         if (object.getIndexVector().size() == 3) {
-            return rayIntersectsTriangle(rayOrigin, rayVector, object.getVertices());
+            // stack array instead of getVertices(), the latter heap-allocates a vector per ray-object intersection test
+            return rayIntersectsTriangle(rayOrigin, rayVector, {object[0], object[1], object[2]});
         }
         if (object.getIndexVector().size() == 1) {
-            return rayIntersectsPoint(rayOrigin, rayVector, object.getVertices()[0]);
+            return rayIntersectsPoint(rayOrigin, rayVector, object[0]);
         }
         LOG_ERROR("LeafNode: rayIntersectsObject called with invalid object (neither triangle nor point)");
         throw std::runtime_error("Error: rayIntersectsObject called with neither a triangle nor a point.");
     }
 
     std::optional<Vertex> LeafNode::rayIntersectsTriangle(const Vertex &rayOrigin, const Vertex &rayVector,
-                                                          const std::vector<Vertex> &triangleVertices) {
+                                                          const std::array<Vertex, 3> &triangleVertices) {
         // Adapted Möller–Trumbore intersection algorithm
         // see https://en.wikipedia.org/wiki/Möller–Trumbore_intersection_algorithm
         using namespace kdtree;
