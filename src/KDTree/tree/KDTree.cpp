@@ -139,12 +139,14 @@ namespace kdtree {
 
     KDTree &KDTree::prebuildTree() {
         LOG_DEBUG("KDTree: prebuildTree called");
-        //queue for children of processed nodes
+        //root split outside the parallel region, otherwise its inner parallel loops are nested and get a team of 1.
+        //it's the most expensive split and would run on a single thread while the rest of the team idles.
+        const auto rootNode = getRootNode();
 #pragma omp parallel
         {
 #pragma omp single
             {
-                buildChildNodes(getRootNode());
+                buildChildNodes(rootNode);
             }
         }
         LOG_DEBUG("KDTree: prebuildTree finished");

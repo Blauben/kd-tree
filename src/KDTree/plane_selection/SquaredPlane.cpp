@@ -63,9 +63,10 @@ namespace kdtree {
 
         //per-chunk buffers instead of per-thread ones, so it doesn't matter which thread runs which chunk.
         //prebuildTree() calls us from inside its omp parallel/task tree, where a nested parallel for would
-        //just get a team of 1 -> process serially there, the tree-build tasks already keep the team busy.
+        //just get a team of 1 -> use a taskloop there instead, so idle threads of the outer team can help.
+        //matters near the top of the tree where there are fewer build tasks than threads.
         const bool nested = omp_in_parallel();
-        const int teamSize = nested ? 1 : omp_get_max_threads();
+        const int teamSize = nested ? omp_get_num_threads() : omp_get_max_threads();
         //a few chunks per thread for load balancing, but not more than the work is worth
         const std::ptrdiff_t chunkCount = std::clamp<std::ptrdiff_t>(
                 vertexCount / static_cast<std::ptrdiff_t>(constants::SQUARED_PLANE_PARALLEL_THRESHOLD),
@@ -84,6 +85,9 @@ namespace kdtree {
         };
 
         if (nested) {
+            //implicit taskgroup, so all chunks are done after this. default(shared) since locals of the
+            //enclosing task would be firstprivate otherwise
+#pragma omp taskloop default(shared) grainsize(1)
             for (std::ptrdiff_t chunk = 0; chunk < chunkCount; ++chunk) {
                 processChunk(chunk);
             }

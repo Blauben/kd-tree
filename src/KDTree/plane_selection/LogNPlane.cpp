@@ -1,7 +1,6 @@
 #include "KDTree/plane_selection/LogNPlane.h"
 
 namespace kdtree {
-    // O(N*log^2(N)) implementation
     std::tuple<Plane, double, std::variant<ObjectIndexVectors<2>, PlaneEventVectors<2>>> LogNPlane::findPlane(
             const SplitParam &splitParam) {
         //split the geometry through the optimal plane
@@ -9,7 +8,8 @@ namespace kdtree {
             return generatePlaneEventSubsets(optPlane.splitParam, *events, optPlane.getOptimalPlane(), minSideChosen);
         };
         //init the OptPlane to evaluate generated planes
-        OptimalPlaneLog optPlane{splitParam, geoSubsetCallback};
+        //no locking, the sweep below is serial and optPlane is local. the locks were pure overhead and with
+        OptimalPlaneLog optPlane{splitParam, geoSubsetCallback, /*useLocking=*/false};
         //generate the PlaneEvents or fetch them if already generated
         const auto events = std::make_shared<PlaneEventVector>(generatePlaneEvents(splitParam));
         ShapeCounter shapeCounter{3, {0, countGeometryObjects(splitParam.boundObjects), 0}};
@@ -28,7 +28,18 @@ namespace kdtree {
     PlaneEventVectors<2> LogNPlane::generatePlaneEventSubsets(const SplitParam &splitParam,
                                                               const PlaneEventVector &planeEvents, const Plane &plane,
                                                               const bool minSide) {
-        const auto geoClassification{classifyShapesRelativeToPlane(planeEvents, plane, minSide)};
+        //flat per-thread lookups indexed by objIndex instead of a hash map + set per node, saves the
+        //allocations (which serialize on the heap lock with many threads). grown once, reused across nodes.
+        //tasks are tied, so a thread can't switch to another node's task while it uses these.
+        thread_local std::vector<Locale> geoClassification;
+        //flat per-thread processed indices to avoid duplicates in the geoIndexBoth vector. Otherwise if a shape overlaps both sides of the plane, the shape index would be added multiple times. grown once, reused across nodes.
+        thread_local std::vector<char> processedIndices;
+        const size_t objectCount = splitParam.geometryObjects.size();
+        if (geoClassification.size() < objectCount) {
+            geoClassification.resize(objectCount, Locale::BOTH);
+            processedIndices.resize(objectCount, 0);
+        }
+        classifyShapesRelativeToPlane(planeEvents, plane, minSide, geoClassification);
         PlaneEventVector planeEventsMin{};
         PlaneEventVector planeEventsMax{};
         ObjectIndexVector geoIndexBoth{};
@@ -36,18 +47,17 @@ namespace kdtree {
         planeEventsMax.reserve(planeEvents.size() / 2);
         //value estimation taken from source paper
         geoIndexBoth.reserve(std::ceil(std::sqrt(planeEvents.size())));
-        std::unordered_set<size_t> processedIndices{};
 
-        auto insertToBothIfAbsent = [&geoIndexBoth, &processedIndices](const auto geoIndex) {
-            if (!processedIndices.contains(geoIndex)) {
-                processedIndices.insert(geoIndex);
+        auto insertToBothIfAbsent = [&geoIndexBoth](const auto geoIndex) {
+            if (!processedIndices[geoIndex]) {
+                processedIndices[geoIndex] = 1;
                 geoIndexBoth.push_back(geoIndex);
             }
         };
 
         std::ranges::for_each(planeEvents,
-                              [&geoClassification, &planeEventsMin, &planeEventsMax, &insertToBothIfAbsent](const auto &event) {
-                                  switch (geoClassification.at(event.objIndex)) {
+                              [&planeEventsMin, &planeEventsMax, &insertToBothIfAbsent](const auto &event) {
+                                  switch (geoClassification[event.objIndex]) {
                                       //shape of event only contributes to min side event can be added to side without clipping because no overlap with split plane
                                       case Locale::MIN_ONLY:
                                           planeEventsMin.push_back(event);
@@ -62,6 +72,10 @@ namespace kdtree {
                                           insertToBothIfAbsent(event.objIndex);
                                   }
                               });
+        //reset only what we touched, so the next node starts clean
+        for (const size_t geoIndex: geoIndexBoth) {
+            processedIndices[geoIndex] = 0;
+        }
 
         //generate new plane events for straddling shapes that were discarded previously
         auto [newMinEvents, newMaxEvents] = generatePlaneEventsForClippedShapes(splitParam, geoIndexBoth, plane);
@@ -71,12 +85,10 @@ namespace kdtree {
                 mergePlaneEventLists(planeEventsMax, newMaxEvents)};
     }
 
-    std::unordered_map<size_t, LogNPlane::Locale> LogNPlane::classifyShapesRelativeToPlane(
-            const PlaneEventVector &events, const Plane &plane, const bool minSide) {
-        std::unordered_map<size_t, Locale> result{};
-        //each shape generates 6 plane events on average, thus the amount of shapes can be roughly estimated.
-        result.reserve(events.size() / 6);
-        //preparing the map by initializing all shapes with them having area in both sub bounding boxes
+    void LogNPlane::classifyShapesRelativeToPlane(
+            const PlaneEventVector &events, const Plane &plane, const bool minSide, std::vector<Locale> &result) {
+        //preparing the lookup by initializing all shapes with them having area in both sub bounding boxes.
+        //this also overwrites leftovers from previous nodes, so result never needs a reset
         std::ranges::for_each(events, [&result](const auto &event) {
             result[event.objIndex] = Locale::BOTH;
         });
@@ -95,7 +107,6 @@ namespace kdtree {
                 }
             }
         });
-        return result;
     }
 
     std::array<PlaneEventVector, 2> LogNPlane::generatePlaneEventsForClippedShapes(

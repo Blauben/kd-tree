@@ -10,7 +10,8 @@ namespace kdtree {
             return generateGeometrySubsets(events, optPlane.getOptimalPlane(), minSideChosen);
         };
         //init the OptPlane to evaluate generated planes
-        OptimalPlaneLogNSquared optPlane{splitParam, geoSubsetCallback};
+        //no locking, the sweep is serial and optPlane is local (see LogNPlane::findPlane)
+        OptimalPlaneLogNSquared optPlane{splitParam, geoSubsetCallback, /*useLocking=*/false};
         for (const auto dimension: ALL_DIRECTIONS) {
             splitParam.splitDirection = dimension;
             findPlaneForSingleDimension(optPlane);

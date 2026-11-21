@@ -1,5 +1,5 @@
 /*
- * This file is taken from:
+ * This file is adapted from:
  *   https://https://github.com/esa/polyhedral-gravity-model
  *
  * Original authors: Schuhmacher, J., Blazquez, E., Gratl, F., Izzo, D., & Gómez, P.
@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Constants.h"
+#include "pragma.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -479,6 +480,59 @@ namespace kdtree::util {
             }
         }
         return {min, max};
+    }
+
+    namespace detail {
+
+        /**
+         * Task parallel merge sort. Halves get sorted in separate OpenMP tasks and merged afterwards.
+         * Must be called from inside a parallel region to actually run in parallel.
+         * @tparam It random access iterator
+         * @param first begin of the range
+         * @param last end of the range
+         * @param cutoff ranges up to this size are sorted serially with std::sort
+         */
+        template<typename It>
+        void parallelSortTasks(It first, It last, size_t cutoff) {
+            const auto n = static_cast<size_t>(std::distance(first, last));
+            if (n <= cutoff) {
+                std::sort(first, last);
+                return;
+            }
+            It mid = first + n / 2;
+            //one half as task, the other one on this thread so it doesn't idle
+#pragma omp task default(none) firstprivate(first, mid, cutoff)
+            parallelSortTasks(first, mid, cutoff);
+            parallelSortTasks(mid, last, cutoff);
+#pragma omp taskwait
+            std::inplace_merge(first, mid, last);
+        }
+
+    }// namespace detail
+
+    /**
+     * Sorts the range in parallel with OpenMP tasks, works with any OpenMP 3.0+ toolchain and falls back to a
+     * plain serial sort without OpenMP. Inside an existing parallel region the tasks are spawned into the current
+     * team, otherwise a new team is opened for the sort.
+     * @tparam It random access iterator
+     * @param first begin of the range
+     * @param last end of the range
+     * @param cutoff ranges up to this size are sorted serially with std::sort
+     */
+    template<typename It>
+    void parallelSort(It first, It last, size_t cutoff = 1 << 14) {
+        //not worth spinning up a team for small stuff
+        if (static_cast<size_t>(std::distance(first, last)) <= cutoff) {
+            std::sort(first, last);
+            return;
+        }
+        if (omp_in_parallel()) {
+            detail::parallelSortTasks(first, last, cutoff);
+        } else {
+#pragma omp parallel default(none) shared(first, last, cutoff)
+#pragma omp single
+            detail::parallelSortTasks(first, last, cutoff);
+        }
     }
 
 }// namespace kdtree::util

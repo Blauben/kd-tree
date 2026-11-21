@@ -71,9 +71,9 @@ namespace kdtree {
          * @param events The list of events whose shapes to classify.
          * @param plane The plane tht divides the shapes into two sets.
          * @param minSide
-         * @return An unordered_map used for lookups of individual shape locales.
+         * @param result Lookup vector indexed by objIndex, must be at least as big as the geometry object count. Only entries of shapes in events are written.
          */
-        static std::unordered_map<size_t, Locale> classifyShapesRelativeToPlane(const PlaneEventVector &events, const Plane &plane, bool minSide);
+        static void classifyShapesRelativeToPlane(const PlaneEventVector &events, const Plane &plane, bool minSide, std::vector<Locale> &result);
 
         /**
         * Creates new events for two sub bounding boxes out of shapes that overlap both of them.

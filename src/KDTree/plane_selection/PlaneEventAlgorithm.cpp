@@ -1,4 +1,5 @@
 #include "KDTree/plane_selection/PlaneEventAlgorithm.h"
+#include "KDTree/util/UtilityContainer.h"
 
 namespace kdtree {
     ShapeCounter::ShapeCounter(const size_t dimensionCount, const std::array<size_t, 3> &initialValues)
@@ -131,7 +132,9 @@ namespace kdtree {
                     throw std::runtime_error("PlaneEventAlgorithm::generatePlaneEventsFromGeometry: Invalid local index for generating PlaneEvent");
                 });
 
-        std::sort(output.begin(), output.end());
+        //the root sort is the one big serial chunk in the Log build. task based, so it also helps
+        //inside the build tasks by feeding idle threads of the existing team
+        util::parallelSort(output.begin(), output.end());
         return output;
     }
 
